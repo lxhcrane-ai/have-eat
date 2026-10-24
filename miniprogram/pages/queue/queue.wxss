@@ -1,0 +1,23 @@
+.hero-row { display: flex; justify-content: space-between; align-items: flex-end; }
+.hero-num { font-size: 84rpx; font-weight: 700; color: #e8ff47; line-height: 1; }
+.hero-label { color: #b9c4be; font-size: 26rpx; margin-top: 8rpx; }
+.hero-right { text-align: right; }
+.hero-ops { display: flex; gap: 16rpx; margin-top: 20rpx; }
+.btn.mini { flex: 1; padding: 0; height: 68rpx; line-height: 68rpx; font-size: 26rpx; margin: 0; }
+
+.tabs { display: flex; margin: 20rpx 0; }
+.tab { flex: 1; text-align: center; padding: 16rpx 0; color: #6b7772; font-size: 26rpx; border-bottom: 2rpx solid #1f2523; }
+.tab.on { color: #e8ff47; border-bottom-color: #e8ff47; font-weight: 600; }
+
+.group-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
+.group-name { font-size: 32rpx; font-weight: 600; }
+
+.item { border-top: 1rpx solid #1f2523; padding-top: 16rpx; margin-top: 16rpx; }
+.item-head { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; }
+.rid { font-family: monospace; font-size: 22rpx; color: #9aa8a1; background: #1a201d; padding: 4rpx 10rpx; border-radius: 6rpx; }
+.item-title { font-size: 28rpx; font-weight: 600; margin: 10rpx 0 6rpx; }
+.item-evidence { font-size: 24rpx; color: #b9c4be; }
+.item-action { font-size: 24rpx; color: #8ab4a0; margin-top: 4rpx; }
+.ta { width: 100%; background: #161b19; color: #e9eeec; border-radius: 10rpx; padding: 14rpx; font-size: 24rpx; margin-top: 12rpx; min-height: 90rpx; box-sizing: border-box; }
+.item-ops { display: flex; gap: 12rpx; margin-top: 12rpx; }
+.item-ops .btn.mini { font-size: 24rpx; }

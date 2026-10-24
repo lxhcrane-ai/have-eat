@@ -10,7 +10,8 @@ Page({
     date: '', wd: '', hasLog: false, offline: false, loading: true,
     f: null, metrics: [], alerts: [], tips: [], headline: '',
     score: 0, level: '--', tone: 'info',
-    phaseLabel: '', daysToWeigh: null, unread: 0, coachName: '教练'
+    phaseLabel: '', phaseGoal: '', daysToWeigh: null, unread: 0, coachName: '教练',
+    reminders: [], missingRequired: [], suppressedCount: 0
   },
 
   onShow() { this.load(); },
@@ -22,6 +23,7 @@ Page({
     let log = store.get(date);
     let cloudFb = null;
     let offline = false;
+    let reminders = [];
 
     const cloud = await api.call('getFeed', { date: date });
     if (cloud.ok) {
@@ -34,8 +36,14 @@ Page({
         store.upsert(log);
       }
       cloudFb = cloud.today && cloud.today.feedbackLive;
+      reminders = cloud.reminders || [];
     } else {
       offline = true;
+    }
+
+    // 离线时用本机残留的提醒（营养师端在同一台设备演示时能看到）
+    if (!reminders.length) {
+      try { reminders = require('../../utils/coachApi.js').localReminders(date); } catch (e) { reminders = []; }
     }
 
     let f = cloudFb;
@@ -43,28 +51,46 @@ Page({
       f = rules.evaluate(log, { profile: profile, recentMorningWeights: store.morningWeights(14) });
     }
 
-    this.render(f, log, profile, date, wd, offline);
+    this.render(f, log, profile, date, wd, offline, reminders);
     this.loadInbox();
   },
 
-  render(f, log, profile, date, wd, offline) {
+  render(f, log, profile, date, wd, offline, reminders) {
     if (!f) {
       this.setData({
         date: date, wd: wd, hasLog: false, offline: offline, loading: false,
         phaseLabel: PHASE_LABEL[profile.phase] || '未设阶段',
         daysToWeigh: this.daysToWeigh(profile),
         f: null, metrics: [], alerts: [], tips: [], score: 0, level: '--', tone: 'info',
-        headline: '今天还没填。填完立刻出营养反馈。'
+        headline: '今天还没填。填完立刻出营养反馈。',
+        reminders: reminders || [],
+        missingRequired: [], suppressedCount: 0
       });
       return;
     }
 
     const kbMap = rules.KB_MAP;
     const alerts = (f.alerts || []).map(function (a) {
+      const rule = a.ruleId ? rules.getRuleById(a.ruleId) : null;
+      const srcs = (a.sources || (rule ? rule.sources : [])).map(function (s) {
+        return {
+          typeName: rules.SOURCE_TYPES.filter(function (t) { return t.id === s.sourceType; }).map(function (t) { return t.name; })[0] || s.sourceType,
+          year: s.year,
+          anchor: s.anchor,
+          doi: s.doi || '',
+          citation: s.citation
+        };
+      });
       return {
+        ruleId: a.ruleId || '',
+        ruleName: a.ruleName || (rule ? rule.name : ''),
         level: a.level,
         title: a.title,
         text: a.text,
+        evidence: a.evidence || '',
+        reviewStatus: a.reviewStatus || 'active',
+        reviewStatusName: a.reviewStatusName || '',
+        sources: srcs,
         kbTitles: (a.kb || []).map(function (id) {
           return kbMap[id] ? kbMap[id].title : '';
         }).filter(function (t) { return !!t; }),
@@ -86,11 +112,11 @@ Page({
 
     const metrics = [
       { label: '晨重', value: f.bw || '--', unit: 'kg', tone: '' },
-      { label: '训练脱水', value: f.hydration.pct === null ? '--' : f.hydration.pct, unit: '%', tone: f.hydration.level === 'red' ? 'red' : (f.hydration.level === 'amber' ? 'amber' : '') },
+      { label: '训练脱水', value: f.hydration.mode === 'plan' ? (f.hydration.planRate === null ? '--' : f.hydration.planRate) : (f.hydration.pct === null ? '--' : f.hydration.pct), unit: f.hydration.mode === 'plan' ? '% 计划' : '%', tone: f.hydration.level === 'red' ? 'red' : (f.hydration.level === 'amber' ? 'amber' : '') },
       { label: '蛋白', value: f.protein.actualG, unit: '/ ' + (f.protein.targetG || '--') + 'g', tone: f.protein.level === 'red' ? 'red' : (f.protein.level === 'amber' ? 'amber' : '') },
       { label: '摄入', value: f.totals.kcal, unit: 'kcal', tone: '' },
       { label: '酸痛峰', value: f.recovery.sorenessMax === null ? '--' : f.recovery.sorenessMax, unit: '/10', tone: f.recovery.level === 'red' ? 'red' : (f.recovery.level === 'amber' ? 'amber' : '') },
-      { label: '睡眠', value: f.recovery.sleepHours === null ? '--' : f.recovery.sleepHours, unit: 'h', tone: (f.recovery.sleepHours !== null && f.recovery.sleepHours < 6.5) ? 'amber' : '' }
+      { label: '睡眠', value: f.recovery.sleepHours === null ? '--' : f.recovery.sleepHours, unit: 'h', tone: (f.recovery.sleepHours !== null && f.recovery.sleepHours < (f.phase === 'peak' ? 7 : 6.5)) ? 'amber' : '' }
     ];
 
     this.setData({
@@ -104,7 +130,11 @@ Page({
       alerts: alerts,
       tips: f.tips || [],
       phaseLabel: PHASE_LABEL[f.phase] || '未设阶段',
-      daysToWeigh: this.daysToWeigh(profile)
+      phaseGoal: (f.phaseProfile && f.phaseProfile.goal) || '',
+      daysToWeigh: this.daysToWeigh(profile),
+      reminders: reminders || [],
+      missingRequired: f.missingRequired || [],
+      suppressedCount: (f.suppressed || []).length
     });
   },
 

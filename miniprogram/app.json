@@ -6,6 +6,8 @@
     "pages/kb/kb",
     "pages/me/me",
     "pages/coach/coach",
+    "pages/queue/queue",
+    "pages/rules/rules",
     "pages/chat/chat",
     "pages/bind/bind"
   ],

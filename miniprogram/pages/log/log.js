@@ -35,6 +35,14 @@ function emptyDraft(date) {
     mood: { fatigue: 3, stress: 3, appetite: 3 },
     meals: [],
     nextPlan: { type: '', note: '' },
+    // 微调期：补液计划与实际执行
+    hydrationPlan: { planMl: '', actualMl: '', sodiumOk: true },
+    // 微调/恢复期：胃肠症状（0 无 – 4 严重；appetite 指"食欲下降"）
+    giSymptoms: { nausea: 0, bloating: 0, cramp: 0, appetite: 0, vomiting: false },
+    // 补剂执行
+    supplementPlan: { planned: [], taken: [], creatineG: '', caffeineMg: '' },
+    // 恢复期：称重后补液补糖
+    postWeighIn: { fluidMl: '', carbG: '', fluidSodium: true, subjective: 3, weighInKg: '', glycogenDepleted: true },
     goal: {}
   };
 }
@@ -49,13 +57,48 @@ Page({
     sorenessList: [],
     saving: false, offline: false, isHistory: false,
     urineTones: [1, 2, 3, 4, 5, 6, 7, 8],
-    rpeMarks: { 1: '很轻', 10: '极限' }
+    rpeMarks: { 1: '很轻', 10: '极限' },
+    // 阶段驱动的表单：阶段决定哪些字段必填、哪些出现
+    phaseId: 'maintain', phaseLabel: '', phaseGoal: '', phaseNote: '',
+    phaseRequired: [], phaseOptional: [],
+    giList: [], suppList: [],
+    giKeys: [
+      { key: 'nausea', name: '恶心' },
+      { key: 'bloating', name: '腹胀' },
+      { key: 'cramp', name: '痉挛' },
+      { key: 'appetite', name: '食欲下降' }
+    ],
+    suppOptions: [
+      { id: 'creatine', name: '肌酸' },
+      { id: 'caffeine', name: '咖啡因' },
+      { id: 'betaAlanine', name: 'β-丙氨酸' }
+    ]
   },
 
   onLoad(query) {
     const date = (query && query.date) || fmt.todayStr();
     this.setData({ isHistory: date !== fmt.todayStr() });
+    this.applyPhase();
     this.loadDraft(date);
+  },
+
+  // 阶段只读：由营养师后台设置，拳王端不提供切换
+  applyPhase() {
+    const profile = wx.getStorageSync('profile') || {};
+    const prof = rules.getPhaseProfile(profile.phase);
+    const fields = rules.fieldsFor(prof.id);
+    this.setData({
+      phaseId: prof.id,
+      phaseLabel: prof.label,
+      phaseGoal: prof.goal,
+      phaseNote: prof.notes,
+      phaseRequired: fields.required,
+      phaseOptional: fields.optional
+    });
+  },
+
+  isRequired(key) {
+    return this.data.phaseRequired.some(function (f) { return f.key === key; });
   },
 
   onShow() {
@@ -103,6 +146,30 @@ Page({
           return { slot: m.slot || 'snack', time: m.time || '', items: m.items || [], note: m.note || '', photoFileId: m.photoFileId || '', photoLocal: '' };
         }),
         nextPlan: { type: (n.nextPlan && n.nextPlan.type) || '', note: (n.nextPlan && n.nextPlan.note) || '' },
+        hydrationPlan: {
+          planMl: n.hydrationPlan.planMl === null ? '' : String(n.hydrationPlan.planMl),
+          actualMl: n.hydrationPlan.actualMl === null ? '' : String(n.hydrationPlan.actualMl),
+          sodiumOk: n.hydrationPlan.sodiumOk !== false
+        },
+        giSymptoms: {
+          nausea: n.giSymptoms.nausea || 0, bloating: n.giSymptoms.bloating || 0,
+          cramp: n.giSymptoms.cramp || 0, appetite: n.giSymptoms.appetite || 0,
+          vomiting: !!n.giSymptoms.vomiting
+        },
+        supplementPlan: {
+          planned: n.supplementPlan.planned || [],
+          taken: n.supplementPlan.taken || [],
+          creatineG: n.supplementPlan.creatineG === null ? '' : String(n.supplementPlan.creatineG),
+          caffeineMg: n.supplementPlan.caffeineMg === null ? '' : String(n.supplementPlan.caffeineMg)
+        },
+        postWeighIn: {
+          fluidMl: n.postWeighIn.fluidMl === null ? '' : String(n.postWeighIn.fluidMl),
+          carbG: n.postWeighIn.carbG === null ? '' : String(n.postWeighIn.carbG),
+          fluidSodium: n.postWeighIn.fluidSodium !== false,
+          subjective: n.postWeighIn.subjective === null ? 3 : n.postWeighIn.subjective,
+          weighInKg: n.postWeighIn.weighInKg === null ? '' : String(n.postWeighIn.weighInKg),
+          glycogenDepleted: n.postWeighIn.glycogenDepleted !== false
+        },
         goal: n.goal || {}
       };
     } else {
@@ -111,7 +178,29 @@ Page({
     }
     this.setData({ draft: d });
     this.syncSoreness();
+    this.syncGi();
+    this.syncSupp();
     this.recalc();
+  },
+
+  syncGi() {
+    const g = (this.data.draft && this.data.draft.giSymptoms) || {};
+    this.setData({
+      giList: this.data.giKeys.map(function (k) { return { key: k.key, name: k.name, v: Number(g[k.key] || 0) }; })
+    });
+  },
+
+  syncSupp() {
+    const sp = (this.data.draft && this.data.draft.supplementPlan) || { planned: [], taken: [] };
+    this.setData({
+      suppList: this.data.suppOptions.map(function (o) {
+        return {
+          id: o.id, name: o.name,
+          planned: (sp.planned || []).indexOf(o.id) >= 0,
+          taken: (sp.taken || []).indexOf(o.id) >= 0
+        };
+      })
+    });
   },
 
   syncSoreness() {
@@ -151,6 +240,37 @@ Page({
     const date = e.detail.value;
     this.setData({ isHistory: date !== fmt.todayStr() });
     this.loadDraft(date);
+  },
+
+  // 胃肠症状（0 无 – 4 严重）
+  onGi(e) {
+    const k = e.currentTarget.dataset.k;
+    const o = {}; o['draft.giSymptoms.' + k] = e.detail.value;
+    this.setData(o);
+    this.syncGi();
+    this.recalc();
+  },
+
+  // 补剂计划 / 已执行 多选
+  toggleSupp(e) {
+    const ds = e.currentTarget.dataset;
+    const list = (this.data.draft.supplementPlan[ds.kind] || []).slice();
+    const i = list.indexOf(ds.id);
+    if (i >= 0) list.splice(i, 1); else list.push(ds.id);
+    const o = {}; o['draft.supplementPlan.' + ds.kind] = list;
+    this.setData(o);
+    this.syncSupp();
+  },
+
+  onBool(e) {
+    const k = e.currentTarget.dataset.k;
+    const parts = k.split('.');
+    let cur = this.data.draft;
+    for (let i = 0; i < parts.length - 1; i++) cur = cur[parts[i]];
+    const last = parts[parts.length - 1];
+    const o = {}; o['draft.' + k] = !cur[last];
+    this.setData(o);
+    this.recalc();
   },
 
   // ---------- 餐食 ----------
@@ -313,6 +433,10 @@ Page({
       mood: d.mood,
       meals: meals,
       nextPlan: d.nextPlan,
+      hydrationPlan: d.hydrationPlan,
+      giSymptoms: d.giSymptoms,
+      supplementPlan: d.supplementPlan,
+      postWeighIn: d.postWeighIn,
       goal: d.goal
     };
   },

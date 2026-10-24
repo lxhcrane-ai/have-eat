@@ -142,16 +142,75 @@ fs.readdirSync(CF).forEach(function (fn) {
 
 // ---------- 8. 云端 lib 与小程序端是否同步 ----------
 console.log('\n8) 规则引擎同步状态');
-['saveLog', 'getFeed'].forEach(function (fn) {
+['saveLog', 'getFeed', 'coachApi'].forEach(function (fn) {
   const local = path.join(MP, 'utils', 'rules.js');
   const remote = path.join(CF, fn, 'lib', 'rules.js');
   if (!exists(remote)) { err(fn + '/lib/rules.js 不存在，先跑 bash scripts/sync-shared.sh'); return; }
-  const a = read(local).replace(/require\('\.\.\/data\/knowledge\.js'\)/, "require('./knowledge.js')");
+  const a = read(local)
+    .replace(/require\('\.\.\/data\/knowledge\.js'\)/, "require('./knowledge.js')")
+    .replace(/require\('\.\.\/data\/ruleRegistry\.js'\)/, "require('./ruleRegistry.js')");
   const b = read(remote);
   if (a !== b) err(fn + '/lib/rules.js 与 miniprogram/utils/rules.js 不一致，跑 bash scripts/sync-shared.sh');
   const kbA = read(path.join(MP, 'data', 'knowledge.js'));
   const kbB = exists(path.join(CF, fn, 'lib', 'knowledge.js')) ? read(path.join(CF, fn, 'lib', 'knowledge.js')) : '';
   if (kbA !== kbB) err(fn + '/lib/knowledge.js 未同步');
+  const regA = read(path.join(MP, 'data', 'ruleRegistry.js'));
+  const regB = exists(path.join(CF, fn, 'lib', 'ruleRegistry.js')) ? read(path.join(CF, fn, 'lib', 'ruleRegistry.js')) : '';
+  if (regA !== regB) err(fn + '/lib/ruleRegistry.js 未同步');
+  const fuA = exists(path.join(MP, 'utils', 'followup.js'))
+    ? read(path.join(MP, 'utils', 'followup.js')).replace(/require\('\.\.\/data\/ruleRegistry\.js'\)/, "require('./ruleRegistry.js')")
+    : '';
+  const fuB = exists(path.join(CF, fn, 'lib', 'followup.js')) ? read(path.join(CF, fn, 'lib', 'followup.js')) : '';
+  if (fuA && fuA !== fuB) err(fn + '/lib/followup.js 未同步');
+});
+
+// ---------- 10. 规则登记表一致性 ----------
+console.log('\n10) 规则登记表');
+const rulesMod = require(path.join(MP, 'utils', 'rules.js'));
+const regIds = rulesMod.listRules().map(function (r) { return r.ruleId; });
+if (new Set(regIds).size !== regIds.length) err('ruleId 有重复');
+let regProblems = [];
+rulesMod.listRules().forEach(function (r) {
+  if (!r.name || !r.logicSummary || !r.thresholds) regProblems.push(r.ruleId + ' 缺名称/逻辑/阈值');
+  if (!r.sources || !r.sources.length) regProblems.push(r.ruleId + ' 没有来源');
+  (r.sources || []).forEach(function (s) {
+    if (!s.citation || !s.anchor || !s.year) regProblems.push(r.ruleId + ' 来源缺 citation/anchor/year');
+    if (!s.doi && !s.url) regProblems.push(r.ruleId + ' 来源缺 doi/url');
+  });
+  if (!r.applicablePhases || !r.applicablePhases.length) regProblems.push(r.ruleId + ' 没有适用阶段');
+  ['active', 'needs_review', 'deprecated'].indexOf(r.reviewStatus) < 0 && regProblems.push(r.ruleId + ' reviewStatus 非法');
+});
+if (regProblems.length) err('登记表问题：' + regProblems.slice(0, 6).join('；') + (regProblems.length > 6 ? ' …共 ' + regProblems.length : ''));
+
+// 阶段配置里引用的 ruleId 必须都在登记表中
+let phaseProblems = [];
+Object.keys(rulesMod.PHASE_PROFILES).forEach(function (p) {
+  const prof = rulesMod.PHASE_PROFILES[p];
+  prof.activeRuleIds.concat(prof.suppressedRuleIds).forEach(function (id) {
+    if (regIds.indexOf(id) < 0) phaseProblems.push(p + ' -> ' + id);
+  });
+  const w = prof.metricWeights;
+  const sum = Object.keys(w).reduce(function (s, k) { return s + w[k]; }, 0);
+  if (sum !== 100) phaseProblems.push(p + ' 权重合计 ' + sum);
+});
+if (phaseProblems.length) err('阶段配置问题：' + phaseProblems.join('；'));
+
+// 登记表的 applicablePhases 必须与阶段配置的 activeRuleIds 完全一致（防止文档与代码漂移）
+let driftProblems = [];
+regIds.forEach(function (id) {
+  const r = rulesMod.getRuleById(id);
+  PHASE_LIST().forEach(function (p) {
+    const active = rulesMod.PHASE_PROFILES[p].activeRuleIds.indexOf(id) >= 0;
+    const declared = (r.applicablePhases || []).indexOf(p) >= 0;
+    if (active !== declared) driftProblems.push(id + '@' + p + (active ? ' 代码启用但登记表没写' : ' 登记表写了但代码未启用'));
+  });
+});
+function PHASE_LIST() { return ['maintain', 'cut', 'peak', 'recover']; }
+if (driftProblems.length) err('阶段与登记表不一致：' + driftProblems.join('；'));
+
+// 两条新页面必须能被找到（队列 / 规则库）
+['pages/queue/queue', 'pages/rules/rules'].forEach(function (p) {
+  if (!exists(path.join(MP, p + '.js'))) err('缺少页面 ' + p);
 });
 
 // ---------- 9. 配置占位符 ----------

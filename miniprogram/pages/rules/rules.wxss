@@ -1,0 +1,11 @@
+.filters { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 16rpx; }
+.rule-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12rpx; }
+.rule-left { flex: 1; }
+.rid { font-family: monospace; font-size: 22rpx; color: #9aa8a1; background: #1a201d; padding: 4rpx 10rpx; border-radius: 6rpx; margin-right: 10rpx; }
+.rule-name { font-size: 28rpx; font-weight: 600; }
+.sec-label { font-size: 24rpx; color: #8a968f; margin-top: 16rpx; }
+.sec-body { font-size: 26rpx; color: #e9eeec; line-height: 1.6; margin-top: 6rpx; }
+.src { border-left: 2rpx solid #2a332e; padding-left: 16rpx; margin-top: 14rpx; }
+.src-top { display: flex; align-items: center; }
+.src-anchor { font-size: 24rpx; color: #d6e0da; margin: 8rpx 0 4rpx; line-height: 1.5; }
+.notes { font-size: 24rpx; color: #ffc46b; background: #241c10; border-radius: 10rpx; padding: 14rpx; margin-top: 8rpx; line-height: 1.6; }

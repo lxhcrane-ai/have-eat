@@ -19,10 +19,12 @@
       </picker>
     </view>
     <view class="row"><text class="label">静息心率基线</text><input class="input flex-r" type="number" value="{{profile.restingHrBaseline}}" data-k="restingHrBaseline" bindinput="onInput" placeholder="58" /></view>
-    <view class="sub-label">当前阶段</view>
+    <view class="sub-label">当前阶段（由营养师设置，拳王端只读）</view>
     <view class="chips">
-      <view class="chip {{profile.phase === item.id ? 'on' : ''}}" wx:for="{{phases}}" wx:key="id" data-id="{{item.id}}" bindtap="pickPhase">{{item.name}}</view>
+      <view class="chip {{profile.phase === item.id ? 'on' : ''}}" wx:for="{{phases}}" wx:key="id">{{item.name}}</view>
     </view>
+    <view class="tiny" wx:if="{{profile.phaseEffectiveDate}}">自 {{profile.phaseEffectiveDate}} 起生效 · 阶段决定评分权重与告警规则</view>
+    <view class="tiny" wx:else>还没设置阶段：默认按维持期计算。让营养师在后台切阶段后，规则集和评分权重会跟着变。</view>
     <button class="btn" bindtap="save" loading="{{saving}}" style="margin-top:20rpx">保存档案</button>
   </view>
 

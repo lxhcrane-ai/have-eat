@@ -1,0 +1,80 @@
+<view class="page">
+  <!-- 顶部数字：营养师第一眼看到的是"今天要处理几件事" -->
+  <view class="card hero">
+    <view class="hero-row">
+      <view class="hero-left">
+        <view class="hero-num">{{stats.total}}</view>
+        <view class="hero-label">件事需要你处理</view>
+      </view>
+      <view class="hero-right">
+        <view class="tiny">{{date}}</view>
+        <view class="tiny" wx:if="{{stats.escalated}}"><text class="badge red">{{stats.escalated}} 项升级</text></view>
+        <view class="tiny" wx:if="{{!stats.escalated}}">无升级项</view>
+      </view>
+    </view>
+    <view class="hero-ops">
+      <button class="btn mini" bindtap="refreshQueue">重新生成队列</button>
+      <button class="btn ghost mini" bindtap="goRules">规则库</button>
+    </view>
+    <view class="tiny" wx:if="{{offline}}">离线：看不到云端队列，先在云开发控制台建 followups / reminders 集合</view>
+  </view>
+
+  <view class="tabs">
+    <view class="tab {{tab === 'todo' ? 'on' : ''}}" data-tab="todo" bindtap="switchTab">待处理</view>
+    <view class="tab {{tab === 'history' ? 'on' : ''}}" data-tab="history" bindtap="switchTab">已确认 / 已忽略</view>
+  </view>
+
+  <block wx:if="{{tab === 'todo'}}">
+    <view class="empty" wx:if="{{!loading && !groups.length}}">
+      <view>今天没有需要人跟进的项</view>
+      <view class="tiny" style="margin-top:12rpx">规则引擎只在指标真的越界时才推给你；拳王还没填的话，等他填完再刷新</view>
+    </view>
+
+    <view class="card group" wx:for="{{groups}}" wx:key="athleteId" wx:for-index="gi" wx:for-item="g">
+      <view class="group-head">
+        <view>
+          <text class="group-name">{{g.name}}</text>
+          <text class="tiny"> · {{g.count}} 项</text>
+          <view class="tiny">{{g.date}}<text wx:if="{{g.escalated}}"> · {{g.escalated}} 项需人工介入</text></view>
+        </view>
+        <view class="badge {{g.maxLevel === 'red' ? 'red' : 'amber'}}">{{g.maxLevel === 'red' ? '有红灯' : '关注'}}</view>
+      </view>
+
+      <view class="item" wx:for="{{g.items}}" wx:key="id" wx:for-index="ii" wx:for-item="it">
+        <view class="item-head">
+          <text class="rid">{{it.ruleId}}</text>
+          <text class="badge {{it.level === 'red' ? 'red' : 'amber'}}">{{it.level === 'red' ? '必须' : '注意'}}</text>
+          <text class="badge red" wx:if="{{it.escalated}}">升级</text>
+          <text class="badge amber" wx:if="{{it.reviewStatus === 'needs_review'}}">规则待复核</text>
+        </view>
+        <view class="item-title">{{it.title}}</view>
+        <view class="item-evidence">证据：{{it.evidence}}</view>
+        <view class="item-action">建议：{{it.suggestedAction}}</view>
+        <view class="tiny" wx:if="{{it.escalated}}">{{it.escalationReason}}</view>
+        <view class="tiny" wx:if="{{it.consecutiveDays > 1}}">连续 {{it.consecutiveDays}} 天未解决</view>
+
+        <textarea class="ta" value="{{it.reminderText}}" data-gi="{{gi}}" data-ii="{{ii}}" bindinput="onRemind" auto-height placeholder="次日提醒文案（可改写，拳王只会看到这一段）" />
+        <input class="input" value="{{it.note}}" data-gi="{{gi}}" data-ii="{{ii}}" bindinput="onNote" placeholder="营养师备注（内部可见）" />
+
+        <view class="item-ops">
+          <button class="btn mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="confirm">确认发送次日提醒</button>
+          <button class="btn ghost mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="snooze">稍后</button>
+          <button class="btn ghost mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="dismiss">忽略</button>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <block wx:if="{{tab === 'history'}}">
+    <view class="empty" wx:if="{{!historyLoading && !history.length}}">还没有确认或忽略记录</view>
+    <view class="card" wx:for="{{history}}" wx:key="_id">
+      <view class="row">
+        <text class="label">{{item.date}} · {{item.ruleId}}</text>
+        <text class="badge {{item.status === 'confirmed' ? 'ok' : 'info'}}">{{item.status === 'confirmed' ? '已确认' : '已忽略'}}</text>
+      </view>
+      <view class="tiny">{{item.title}}</view>
+      <view class="tiny" wx:if="{{item.nutritionistNote}}">备注：{{item.nutritionistNote}}</view>
+      <view class="tiny" wx:if="{{item.nextReminderDate}}">次日提醒：{{item.nextReminderDate}}</view>
+    </view>
+  </block>
+</view>

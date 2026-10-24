@@ -6,6 +6,15 @@
     <view class="preview">{{preview}}</view>
   </view>
 
+  <!-- 阶段条：阶段由营养师设置，决定下面哪些字段必填 -->
+  <view class="phase-bar">
+    <view class="phase-name">{{phaseLabel}}</view>
+    <view class="tiny">{{phaseGoal}}</view>
+    <view class="tiny req" wx:if="{{phaseRequired.length}}">本阶段必填：
+      <text wx:for="{{phaseRequired}}" wx:key="key">{{item.label}}{{index === phaseRequired.length - 1 ? '' : '、'}}</text>
+    </view>
+  </view>
+
   <!-- 体重 -->
   <view class="card">
     <view class="card-title">体重<text class="tiny">同条件、空腹、如厕后</text></view>
@@ -68,6 +77,85 @@
         <input class="input num" type="number" value="{{draft.restingHr}}" data-k="restingHr" bindinput="onNum" placeholder="58" />
         <text class="unit">次/分</text>
       </view>
+    </view>
+  </view>
+
+  <!-- 微调期专用：阶段把"脱水百分比"换成"计划执行率" -->
+  <view class="card" wx:if="{{phaseId === 'peak'}}">
+    <view class="card-title">微调期：补液计划执行<text class="tiny">本阶段不看脱水百分比</text></view>
+    <view class="row">
+      <text class="label">计划补液量</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.hydrationPlan.planMl}}" data-k="hydrationPlan.planMl" bindinput="onNum" placeholder="3000" />
+        <text class="unit">ml</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">实际完成</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.hydrationPlan.actualMl}}" data-k="hydrationPlan.actualMl" bindinput="onNum" placeholder="2800" />
+        <text class="unit">ml</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">用含钠液体</text>
+      <switch checked="{{draft.hydrationPlan.sodiumOk}}" data-k="hydrationPlan.sodiumOk" bindchange="onBool" color="#e8ff47" />
+    </view>
+    <view class="sub-label">胃肠症状（0 无 – 4 严重）</view>
+    <view class="sore-row" wx:for="{{giList}}" wx:key="key">
+      <text class="label">{{item.name}}</text>
+      <slider class="sore-slider" min="0" max="4" step="1" value="{{item.v}}" activeColor="{{item.v >= 3 ? '#ff7a6b' : '#e8ff47'}}" backgroundColor="#2a3330" block-size="18" data-k="{{item.key}}" bindchange="onGi" />
+      <text class="sore-val">{{item.v}}</text>
+    </view>
+    <view class="sub-label">补剂：计划 / 今天已执行</view>
+    <view class="supp-row" wx:for="{{suppList}}" wx:key="id">
+      <text class="label">{{item.name}}</text>
+      <view class="chip {{item.planned ? 'on' : ''}}" data-kind="planned" data-id="{{item.id}}" bindtap="toggleSupp">计划</view>
+      <view class="chip {{item.taken ? 'on' : ''}}" data-kind="taken" data-id="{{item.id}}" bindtap="toggleSupp">执行</view>
+    </view>
+  </view>
+
+  <!-- 恢复期专用：称重后补液补糖 -->
+  <view class="card" wx:if="{{phaseId === 'recover'}}">
+    <view class="card-title">称重后恢复<text class="tiny">补液补糖，把体重拉回比赛水平</text></view>
+    <view class="row">
+      <text class="label">称重时体重</text>
+      <view class="input-wrap">
+        <input class="input num" type="digit" value="{{draft.postWeighIn.weighInKg}}" data-k="postWeighIn.weighInKg" bindinput="onNum" placeholder="54.0" />
+        <text class="unit">kg</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">称重后补液</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.postWeighIn.fluidMl}}" data-k="postWeighIn.fluidMl" bindinput="onNum" placeholder="1200" />
+        <text class="unit">ml</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">用了含钠液体</text>
+      <switch checked="{{draft.postWeighIn.fluidSodium}}" data-k="postWeighIn.fluidSodium" bindchange="onBool" color="#e8ff47" />
+    </view>
+    <view class="row">
+      <text class="label">碳水总量</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.postWeighIn.carbG}}" data-k="postWeighIn.carbG" bindinput="onNum" placeholder="500" />
+        <text class="unit">g</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">糖原明显耗尽</text>
+      <switch checked="{{draft.postWeighIn.glycogenDepleted}}" data-k="postWeighIn.glycogenDepleted" bindchange="onBool" color="#e8ff47" />
+    </view>
+    <view class="sub-label">主观恢复感（1 很差 – 5 很好）</view>
+    <view class="chips">
+      <view class="chip {{draft.postWeighIn.subjective == item ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" data-k="postWeighIn.subjective" data-v="{{item}}" bindtap="onPick">{{item}}</view>
+    </view>
+    <view class="sub-label">胃肠症状（0 无 – 4 严重）</view>
+    <view class="sore-row" wx:for="{{giList}}" wx:key="key">
+      <text class="label">{{item.name}}</text>
+      <slider class="sore-slider" min="0" max="4" step="1" value="{{item.v}}" activeColor="{{item.v >= 3 ? '#ff7a6b' : '#e8ff47'}}" backgroundColor="#2a3330" block-size="18" data-k="{{item.key}}" bindchange="onGi" />
+      <text class="sore-val">{{item.v}}</text>
     </view>
   </view>
 

@@ -13,3 +13,11 @@
 .d-date { font-weight: 600; font-size: 25rpx; }
 .d-left { flex: 1; }
 .d-right { text-align: right; color: #8a968f; }
+
+.queue-hero { display: flex; justify-content: space-between; align-items: center; border: 1rpx solid #2a3a30; background: #101a14; }
+.qh-num { font-size: 64rpx; font-weight: 800; color: #e8ff47; margin-right: 10rpx; }
+.qh-label { font-size: 26rpx; color: #b9c4be; }
+.qh-right .op { color: #6bc4ff; font-size: 26rpx; }
+.link-row { text-align: right; margin: -8rpx 0 16rpx; }
+.phase-row { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; margin: 10rpx 0; }
+.chip.sm { font-size: 22rpx; padding: 6rpx 16rpx; }

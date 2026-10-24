@@ -8,9 +8,25 @@
   <block wx:if="{{isCoach}}">
     <view class="coach-head">
       <view>
-        <view class="title">教练看板</view>
+        <view class="title">营养师后台</view>
         <view class="tiny">{{athletes.length}} 名拳王 · 下拉刷新</view>
       </view>
+    </view>
+
+    <!-- 第一眼：今天需要处理几件事 -->
+    <view class="card queue-hero" bindtap="goQueue">
+      <view>
+        <text class="qh-num">{{queue.pending}}</text>
+        <text class="qh-label">件事待处理</text>
+        <view class="tiny" wx:if="{{queue.escalated}}">{{queue.escalated}} 项已升级为人工介入</view>
+        <view class="tiny" wx:if="{{!queue.escalated}}">没有升级项</view>
+      </view>
+      <view class="qh-right">
+        <text class="op">跟进队列 ›</text>
+      </view>
+    </view>
+    <view class="link-row">
+      <text class="op" bindtap="goRules">规则库与文献锚点 ›</text>
     </view>
 
     <view class="empty" wx:if="{{!athletes.length}}">
@@ -30,6 +46,13 @@
       </view>
 
       <view class="ath-sum">{{item.summary}}</view>
+
+      <!-- 阶段由营养师在这里切换，拳王端只读 -->
+      <view class="phase-row">
+        <text class="tiny">阶段</text>
+        <view class="chip sm {{item.phase === p.id ? 'on' : ''}}" wx:for="{{phases}}" wx:for-item="p" wx:for-index="pi" wx:key="id" data-id="{{item.openid}}" data-phase="{{p.id}}" bindtap="setPhase">{{p.name}}</view>
+      </view>
+
       <view class="alert-mini" wx:for="{{item.reds}}" wx:key="title" wx:for-item="r">
         <text class="badge red">必须</text> {{r.title}}
       </view>

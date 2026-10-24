@@ -4,6 +4,16 @@ const db = cloud.database();
 const _ = db.command;
 const rules = require('./lib/rules.js');
 
+// 规则复核状态覆盖（rule_reviews 集合）。集合不存在时用登记表默认值。
+async function reviewOverrides() {
+  try {
+    const r = await db.collection('rule_reviews').limit(100).get();
+    const map = {};
+    r.data.forEach(function (x) { map[x.ruleId] = x.status; });
+    return map;
+  } catch (e) { return {}; }
+}
+
 // 拳王保存当日记录：upsert logs（按 date 幂等）-> 计算评估 -> 通知教练
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
@@ -39,22 +49,37 @@ exports.main = async (event) => {
     }).filter(function (p) { return p.kg !== null && p.kg !== undefined; });
   } catch (e) { /* 首次没有历史 */ }
 
-  const feedback = rules.evaluate(log, { profile: profile, recentMorningWeights: recent });
+  const feedback = rules.evaluate(log, { profile: profile, recentMorningWeights: recent, ruleReviews: await reviewOverrides() });
 
   const doc = {
     athleteId: OPENID,
     date: log.date,
     payload: log,
     feedback: {
+      version: 3,
       score: feedback.score,
       level: feedback.level,
       headline: feedback.headline,
       summary: feedback.coachSummary,
-      alerts: feedback.alerts.map(function (a) { return { level: a.level, title: a.title, text: a.text, kb: a.kb }; }),
+      phase: feedback.phase,
+      phaseLabel: feedback.phaseLabel,
+      // 告警带 ruleId / evidence / 复核状态，前端据此展开"依据"
+      alerts: feedback.alerts.map(function (a) {
+        return {
+          level: a.level, title: a.title, text: a.text, kb: a.kb,
+          code: a.code, ruleId: a.ruleId, ruleName: a.ruleName,
+          evidence: a.evidence, reviewStatus: a.reviewStatus,
+          requiresFollowUp: a.requiresFollowUp
+        };
+      }),
+      suppressed: feedback.suppressed,
+      missingRequired: feedback.missingRequired,
       proteinG: feedback.protein.actualG,
       proteinTargetG: feedback.protein.targetG,
+      proteinMinG: feedback.protein.minG,
       kcal: feedback.totals.kcal,
       dehydrationPct: feedback.hydration.pct,
+      hydrationPlanRate: feedback.hydration.planRate,
       sorenessMax: feedback.recovery.sorenessMax,
       sRPE: feedback.sRPE
     },

@@ -1,0 +1,50 @@
+<view class="page">
+  <view class="card">
+    <view class="card-title">规则库<text class="tiny">共 {{all.length}} 条 · 待复核 {{needsReview}}</text></view>
+    <view class="tiny">每条规则都绑定判定逻辑、阈值与一级文献锚点。标记"待复核"只影响提示，不改判定 —— 等营养师核对原文后再动代码。</view>
+    <view class="filters">
+      <view class="chip {{filter === item.id ? 'on' : ''}}" wx:for="{{filters}}" wx:key="id" data-f="{{item.id}}" bindtap="pickFilter">{{item.name}}</view>
+    </view>
+    <view class="tiny" wx:if="{{offline}}">离线：显示登记表默认状态，标记会先存本机</view>
+  </view>
+
+  <view class="card rule" wx:for="{{shown}}" wx:key="ruleId" wx:for-item="r">
+    <view class="rule-head" data-id="{{r.ruleId}}" bindtap="toggle">
+      <view class="rule-left">
+        <text class="rid">{{r.ruleId}}</text>
+        <text class="rule-name">{{r.name}}</text>
+        <view class="tiny">{{r.phaseText}} · 复核 {{r.lastReviewedAt}}<text wx:if="{{r.requiresHumanFollowUp}}"> · 需人工跟进</text></view>
+      </view>
+      <view class="badge {{r.tone}}">{{r.statusText}}</view>
+    </view>
+
+    <block wx:if="{{expanded === r.ruleId}}">
+      <view class="hr"></view>
+      <view class="sec-label">判定逻辑</view>
+      <view class="sec-body">{{r.logicSummary}}</view>
+      <view class="sec-label">阈值</view>
+      <view class="sec-body">{{r.thresholds}}</view>
+
+      <view class="sec-label">来源锚点（{{r.sourceCount || r.sources.length}}）</view>
+      <view class="src" wx:for="{{r.sources}}" wx:key="anchor" wx:for-item="s">
+        <view class="src-top">
+          <text class="badge info">{{s.sourceTypeName || s.sourceType}}</text>
+          <text class="tiny"> {{s.year}}</text>
+        </view>
+        <view class="src-anchor">锚点：{{s.anchor}}</view>
+        <view class="tiny">{{s.citation}}</view>
+        <view class="tiny" wx:if="{{s.doi}}">doi: {{s.doi}}</view>
+        <view class="tiny" wx:if="{{s.url}}">{{s.url}}</view>
+      </view>
+
+      <view class="sec-label" wx:if="{{r.notes}}">方法学警告 / 待办</view>
+      <view class="notes" wx:if="{{r.notes}}">{{r.notes}}</view>
+
+      <button class="btn ghost" data-id="{{r.ruleId}}" data-status="{{r.reviewStatus}}" bindtap="markReview" style="margin-top:16rpx">
+        {{r.reviewStatus === 'needs_review' ? '已核对，恢复为有效' : '标记为待复核'}}
+      </button>
+    </block>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && !shown.length}}">该阶段没有启用任何规则</view>
+</view>

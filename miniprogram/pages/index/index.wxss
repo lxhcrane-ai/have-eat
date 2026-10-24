@@ -34,3 +34,8 @@
 .tip-body { color: #b9c4be; font-size: 25rpx; margin: 8rpx 0; line-height: 1.6; }
 .actions { display: flex; gap: 16rpx; margin-top: 10rpx; }
 .actions .btn { flex: 1; }
+
+.coach-remind { border: 1rpx solid #2c4a33; background: #101a14; }
+.remind-text { font-size: 27rpx; line-height: 1.6; color: #d9f5e4; margin: 8rpx 0; }
+.warn { border: 1rpx solid #4a3a12; background: #1a160c; }
+.warn-line { color: #ffc46b; font-size: 24rpx; margin-top: 6rpx; }

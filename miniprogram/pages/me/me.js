@@ -5,7 +5,7 @@ const api = require('../../utils/api.js');
 
 const PHASES = [
   { id: 'maintain', name: '维持期' }, { id: 'cut', name: '减脂期' },
-  { id: 'weighin', name: '微调期' }, { id: 'recover', name: '恢复期' }
+  { id: 'peak', name: '微调期' }, { id: 'recover', name: '恢复期' }
 ];
 
 Page({

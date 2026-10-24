@@ -31,31 +31,39 @@ env: 'cloud1-xxxxxxxxxxxx',
 coachCode: 'COACH-8888',   // 邀请码，改成你自己的
 ```
 
-### 3. 建 5 个集合
+### 3. 建 9 个集合
 云开发控制台 → 数据库 → 新建集合，权限全部选 **仅创建者可读写**：
 
 ```
 users      logs      messages      inbox      settings
+followups  reminders phase_history rule_reviews
 ```
+
+- `followups`：营养师跟进项（status / consecutiveDays / escalated）
+- `reminders`：营养师确认后的次日提醒（拳王端只读这一张）
+- `phase_history`：阶段变更审计（谁、何时、从什么阶段切到什么阶段）
+- `rule_reviews`：规则复核状态（needs_review 等），没建就按登记表默认值跑
 
 然后在 `settings` 里手动加一条：`{ "key": "coachCode", "value": "COACH-8888" }`
 （不建也能跑，代码里有默认码兜底。）
 
 ### 4. 上传云函数
-云函数目录里 7 个函数，逐个右键 → **上传并部署：云端安装依赖**（不要选"上传"）：
+云函数目录里 8 个函数，逐个右键 → **上传并部署：云端安装依赖**（不要选"上传"）：
 
 ```
-whoami   saveLog   getFeed   chat   bind   saveProfile   inbox
+whoami   saveLog   getFeed   chat   bind   saveProfile   inbox   coachApi
 ```
 
-`saveLog` 与 `getFeed` 依赖 `lib/` 下的共享规则引擎。改过
-`miniprogram/utils/rules.js` 或 `data/knowledge.js` 后，先跑一次：
+`coachApi` 是营养师后台的唯一入口：阶段设置、跟进队列、规则复核。
+`saveLog` / `getFeed` / `coachApi` 都依赖 `lib/` 下的共享代码（规则引擎、知识库、规则登记表、跟进队列）。改过
+`miniprogram/utils/rules.js`、`miniprogram/utils/followup.js`、`miniprogram/data/knowledge.js` 或
+`miniprogram/data/ruleRegistry.js` 后，先跑一次：
 
 ```bash
 bash scripts/sync-shared.sh
 ```
 
-再重新上传这两个函数，否则服务端还是旧规则。
+再重新上传这三个函数，否则服务端还是旧规则。
 
 ### 5. 给 messages 配安全规则（要 watch 时用）
 本项目聊天走云函数 + 4 秒轮询，**默认不需要**改安全规则。
@@ -129,6 +137,62 @@ bash scripts/sync-shared.sh
 
 ---
 
+## 四·五、阶段状态机：阶段决定规则集
+
+阶段不再只是一个标签，而是规则引擎的开关（`PHASE_PROFILES`，见 `miniprogram/utils/rules.js`）：
+
+| 阶段 | 谁设置 | 水合怎么判 | 能量规则 | 主指标 |
+|---|---|---|---|---|
+| 维持期 maintain | 营养师后台 | 脱水百分比（HYD-01） | 开（ENE-01） | 睡眠、酸痛、晨脉、蛋白 |
+| 减脂期 cut | 营养师后台 | 脱水百分比（HYD-01） | 开，缺口 300–600 | 蛋白、能量缺口、减重速率 |
+| 微调期 peak | 营养师后台 | **补液计划执行率（HYD-05）**，HYD-01 被抑制 | **关** | 执行率、胃肠症状、睡眠 |
+| 恢复期 recover | 营养师后台 | 称重后补液（HYD-04） | **关** | 补液、碳水、体重回升 |
+
+- 拳王端阶段只读：`saveProfile` 的白名单里已经没有 `phase`，只有 `coachApi.setPhase` 能改，并写 `phase_history`。
+- 被抑制的规则不是删掉，而是记进 `feedback.suppressed`，教练端能审计"本阶段没看什么、为什么"。
+- 字段随阶段收缩/展开：`maintain` 只要晨重+睡眠+三餐；`cut` 加酸痛/晨脉/尿色；`peak` 加补液计划、胃肠症状、补剂执行；`recover` 加称重后补液/碳水/主观恢复感。
+- 必填缺失时只说"数据不足"（`LOG-01`），不判达标，评分也不给这部分分。
+- 完整矩阵：`docs/phase-matrix.md`（由 `node scripts/dump-docs.js` 从代码生成）。
+
+对照验证（同一份记录：脱水 3.7%、蛋白 96g、酸痛 8、次日速度课、睡眠 6h）：
+
+```
+cut  → HYD-01 红灯、PRO-01 "差 20g 到下限"、ENE-01、REC-02、SLE-01 … 评分 38
+peak → 不报 HYD-01/PRO-01/ENE-01；改报 HYD-05（缺计划数据）+ LOG-01 … 评分 48
+```
+
+`node scripts/test-phases.js` 47 项断言覆盖这个对照，并验证"peak 期计划内脱水（执行率 97%）不报警"。
+
+---
+
+## 四·六、跟进队列：营养师只看今天要处理的事
+
+教练端首页第一眼是"今天需要你处理 N 件事"，不是一个评分摘要：
+
+- 只看规则登记表里 `requiresHumanFollowUp: true` 且 red/amber 的项；info 不进队列。
+- 同一拳手同一规则连续未解决 → 合并 `consecutiveDays`；≥2 天自动升级为"需人工介入"并置顶。
+- 减重速率 >1%/周（PHASE-01）单次即升级；晨脉偏离 ≥8 次/分也升级。
+- 每项给：规则 ID、标题、**触发证据**（"饮水缺口 1800ml"）、系统建议动作、三个按钮（确认发送次日提醒 / 稍后 / 忽略）+ 备注。
+- 确认后可改写文案 → 写入 `reminders`，拳王次日首页只看到营养师写的这一段，看不到系统原始告警。
+- 已确认/已忽略进历史，可按拳手与日期查。
+
+模型、升级规则、页面结构、模拟数据集（3 名拳手 × 2 天，第二天 11 项 4 项升级）：`docs/followup-queue.md`。
+演示：`node scripts/demo-followup.js`；测试：`node scripts/test-followup.js`（35 项）。
+
+---
+
+## 四·七、规则库：每条告警都能追到文献锚点
+
+- 登记表：`miniprogram/data/ruleRegistry.js`，18 条规则、34 个来源锚点，每条含 ruleId、判定逻辑、阈值、适用阶段、`requiresHumanFollowUp`、复核状态、方法学警告。
+- 告警展开"依据"不再只显示知识库标题，而是：`规则 HYD-01 · 训练脱水百分比` + 触发数据 + `[立场声明 2007] ACSM Position Stand 正文"Dehydration and performance"段：≥2% 即损害表现 doi:10.1249/mss.0b013e31802ca597`。
+- 营养师在「规则库」页可把某条标为"待复核"（写 `rule_reviews`，**不改代码**），此后该规则触发的告警会带"该规则待复核"徽标。
+- 已标待复核的两处真实冲突（阈值与 2025 年新版立场声明不一致）：PRO-01 蛋白口径（BM vs FFM）、PHASE-02 维持期带宽（+3–5% vs ISSN 2025 的 +12–15%）。细节见 `docs/rule-registry.md`。
+- 对照表：`docs/rule-source-table.md`（生成式，勿手改）。
+
+> 引用说明：IOC 2018 只有"补剂"共识（BJSM 2018;52:439-455），本项目只把它锚在 SUP-01；称重后恢复锚 ISSN 2025 与 ACSM 2016，不虚构"2018 综合运动营养共识"。
+
+---
+
 ## 五、数据契约
 
 见 `docs/schema.md`。要点：
@@ -152,14 +216,17 @@ node scripts/migrate.js "/mnt/e/AI/运动营养/boxer_logs_2026-05-16.json" docs
 ## 六、自检命令
 
 ```bash
-node scripts/preflight.js     # 编译前自检：页面声明/跳转目标/事件函数/标签配对/require/云函数/规则同步
-node scripts/test-rules.js    # 36 项规则回归（含真实老数据、崩盘日、BD 速率、引用完整性）
+node scripts/preflight.js     # 编译前自检：页面/跳转/事件/标签/require/云函数/规则同步/登记表一致性
+node scripts/test-rules.js    # 36 项规则回归（真实老数据、崩盘日、速率、引用完整性）
+node scripts/test-phases.js   # 47 项阶段对照（同数据在 cut/peak 下告警与评分必须不同）
+node scripts/test-followup.js # 35 项跟进队列（合并、升级、确认、提醒、id 唯一）
 node scripts/lint-pages.js    # WXML 引用字段 vs 页面 data 一致性
-bash scripts/sync-shared.sh   # 同步规则引擎到云函数
+node scripts/dump-docs.js     # 从代码生成 docs/phase-matrix.md 与 docs/rule-source-table.md
+bash scripts/sync-shared.sh   # 同步规则引擎/登记表/队列逻辑到云函数
 for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; done
 ```
 
-当前状态：preflight 0 阻塞（只剩 AppID / 环境 ID 两条待填提醒），36/36 通过，字段一致性 0 冲突。
+当前状态：preflight 0 阻塞（只剩 AppID / 环境 ID 两条待填提醒），规则 36/36、阶段 47/47、队列 35/35 通过，字段一致性 0 冲突。
 
 ---
 
@@ -175,10 +242,18 @@ for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; do
 
 ## 八、下一步值得做的
 
-- 称重日倒计时联动自动切换阶段（现在要手工改 `phase`）。
-- 教练端加"批量下发本周计划"，拳王端 nextPlan 自动带入。
-- 餐食拍照接多模态模型，把 `items` 的 `source` 从 `library` 改成 `vision`，规则引擎无需改动。
-- 周报：把 7 天 sRPE、蛋白达标率、体重斜率导成一张图发给教练（教练端分享）。
+已落地（不再是待办）：
+
+- ~~称重日倒计时联动自动切换阶段~~ → `PHASE_PROFILES` + `coachApi.setPhase`，阶段由营养师后台设置，写 `phase_history`。
+- ~~教练端只有一行摘要~~ → 跟进队列（`pages/queue`），连续未解决自动合并升级，确认后生成次日提醒。
+- ~~告警依据只有知识库标题~~ → 规则登记表 + 文献锚点（`pages/rules`），支持"待复核"不改代码。
+
+还没做的：
+
+- 称重日临近时**自动建议**切阶段（现在仍需营养师手动点；建议加"距称重 N 天 → 建议进入 peak"的提示条，不自动改）。
+- 周报：把 7 天 sRPE、蛋白达标率、体重斜率导成一张图（教练端分享）。
+- 餐食拍照接多模态模型，把 `items.source` 从 `library` 改成 `vision`，规则引擎无需改动。
+- 跟进项的规则级统计（确认率/忽略率），用来识别阈值过松的规则。
 
 ---
 
@@ -189,24 +264,35 @@ boxer-coach/
   miniprogram/
     config.js              唯一要改的配置
     app.js                 云初始化、openid/角色缓存、种子导入
-    utils/rules.js         规则引擎（双端共用）
+    utils/rules.js         规则引擎（阶段状态机 + 规则开关 + 评分权重，双端共用）
+    utils/followup.js      跟进队列逻辑（合并连续天数、升级、生成次日提醒，纯函数）
+    utils/coachApi.js      营养师后台 API 封装（离线退化为本机存储）
     utils/food.js          食物库 42 种
     utils/store.js         本地存储 + 待同步队列
     utils/api.js           云函数调用封装
     data/knowledge.js      运动营养知识库 33 条（带出处）
+    data/ruleRegistry.js   规则登记表 18 条 / 34 个文献锚点
     data/seed.js           种子数据（空）
-    pages/index            今日：评分 + 指标 + 要点 + 知识库提示
-    pages/log              填写：体重/水合/训练/酸痛/餐食/明日计划
+    pages/index            今日：营养师提醒 + 评分 + 指标 + 要点（依据 = 规则 ID + 锚点）
+    pages/log              填写：字段随阶段收缩/展开（peak 补液计划、recover 称重后恢复…）
     pages/trend            趋势：晨重折线、周速率、sRPE、达标率
     pages/kb               知识库浏览与搜索
-    pages/me               档案、绑定、导出、同步
-    pages/coach            教练看板
+    pages/me               档案、绑定、导出、同步（阶段只读）
+    pages/coach            营养师后台：待处理数 + 拳王列表 + 阶段切换
+    pages/queue            跟进队列：分组、证据、确认发送次日提醒/稍后/忽略
+    pages/rules            规则库：判定逻辑、阈值、来源锚点、复核状态
     pages/chat             一对一沟通
     pages/bind             邀请码绑定
   cloudfunctions/
-    whoami saveLog getFeed chat bind saveProfile inbox
+    whoami saveLog getFeed chat bind saveProfile inbox coachApi
   scripts/
-    test-rules.js  lint-pages.js  migrate.js  sync-shared.sh
+    preflight.js  test-rules.js  test-phases.js  test-followup.js
+    demo-followup.js  dump-docs.js  lint-pages.js  migrate.js  sync-shared.sh
+    fixtures/followup-demo.js
   docs/
     schema.md  knowledge.md  migrated_example.json
+    phase-matrix.md        阶段–规则矩阵（生成式）
+    rule-registry.md       规则登记与复核流程、两处阈值冲突
+    rule-source-table.md   规则–来源对照表（生成式）
+    followup-queue.md      跟进队列模型/页面/模拟数据集
 ```

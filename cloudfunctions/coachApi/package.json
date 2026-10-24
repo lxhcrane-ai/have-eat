@@ -1,0 +1,9 @@
+{
+  "name": "coachApi",
+  "version": "1.0.0",
+  "description": "营养师后台接口：阶段设置、跟进队列、规则复核",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
