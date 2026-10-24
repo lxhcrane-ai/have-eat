@@ -1,0 +1,182 @@
+<view class="page">
+  <view class="head">
+    <picker mode="date" value="{{draft.date}}" bindchange="onDate">
+      <view class="date-pick">{{draft.date}} <text class="tiny">切换</text></view>
+    </picker>
+    <view class="preview">{{preview}}</view>
+  </view>
+
+  <!-- 体重 -->
+  <view class="card">
+    <view class="card-title">体重<text class="tiny">同条件、空腹、如厕后</text></view>
+    <view class="row">
+      <text class="label">晨重（空腹）</text>
+      <view class="input-wrap">
+        <input class="input num" type="digit" value="{{draft.weights.morning.kg}}" data-k="weights.morning.kg" bindinput="onNum" placeholder="0.0" />
+        <text class="unit">kg</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">训练前</text>
+      <view class="input-wrap">
+        <input class="input num" type="digit" value="{{draft.weights.pre.kg}}" data-k="weights.pre.kg" bindinput="onNum" placeholder="0.0" />
+        <text class="unit">kg</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">训练后</text>
+      <view class="input-wrap">
+        <input class="input num" type="digit" value="{{draft.weights.post.kg}}" data-k="weights.post.kg" bindinput="onNum" placeholder="0.0" />
+        <text class="unit">kg</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 睡眠 / 水合 -->
+  <view class="card">
+    <view class="card-title">睡眠与水合</view>
+    <view class="row">
+      <text class="label">睡眠时长</text>
+      <view class="input-wrap">
+        <input class="input num" type="digit" value="{{draft.sleep.hours}}" data-k="sleep.hours" bindinput="onNum" placeholder="7.5" />
+        <text class="unit">小时</text>
+      </view>
+    </view>
+    <view class="sub-label">睡眠质量</view>
+    <view class="chips">
+      <view class="chip {{draft.sleep.quality == item ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" data-k="sleep.quality" data-v="{{item}}" bindtap="onPick">{{item}}</view>
+    </view>
+    <view class="row">
+      <text class="label">已饮水</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.hydration.waterMl}}" data-k="hydration.waterMl" bindinput="onNum" placeholder="1500" />
+        <text class="unit">ml</text>
+      </view>
+    </view>
+    <view class="row">
+      <text class="label">晨尿颜色</text>
+      <view class="input-wrap">
+        <text class="tiny">1 透明 → 8 深褐</text>
+      </view>
+    </view>
+    <view class="chips">
+      <view class="chip {{draft.hydration.urineColor == item ? 'on' : ''}}" wx:for="{{urineTones}}" wx:key="*this" data-k="hydration.urineColor" data-v="{{item}}" bindtap="onPick">{{item}}</view>
+    </view>
+    <view class="row">
+      <text class="label">晨脉</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.restingHr}}" data-k="restingHr" bindinput="onNum" placeholder="58" />
+        <text class="unit">次/分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 训练 -->
+  <view class="card">
+    <view class="card-title">训练</view>
+    <view class="chips">
+      <view class="chip {{draft.training.sessionType === item.id ? 'on' : ''}}" wx:for="{{sessions}}" wx:key="id" data-k="training.sessionType" data-v="{{item.id}}" bindtap="onPick">{{item.name}}</view>
+    </view>
+    <view class="row">
+      <text class="label">时长</text>
+      <view class="input-wrap">
+        <input class="input num" type="number" value="{{draft.training.durationMin}}" data-k="training.durationMin" bindinput="onNum" placeholder="90" />
+        <text class="unit">分钟</text>
+      </view>
+    </view>
+    <view class="sub-label">主观强度 RPE {{draft.training.rpe}} / 10</view>
+    <slider min="1" max="10" step="1" value="{{draft.training.rpe}}" activeColor="#e8ff47" backgroundColor="#2a3330" block-size="20" data-k="training.rpe" bindchange="onSlider" />
+    <view class="row">
+      <text class="label">内容</text>
+      <input class="input flex" value="{{draft.training.content}}" data-k="training.content" bindinput="onText" placeholder="有氧，手臂肩背力量" />
+    </view>
+    <view class="tiny" wx:if="{{draft.training.durationMin && draft.training.rpe}}">sRPE = {{draft.training.durationMin * draft.training.rpe}}</view>
+  </view>
+
+  <!-- 酸痛 -->
+  <view class="card">
+    <view class="card-title">酸痛（0 无 – 10 无法训练）</view>
+    <view class="sore-row" wx:for="{{sorenessList}}" wx:key="id">
+      <text class="label">{{item.name}}</text>
+      <slider class="sore-slider" min="0" max="10" step="1" value="{{item.v}}" activeColor="{{item.v >= 7 ? '#ff7a6b' : '#e8ff47'}}" backgroundColor="#2a3330" block-size="18" data-k="sorenessByArea.{{item.id}}" bindchange="onSlider" />
+      <text class="sore-val">{{item.v}}</text>
+    </view>
+  </view>
+
+  <!-- 心情 -->
+  <view class="card">
+    <view class="card-title">主观感受（1 好 – 5 差）</view>
+    <view class="sub-label">疲劳</view>
+    <view class="chips">
+      <view class="chip {{draft.mood.fatigue == item ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" data-k="mood.fatigue" data-v="{{item}}" bindtap="onPick">{{item}}</view>
+    </view>
+    <view class="sub-label">食欲</view>
+    <view class="chips">
+      <view class="chip {{draft.mood.appetite == item ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" data-k="mood.appetite" data-v="{{item}}" bindtap="onPick">{{item}}</view>
+    </view>
+  </view>
+
+  <!-- 餐食 -->
+  <view class="card">
+    <view class="card-title">餐食
+      <text class="tiny">蛋白 {{totals.protein}}g · {{totals.kcal}} kcal · {{totals.count}} 餐</text>
+    </view>
+    <view class="meal" wx:for="{{draft.meals}}" wx:key="index" wx:for-index="i">
+      <view class="meal-head">
+        <view>
+          <text class="meal-slot">{{item.slot === 'breakfast' ? '早餐' : (item.slot === 'lunch' ? '午餐' : (item.slot === 'dinner' ? '晚餐' : '加餐'))}}</text>
+          <text class="tiny"> {{item.time}}</text>
+        </view>
+        <view class="meal-ops">
+          <text class="op" data-i="{{i}}" bindtap="copyLastMeal">复用上次</text>
+          <text class="op" data-i="{{i}}" bindtap="choosePhoto">{{item.photoLocal ? '已拍照' : '拍照'}}</text>
+          <text class="op danger" data-i="{{i}}" bindtap="removeMeal">删除</text>
+        </view>
+      </view>
+      <image wx:if="{{item.photoLocal}}" src="{{item.photoLocal}}" class="meal-photo" mode="aspectFill" />
+      <view class="food-item" wx:for="{{item.items}}" wx:key="index" wx:for-item="it" wx:for-index="j">
+        <text class="fi-name">{{it.name}}</text>
+        <text class="fi-gram">{{it.grams}}g</text>
+        <text class="fi-kcal">{{it.kcal}}kcal · P{{it.protein}}</text>
+        <text class="op danger" data-i="{{i}}" data-j="{{j}}" bindtap="removeItem">×</text>
+      </view>
+      <view class="add-food" data-i="{{i}}" bindtap="openPicker">＋ 添加食物</view>
+    </view>
+    <view class="slot-row">
+      <view class="slot-btn" wx:for="{{slots}}" wx:key="id" data-slot="{{item.id}}" bindtap="addSlot">＋{{item.name}}</view>
+    </view>
+  </view>
+
+  <!-- 明日计划 -->
+  <view class="card">
+    <view class="card-title">明日计划<text class="tiny">系统会检查与今天恢复状态是否冲突</text></view>
+    <view class="chips">
+      <view class="chip {{draft.nextPlan.type === item.id ? 'on' : ''}}" wx:for="{{planTypes}}" wx:key="id" data-k="nextPlan.type" data-v="{{item.id}}" bindtap="onPick">{{item.name}}</view>
+    </view>
+    <input class="input" value="{{draft.nextPlan.note}}" data-k="nextPlan.note" bindinput="onText" placeholder="具体内容（可选）" />
+  </view>
+
+  <button class="btn" bindtap="save" loading="{{saving}}">保存并生成反馈</button>
+  <view class="tiny center" style="margin-top:16rpx">数据先存本机，联网后自动同步到教练端</view>
+</view>
+
+<!-- 食物选择弹层 -->
+<view class="mask" wx:if="{{pickerOpen}}" bindtap="closePicker"></view>
+<view class="sheet" wx:if="{{pickerOpen}}">
+  <view class="sheet-head">
+    <input class="input flex" placeholder="搜索食物（米饭、鸡胸、牛奶…）" value="{{foodQuery}}" bindinput="onFoodSearch" />
+    <text class="op" bindtap="closePicker">关闭</text>
+  </view>
+  <scroll-view scroll-y class="food-list">
+    <view class="food-row {{pickFood.id === item.id ? 'on' : ''}}" wx:for="{{foodShown}}" wx:key="id" data-id="{{item.id}}" bindtap="pickFoodItem">
+      <text>{{item.name}}</text>
+      <text class="tiny">{{item.kcal}}kcal · P{{item.p}} C{{item.c}} F{{item.f}} /100{{item.unit}}</text>
+    </view>
+  </scroll-view>
+  <view class="add-bar" wx:if="{{pickFood.id}}">
+    <text class="add-name">{{pickFood.name}}</text>
+    <input class="input grams" type="number" value="{{pickGrams}}" bindinput="onGrams" />
+    <text class="tiny">克</text>
+    <button class="btn tiny-btn" bindtap="confirmAddFood">加入</button>
+  </view>
+</view>

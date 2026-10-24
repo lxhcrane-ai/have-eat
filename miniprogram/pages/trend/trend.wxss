@@ -1,0 +1,20 @@
+.stats { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 20rpx; }
+.stat { width: calc(50% - 8rpx); background: #161a18; border: 1rpx solid #242b28; border-radius: 16rpx; padding: 20rpx; box-sizing: border-box; }
+.stat-label { color: #8a968f; font-size: 22rpx; }
+.stat-val { font-size: 28rpx; font-weight: 600; margin-top: 6rpx; }
+.goal { font-size: 26rpx; color: #e8ff47; line-height: 1.6; }
+.chart { position: relative; height: 260rpx; margin: 10rpx 0 0 8rpx; }
+.seg { position: absolute; height: 2rpx; background: #e8ff47; transform-origin: 0 0; opacity: .8; }
+.pt { position: absolute; width: 12rpx; height: 12rpx; border-radius: 50%; background: #e8ff47; margin: -6rpx 0 0 -6rpx; }
+.pt-label { position: absolute; top: -34rpx; left: -30rpx; width: 70rpx; text-align: center; font-size: 18rpx; color: #8a968f; }
+.axis { display: flex; justify-content: space-between; font-size: 18rpx; color: #5c6862; margin: 6rpx 0 10rpx; }
+.bars { display: flex; align-items: flex-end; gap: 12rpx; height: 220rpx; padding-top: 20rpx; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.bar { width: 100%; background: linear-gradient(180deg,#e8ff47,#7a8f14); border-radius: 6rpx 6rpx 0 0; }
+.bar-val { color: #8a968f; font-size: 18rpx; margin-bottom: 6rpx; }
+.bar-date { color: #5c6862; font-size: 18rpx; margin-top: 6rpx; }
+.log-row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid #1f2523; }
+.log-row:last-child { border-bottom: none; }
+.lr-date { font-size: 26rpx; }
+.lr-right { text-align: right; }
+.lr-kg { color: #e8ff47; font-weight: 700; margin-right: 12rpx; }

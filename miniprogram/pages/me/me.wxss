@@ -1,0 +1,6 @@
+.flex-r { flex: 1; text-align: right; margin-left: 20rpx; }
+.pick { color: #e8ff47; font-size: 26rpx; }
+.btn-row { display: flex; gap: 14rpx; margin-top: 18rpx; }
+.half { flex: 1; }
+.ok { color: #5ce39a; }
+.warn { color: #ffc46b; }

@@ -1,0 +1,15 @@
+.coach-head { margin-bottom: 18rpx; }
+.title { font-size: 38rpx; font-weight: 700; }
+.ath-head { display: flex; justify-content: space-between; align-items: center; }
+.ath-name { font-size: 32rpx; font-weight: 700; }
+.ath-score { font-size: 54rpx; font-weight: 800; }
+.ath-level { font-size: 22rpx; margin-left: 8rpx; }
+.tone-ok { color: #5ce39a; } .tone-amber { color: #ffc46b; } .tone-red { color: #ff7a6b; } .tone-info { color: #6bc4ff; }
+.ath-sum { color: #b9c4be; font-size: 24rpx; margin: 12rpx 0; line-height: 1.6; }
+.alert-mini { font-size: 24rpx; color: #ffb3aa; padding: 6rpx 0; }
+.ath-ops { display: flex; gap: 24rpx; margin-top: 14rpx; padding-top: 14rpx; border-top: 1rpx solid #1f2523; }
+.op { color: #6bc4ff; font-size: 24rpx; }
+.d-row { display: flex; justify-content: space-between; gap: 16rpx; padding: 14rpx 0; border-top: 1rpx solid #1a201e; }
+.d-date { font-weight: 600; font-size: 25rpx; }
+.d-left { flex: 1; }
+.d-right { text-align: right; color: #8a968f; }

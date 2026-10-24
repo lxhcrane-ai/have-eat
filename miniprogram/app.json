@@ -1,0 +1,35 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/log/log",
+    "pages/trend/trend",
+    "pages/kb/kb",
+    "pages/me/me",
+    "pages/coach/coach",
+    "pages/chat/chat",
+    "pages/bind/bind"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#111413",
+    "navigationBarTitleText": "拳王备赛",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0d0f0e"
+  },
+  "tabBar": {
+    "color": "#6b7772",
+    "selectedColor": "#e8ff47",
+    "backgroundColor": "#111413",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "今日" },
+      { "pagePath": "pages/log/log", "text": "填写" },
+      { "pagePath": "pages/trend/trend", "text": "趋势" },
+      { "pagePath": "pages/kb/kb", "text": "知识库" },
+      { "pagePath": "pages/me/me", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

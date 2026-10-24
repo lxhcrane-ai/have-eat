@@ -1,0 +1,64 @@
+<view class="page">
+  <view class="card" wx:if="{{error}}">
+    <view class="card-title">加载失败</view>
+    <view class="tiny">{{error}}</view>
+    <button class="btn ghost" bindtap="load" style="margin-top:16rpx">重试</button>
+  </view>
+
+  <block wx:if="{{isCoach}}">
+    <view class="coach-head">
+      <view>
+        <view class="title">教练看板</view>
+        <view class="tiny">{{athletes.length}} 名拳王 · 下拉刷新</view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!athletes.length}}">
+      <view>还没有拳王绑定你</view>
+      <view class="tiny" style="margin:16rpx 0">让拳王在「我的 → 绑定教练」输入同一个邀请码</view>
+      <button class="btn ghost" bindtap="goBind">查看邀请码设置</button>
+    </view>
+
+    <view class="card ath" wx:for="{{athletes}}" wx:key="openid">
+      <view class="ath-head" data-id="{{item.openid}}" bindtap="openDetail">
+        <view class="ath-left">
+          <text class="ath-name">{{item.name}}</text>
+          <text class="tiny"> {{item.date}}</text>
+          <view class="tiny">{{item.targets}}</view>
+        </view>
+        <view class="ath-score tone-{{item.tone}}">{{item.score}}<text class="ath-level">{{item.level}}</text></view>
+      </view>
+
+      <view class="ath-sum">{{item.summary}}</view>
+      <view class="alert-mini" wx:for="{{item.reds}}" wx:key="title" wx:for-item="r">
+        <text class="badge red">必须</text> {{r.title}}
+      </view>
+
+      <view class="ath-ops">
+        <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="goChat">发消息</text>
+        <text class="op" data-id="{{item.openid}}" bindtap="openDetail">{{detailOpen === item.openid ? '收起' : '看最近 14 天'}}</text>
+      </view>
+
+      <block wx:if="{{detailOpen === item.openid}}">
+        <view class="d-row" wx:for="{{detailLogs}}" wx:key="date" wx:for-item="d">
+          <view class="d-left">
+            <text class="d-date">{{d.date}}</text>
+            <view class="tiny">{{d.headline}}</view>
+          </view>
+          <view class="d-right tiny">
+            <view>{{d.kg}}kg · 脱水 {{d.dehydration === null ? '--' : d.dehydration}}%</view>
+            <view>P {{d.protein}}/{{d.target}}g · 酸痛 {{d.soreness === null ? '--' : d.soreness}}</view>
+            <view>sRPE {{d.srpe || '--'}} · {{d.score}} 分</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <view class="card" wx:if="{{!isCoach && !loading}}">
+    <view class="card-title">当前是拳王账号</view>
+    <view class="tiny">教练端需要先开启教练身份。用一个邀请码把两边接上。</view>
+    <button class="btn ghost" bindtap="goBind" style="margin-top:16rpx">开启教练端</button>
+    <button class="btn ghost" bindtap="goHome" style="margin-top:12rpx">回首页</button>
+  </view>
+</view>

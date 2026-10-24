@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="empty" wx:if="{{!hasData}}">
+    <view>还没有历史数据</view>
+    <view class="tiny" style="margin-top:12rpx">连续记录 4 天以上才能算体重趋势</view>
+  </view>
+
+  <block wx:if="{{hasData}}">
+    <view class="stats">
+      <view class="stat"><view class="stat-label">周变化</view><view class="stat-val">{{rateText}}</view></view>
+      <view class="stat"><view class="stat-label">7 日均重</view><view class="stat-val">{{avg7Text}}</view></view>
+      <view class="stat"><view class="stat-label">连续记录</view><view class="stat-val">{{streak}} 天</view></view>
+      <view class="stat"><view class="stat-label">蛋白达标</view><view class="stat-val">{{proteinRate}}</view></view>
+    </view>
+
+    <view class="card" wx:if="{{goalText}}">
+      <view class="card-title">备赛倒计时</view>
+      <view class="goal">{{goalText}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">晨重趋势<text class="tiny">{{weightRange}}</text></view>
+      <view class="chart">
+        <view class="seg" wx:for="{{segs}}" wx:key="index" style="left:{{item.left}}rpx; top:{{item.top}}rpx; width:{{item.width}}rpx; transform: rotate({{item.angle}}deg);"></view>
+        <view class="pt" wx:for="{{points}}" wx:key="date" style="left:{{item.x}}rpx; top:{{item.y}}rpx;">
+          <view class="pt-label">{{item.kg}}</view>
+        </view>
+      </view>
+      <view class="axis">
+        <text wx:for="{{points}}" wx:key="date">{{item.date}}</text>
+      </view>
+      <view class="tiny">单点波动不算趋势，看 7 日回归斜率。晨重需空腹、如厕后、同一台秤。</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">训练负荷 sRPE<text class="tiny">时长 × RPE</text></view>
+      <view class="bars">
+        <view class="bar-wrap" wx:for="{{loadBars}}" wx:key="date">
+          <view class="bar-val tiny">{{item.srpe}}</view>
+          <view class="bar" style="height:{{item.h}}rpx"></view>
+          <view class="bar-date">{{item.date}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">最近记录</view>
+      <view class="log-row" wx:for="{{logs}}" wx:key="date" data-date="{{item.date}}" bindtap="openLog">
+        <view>
+          <text class="lr-date">{{item.date}}</text>
+          <text class="tiny"> {{item.wd}}</text>
+        </view>
+        <view class="lr-right">
+          <text class="lr-kg">{{item.kg}}kg</text>
+          <text class="tiny">{{item.kcal}}kcal · P{{item.p}}g</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

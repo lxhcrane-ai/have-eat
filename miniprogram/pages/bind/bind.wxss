@@ -1,0 +1,6 @@
+.role-row { display: flex; gap: 14rpx; margin-bottom: 20rpx; }
+.role { flex: 1; text-align: center; padding: 20rpx; border-radius: 14rpx; background: #1d2320; border: 1rpx solid #2a3330; color: #b9c4be; }
+.role.on { background: #e8ff47; color: #10130f; font-weight: 700; border-color: #e8ff47; }
+.input.code { text-align: center; letter-spacing: 2rpx; }
+.result { margin-top: 18rpx; color: #e8ff47; font-size: 25rpx; }
+.line { margin-bottom: 10rpx; line-height: 1.6; }

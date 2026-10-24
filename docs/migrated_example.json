@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 2,
+  "exportedAt": "2026-10-23T23:48:04.113Z",
+  "count": 1,
+  "logs": [
+    {
+      "schemaVersion": 2,
+      "id": "migrated-2026-05-16",
+      "date": "2026-05-16",
+      "tzOffset": 480,
+      "weights": {
+        "morning": {
+          "kg": 58,
+          "context": "morning_fasted"
+        },
+        "pre": {
+          "kg": 59,
+          "context": "pre_train"
+        },
+        "post": {
+          "kg": 56.8,
+          "context": "post_train"
+        },
+        "official": null
+      },
+      "sleep": {
+        "hours": null,
+        "quality": 4
+      },
+      "hydration": {
+        "waterMl": 0,
+        "urineColor": null
+      },
+      "restingHr": null,
+      "training": {
+        "sessionType": "",
+        "durationMin": null,
+        "rpe": null,
+        "rounds": null,
+        "content": "有氧，手臂肩背力量"
+      },
+      "sorenessByArea": {},
+      "sorenessLegacy": 8,
+      "focusAreas": [
+        "肩部",
+        "背部"
+      ],
+      "mood": {},
+      "meals": [
+        {
+          "time": "15:51",
+          "note": "甜品布丁，泰式虾炒饭100g",
+          "items": [],
+          "kcal": 0,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "photoFileId": "",
+          "source": "text_only"
+        }
+      ],
+      "nextPlan": {
+        "type": "",
+        "areas": [],
+        "intensity": "",
+        "note": "出拳速度强化"
+      },
+      "goal": {},
+      "createdAt": "2026-05-16T09:07:15.099Z",
+      "migratedFrom": "v1",
+      "migratedAt": "2026-10-23T23:48:04.113Z"
+    }
+  ]
+}

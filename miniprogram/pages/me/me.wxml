@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="card">
+    <view class="card-title">档案<text class="tiny">用于精算消耗与蛋白目标</text></view>
+    <view class="row"><text class="label">称呼</text><input class="input flex-r" value="{{profile.name}}" data-k="name" bindinput="onInput" placeholder="拳王" /></view>
+    <view class="row">
+      <text class="label">性别</text>
+      <picker range="{{['男','女']}}" value="{{genderIndex}}" bindchange="onGender">
+        <view class="pick">{{genderIndex === 0 ? '男' : '女'}}</view>
+      </picker>
+    </view>
+    <view class="row"><text class="label">身高 cm</text><input class="input flex-r" type="number" value="{{profile.heightCm}}" data-k="heightCm" bindinput="onInput" /></view>
+    <view class="row"><text class="label">年龄</text><input class="input flex-r" type="number" value="{{profile.age}}" data-k="age" bindinput="onInput" /></view>
+    <view class="row"><text class="label">当前体重 kg</text><input class="input flex-r" type="digit" value="{{profile.weightKg}}" data-k="weightKg" bindinput="onInput" /></view>
+    <view class="row"><text class="label">目标体重 kg</text><input class="input flex-r" type="digit" value="{{profile.targetWeightKg}}" data-k="targetWeightKg" bindinput="onInput" /></view>
+    <view class="row">
+      <text class="label">称重日</text>
+      <picker mode="date" value="{{profile.weighInDate}}" bindchange="onDate">
+        <view class="pick">{{profile.weighInDate || '未设置'}}</view>
+      </picker>
+    </view>
+    <view class="row"><text class="label">静息心率基线</text><input class="input flex-r" type="number" value="{{profile.restingHrBaseline}}" data-k="restingHrBaseline" bindinput="onInput" placeholder="58" /></view>
+    <view class="sub-label">当前阶段</view>
+    <view class="chips">
+      <view class="chip {{profile.phase === item.id ? 'on' : ''}}" wx:for="{{phases}}" wx:key="id" data-id="{{item.id}}" bindtap="pickPhase">{{item.name}}</view>
+    </view>
+    <button class="btn" bindtap="save" loading="{{saving}}" style="margin-top:20rpx">保存档案</button>
+  </view>
+
+  <view class="card">
+    <view class="card-title">教练连接</view>
+    <view class="row"><text class="label">我的身份</text><text class="val">{{role === 'coach' ? '教练' : '拳王'}}</text></view>
+    <view class="row"><text class="label">绑定状态</text><text class="val {{coachOpenid ? 'ok' : 'warn'}}">{{coachOpenid ? '已连接' : '未连接'}}</text></view>
+    <view class="row" bindtap="copyOpenid"><text class="label">我的 openid</text><text class="tiny">{{openid || '获取中…'}}</text></view>
+    <view class="btn-row">
+      <button class="btn ghost half" bindtap="goBind">拳王：绑定教练</button>
+      <button class="btn ghost half" bindtap="goCoachMode">教练：开启教练端</button>
+    </view>
+    <button class="btn ghost" wx:if="{{role === 'coach'}}" bindtap="goCoachHome" style="margin-top:14rpx">进入教练看板</button>
+    <button class="btn ghost" wx:if="{{coachOpenid}}" bindtap="goChat" style="margin-top:14rpx">和教练沟通</button>
+  </view>
+
+  <view class="card">
+    <view class="card-title">数据</view>
+    <view class="row"><text class="label">本机记录</text><text class="val">{{logCount}} 天</text></view>
+    <view class="row" bindtap="syncPending"><text class="label">待同步</text><text class="val {{pending ? 'warn' : ''}}">{{pending}} 条{{pending ? '（点击重试）' : ''}}</text></view>
+    <view class="btn-row">
+      <button class="btn ghost half" bindtap="exportData">导出 JSON</button>
+      <button class="btn ghost half" bindtap="clearLocal">清空本机</button>
+    </view>
+  </view>
+
+  <view class="tiny center" style="margin:20rpx 0 40rpx">
+    本工具提供基于公开共识的运动营养建议，不替代医生与注册营养师。出现头晕、心悸、尿色异常请立即停止减重并就医。
+  </view>
+</view>

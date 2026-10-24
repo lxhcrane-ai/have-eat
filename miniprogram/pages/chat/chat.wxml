@@ -1,0 +1,26 @@
+<view class="page chat-page">
+  <view class="err" wx:if="{{err}}">{{err}}</view>
+
+  <view class="msg" wx:for="{{messages}}" wx:key="id" class="{{item.mine ? 'mine' : 'peer'}}">
+    <view class="bubble">
+      <view class="txt">{{item.text}}</view>
+      <view class="at">{{item.at}}</view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!messages.length && !err}}">
+    <view>还没有消息</view>
+    <view class="tiny" style="margin-top:10rpx">教练能看到你每次记录自动生成的摘要</view>
+  </view>
+
+  <view class="quick">
+    <view class="qchip" data-t="今天称重和训练已经记录，麻烦看一下" bindtap="quickSend">请教练看今日数据</view>
+    <view class="qchip" data-t="今天状态不太好，想调整训练强度" bindtap="quickSend">申请调整强度</view>
+    <view class="qchip" data-t="明天早上称重前能通个话吗" bindtap="quickSend">约通话</view>
+  </view>
+
+  <view class="input-bar">
+    <input class="input flex" value="{{text}}" bindinput="onInput" placeholder="写给教练…" confirm-type="send" bindconfirm="send" />
+    <button class="btn send-btn" bindtap="send" loading="{{sending}}">发送</button>
+  </view>
+</view>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拳王备赛营养教练 · 静态预览</title>
+<style>
+  :root { --bg:#0d0f0e; --card:#161a18; --line:#242b28; --txt:#e9eeec; --dim:#8a968f; --hl:#e8ff47; --red:#ff7a6b; --amber:#ffc46b; --ok:#5ce39a; --blue:#6bc4ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#070908; color:var(--txt); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; display:flex; gap:28px; padding:28px; align-items:flex-start; justify-content:center; flex-wrap:wrap; }
+  .side { max-width:340px; padding-top:8px; }
+  .side h1 { font-size:22px; margin:0 0 8px; }
+  .side p { color:var(--dim); font-size:13px; line-height:1.7; }
+  .tabs { display:flex; flex-direction:column; gap:10px; margin:20px 0; }
+  .tab { text-align:left; background:var(--card); border:1px solid var(--line); color:var(--txt); padding:12px 14px; border-radius:10px; cursor:pointer; font-size:14px; }
+  .tab small { display:block; color:var(--dim); font-size:12px; margin-top:4px; }
+  .tab.on { border-color:var(--hl); background:#1a2013; }
+  .tab.on strong { color:var(--hl); }
+  .phone { width:390px; background:var(--bg); border:1px solid #2a3330; border-radius:34px; padding:14px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .statusbar { display:flex; justify-content:space-between; font-size:11px; color:#6b7772; padding:2px 12px 10px; }
+  .screen { background:var(--bg); border-radius:22px; padding:18px 16px 26px; max-height:78vh; overflow-y:auto; }
+  .nav { text-align:center; font-size:15px; font-weight:600; padding:2px 0 14px; }
+  .top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+  .date { font-size:19px; font-weight:700; }
+  .muted { color:var(--dim); font-size:12px; }
+  .tiny { color:#6b7772; font-size:11px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .row { display:flex; justify-content:space-between; align-items:center; }
+  .score-card { display:flex; gap:14px; align-items:center; }
+  .score-num { font-size:40px; font-weight:800; line-height:1; }
+  .score-level { font-size:12px; margin-top:3px; text-align:center; }
+  .tone-ok{color:var(--ok)} .tone-amber{color:var(--amber)} .tone-red{color:var(--red)} .tone-info{color:var(--blue)}
+  .headline { font-size:13px; line-height:1.55; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+  .cell { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 9px; }
+  .cell-label { color:var(--dim); font-size:11px; }
+  .cell-val { font-size:19px; font-weight:700; margin-top:2px; }
+  .cell-unit { font-size:10px; color:var(--dim); font-weight:400; margin-left:3px; }
+  .v-red{color:var(--red)} .v-amber{color:var(--amber)}
+  .alert { border-left:4px solid var(--line); padding:9px 0 9px 10px; margin-top:9px; cursor:pointer; }
+  .alert.red { border-color:var(--red); } .alert.amber { border-color:var(--amber); } .alert.info { border-color:#3a5a6b; }
+  .alert-head { display:flex; gap:8px; align-items:center; }
+  .badge { font-size:10px; padding:2px 7px; border-radius:5px; white-space:nowrap; }
+  .badge.red { background:#3d1a1a; color:var(--red); } .badge.amber { background:#3a2c12; color:var(--amber); } .badge.info { background:#162630; color:var(--blue); }
+  .alert-title { font-size:13px; font-weight:600; }
+  .alert-body { font-size:12px; color:#b9c4be; line-height:1.6; margin-top:5px; }
+  .kb { margin-top:7px; padding:7px 9px; background:#0f1211; border-radius:7px; display:none; }
+  .kb.on { display:block; }
+  .kb-line { font-size:11px; color:var(--dim); margin-top:3px; }
+  .tip { padding:9px 0; border-bottom:1px solid #1f2523; }
+  .tip:last-child { border-bottom:none; }
+  .tip-title { font-size:12.5px; font-weight:600; color:var(--hl); }
+  .tip-body { font-size:12px; color:#b9c4be; line-height:1.6; margin:4px 0; }
+  .coach { font-size:11.5px; color:var(--dim); line-height:1.6; }
+  .footnote { color:#5c6862; font-size:11px; margin-top:10px; line-height:1.6; }
+</style>
+</head>
+<body>
+  <div class="side">
+    <h1>拳王备赛营养教练</h1>
+    <p>这是「今日」页的静态预览，数据由真实规则引擎（miniprogram/utils/rules.js）生成，不是假数据。</p>
+    <div class="tabs" id="tabs"></div>
+    <p class="tiny">点告警可以展开知识库依据。<br>真实交互请用微信开发者工具打开项目。</p>
+    <p class="tiny" style="margin-top:14px">项目位置<br>E:\AI\运动营养\boxer-coach</p>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>拳王备赛</span><span>100%</span></div>
+    <div class="screen" id="screen"></div>
+  </div>
+
+<script>
+const DATA = [
+  {
+    "title": "① 原来那条记录",
+    "note": "只有体重 + 一句话，信息不足，只能报警",
+    "score": 34,
+    "level": "红灯",
+    "tone": "red",
+    "headline": "脱水 3.7%：今天必须优先补液",
+    "metrics": [
+      {
+        "label": "晨重",
+        "value": 58,
+        "unit": "kg"
+      },
+      {
+        "label": "训练脱水",
+        "value": 3.7,
+        "unit": "%"
+      },
+      {
+        "label": "蛋白",
+        "value": 0,
+        "unit": "/ 128g"
+      },
+      {
+        "label": "摄入",
+        "value": 0,
+        "unit": "kcal"
+      },
+      {
+        "label": "酸痛峰",
+        "value": 8,
+        "unit": "/10"
+      },
+      {
+        "label": "睡眠",
+        "value": "--",
+        "unit": "h"
+      }
+    ],
+    "alerts": [
+      {
+        "level": "red",
+        "title": "脱水 3.7%：今天必须优先补液",
+        "text": "训练掉了 2.2kg，按每 kg 补 1.25–1.5L 计算，需补 2750–3300ml 含钠液体，分 3–4 次喝完。已记录饮水 0ml，还差 2750ml。",
+        "kbTitles": [
+          "脱水 2% 就开始掉表现",
+          "每掉 1kg 体重，补 1.25–1.5L 液体",
+          "大汗体质需要钠，不只是水"
+        ]
+      },
+      {
+        "level": "red",
+        "title": "全身酸痛 8/10",
+        "text": "这个程度做速度/爆发课收益极低、受伤风险高。今天改成技术、战术或低强度有氧，速度课往后挪。",
+        "kbTitles": [
+          "酸痛 7 分以上，别做速度与爆发课"
+        ]
+      },
+      {
+        "level": "amber",
+        "title": "记录不足：只有 1 餐",
+        "text": "少于 2 餐的结构化记录无法评估能量和蛋白。补记剩余餐次，或明天开始每餐拍照+选食物。",
+        "kbTitles": [
+          "只记一餐＝没有数据"
+        ]
+      }
+    ],
+    "tips": [
+      {
+        "title": "总量：1.6–2.2 g/kg/天",
+        "body": "力量与格斗类项目建议每天 1.6–2.2 g/kg（58kg 约 93–128g）。减脂期热量不足时提到 2.3–3.1 g/kg 去脂体重，用来对抗肌肉流失。超过 2.2 g/kg 对增肌没有额外好处，但在减脂期有意义。",
+        "source": "ISSN Position Stand: Protein and Exercise (Jäger et al., 2017); Helms et al. (2014)"
+      },
+      {
+        "title": "减脂期不要一路减到底：安排 refeed",
+        "body": "连续 8 周以上热量缺口会让瘦素、甲状腺激素和训练表现一起下滑。每 2–3 周安排 1–2 天回到维持热量（碳水为主），体重会短期回升 0.5–1kg，那是糖原和水，不是脂肪。日记里看到体重反弹先别慌，看 7 日移动平均。",
+        "source": "ISSN Position Stand: Diets and Body Composition (Aragon et al., 2017)"
+      },
+      {
+        "title": "拍照记餐的准确率取决于参照物",
+        "body": "照片估算误差通常在 ±20–30%，放一个硬币、筷子或手掌做参照能明显提高准确度。有称重条件的优先称，照片只用于没秤的场合。",
+        "source": "膳食记录方法学通用要求"
+      }
+    ],
+    "coachSummary": "评分 34(红灯) · 晨重 58kg · 脱水 3.7% · 蛋白 0g · 酸痛 8",
+    "date": "2026-05-16"
+  },
+  {
+    "title": "② 同一天填全后",
+    "note": "三餐结构化 + 水合 + RPE + 分部位酸痛",
+    "score": 52,
+    "level": "红灯",
+    "tone": "red",
+    "headline": "脱水 3.7%：今天必须优先补液",
+    "metrics": [
+      {
+        "label": "晨重",
+        "value": 58,
+        "unit": "kg"
+      },
+      {
+        "label": "训练脱水",
+        "value": 3.7,
+        "unit": "%"
+      },
+      {
+        "label": "蛋白",
+        "value": 107,
+        "unit": "/ 128g"
+      },
+      {
+        "label": "摄入",
+        "value": 1720,
+        "unit": "kcal"
+      },
+      {
+        "label": "酸痛峰",
+        "value": 8,
+        "unit": "/10"
+      },
+      {
+        "label": "睡眠",
+        "value": 6,
+        "unit": "h"
+      }
+    ],
+    "alerts": [
+      {
+        "level": "red",
+        "title": "脱水 3.7%：今天必须优先补液",
+        "text": "训练掉了 2.2kg，按每 kg 补 1.25–1.5L 计算，需补 2750–3300ml 含钠液体，分 3–4 次喝完。已记录饮水 800ml，还差 1950ml。",
+        "kbTitles": [
+          "脱水 2% 就开始掉表现",
+          "每掉 1kg 体重，补 1.25–1.5L 液体",
+          "大汗体质需要钠，不只是水"
+        ]
+      },
+      {
+        "level": "red",
+        "title": "减重过快：1.1kg/周",
+        "text": "安全上限是每周 0.5–1% 体重（你约 0.29–0.58kg）。再快会掉肌肉和力量。",
+        "kbTitles": [
+          "安全减重速率：每周 0.5–1% 体重",
+          "总量：1.6–2.2 g/kg/天"
+        ]
+      },
+      {
+        "level": "red",
+        "title": "肩部酸痛 8/10",
+        "text": "这个程度做速度/爆发课收益极低、受伤风险高。今天改成技术、战术或低强度有氧，速度课往后挪。",
+        "kbTitles": [
+          "酸痛 7 分以上，别做速度与爆发课"
+        ]
+      },
+      {
+        "level": "red",
+        "title": "明日计划与恢复状态冲突",
+        "text": "计划是「速度课」，但当前 酸痛 8/10、睡眠 6h。建议：改为技术课或恢复课，把速度课挪到恢复之后。",
+        "kbTitles": [
+          "酸痛 7 分以上，别做速度与爆发课",
+          "睡眠 7–9 小时，是恢复的第一优先级"
+        ]
+      },
+      {
+        "level": "amber",
+        "title": "晨尿偏深（5/8）",
+        "text": "提示夜间轻度脱水，起床后先补 300–500ml 水，再开始训练。",
+        "kbTitles": [
+          "尿色是最快的自查指标"
+        ]
+      },
+      {
+        "level": "amber",
+        "title": "蛋白差 21g",
+        "text": "目标 116–139g（2–2.4 g/kg）。差的一口用 200ml 牛奶 + 1 个鸡蛋补上。",
+        "kbTitles": [
+          "总量：1.6–2.2 g/kg/天",
+          "分配：每餐 0.3–0.4 g/kg，3–5 餐"
+        ]
+      },
+      {
+        "level": "amber",
+        "title": "睡眠 6 小时，偏少",
+        "text": "目标 7–9 小时。连续 3 天不足会累积成恢复赤字。",
+        "kbTitles": [
+          "睡眠 7–9 小时，是恢复的第一优先级"
+        ]
+      },
+      {
+        "level": "amber",
+        "title": "晨脉高于基线 7 次/分",
+        "text": "连续两天偏高通常意味着恢复不足、脱水或感染前兆。今天减量 10–20%。",
+        "kbTitles": [
+          "晨脉比情绪更诚实",
+          "酸痛 7 分以上，别做速度与爆发课"
+        ]
+      }
+    ],
+    "tips": [
+      {
+        "title": "总量：1.6–2.2 g/kg/天",
+        "body": "力量与格斗类项目建议每天 1.6–2.2 g/kg（58kg 约 93–128g）。减脂期热量不足时提到 2.3–3.1 g/kg 去脂体重，用来对抗肌肉流失。超过 2.2 g/kg 对增肌没有额外好处，但在减脂期有意义。",
+        "source": "ISSN Position Stand: Protein and Exercise (Jäger et al., 2017); Helms et al. (2014)"
+      },
+      {
+        "title": "减脂期不要一路减到底：安排 refeed",
+        "body": "连续 8 周以上热量缺口会让瘦素、甲状腺激素和训练表现一起下滑。每 2–3 周安排 1–2 天回到维持热量（碳水为主），体重会短期回升 0.5–1kg，那是糖原和水，不是脂肪。日记里看到体重反弹先别慌，看 7 日移动平均。",
+        "source": "ISSN Position Stand: Diets and Body Composition (Aragon et al., 2017)"
+      },
+      {
+        "title": "备赛四个阶段，策略完全不同",
+        "body": "维持期（非赛季）：体重稳定在参赛级别 +3–5%，正常吃。减脂期（赛前 8–12 周）：每周 0.5–1%，蛋白提到 2.0–2.4 g/kg 保肌。微调期（赛前 1–2 周）：只动水、钠、纤维和胃肠内容物，不再动热量缺口。恢复期（称重后 12–24h）：补液补糖，把体重拉回 3–5%。把阶段写进 App，规则才知道该给你哪套建议。",
+        "source": "IOC consensus statement on sports nutrition (2018); ACSM/AND/DC joint position stand (2016)"
+      }
+    ],
+    "coachSummary": "评分 52(红灯) · 晨重 58kg · 脱水 3.7% · 蛋白 107g · 摄入 1720kcal · 酸痛 8 · sRPE 600",
+    "date": "2026-05-16"
+  },
+  {
+    "title": "③ 两天后恢复到位",
+    "note": "同样字段，反馈变成\"可以上强度\"",
+    "score": 84,
+    "level": "良",
+    "tone": "ok",
+    "headline": "减重过快：1.2kg/周",
+    "metrics": [
+      {
+        "label": "晨重",
+        "value": 57.6,
+        "unit": "kg"
+      },
+      {
+        "label": "训练脱水",
+        "value": 1.2,
+        "unit": "%"
+      },
+      {
+        "label": "蛋白",
+        "value": 107,
+        "unit": "/ 127g"
+      },
+      {
+        "label": "摄入",
+        "value": 1720,
+        "unit": "kcal"
+      },
+      {
+        "label": "酸痛峰",
+        "value": 2,
+        "unit": "/10"
+      },
+      {
+        "label": "睡眠",
+        "value": 8,
+        "unit": "h"
+      }
+    ],
+    "alerts": [
+      {
+        "level": "red",
+        "title": "减重过快：1.2kg/周",
+        "text": "安全上限是每周 0.5–1% 体重（你约 0.29–0.58kg）。再快会掉肌肉和力量。",
+        "kbTitles": [
+          "安全减重速率：每周 0.5–1% 体重",
+          "总量：1.6–2.2 g/kg/天"
+        ]
+      },
+      {
+        "level": "amber",
+        "title": "蛋白差 20g",
+        "text": "目标 115–138g（2–2.4 g/kg）。差的一口用 200ml 牛奶 + 1 个鸡蛋补上。",
+        "kbTitles": [
+          "总量：1.6–2.2 g/kg/天",
+          "分配：每餐 0.3–0.4 g/kg，3–5 餐"
+        ]
+      }
+    ],
+    "tips": [
+      {
+        "title": "总量：1.6–2.2 g/kg/天",
+        "body": "力量与格斗类项目建议每天 1.6–2.2 g/kg（58kg 约 93–128g）。减脂期热量不足时提到 2.3–3.1 g/kg 去脂体重，用来对抗肌肉流失。超过 2.2 g/kg 对增肌没有额外好处，但在减脂期有意义。",
+        "source": "ISSN Position Stand: Protein and Exercise (Jäger et al., 2017); Helms et al. (2014)"
+      },
+      {
+        "title": "减脂期不要一路减到底：安排 refeed",
+        "body": "连续 8 周以上热量缺口会让瘦素、甲状腺激素和训练表现一起下滑。每 2–3 周安排 1–2 天回到维持热量（碳水为主），体重会短期回升 0.5–1kg，那是糖原和水，不是脂肪。日记里看到体重反弹先别慌，看 7 日移动平均。",
+        "source": "ISSN Position Stand: Diets and Body Composition (Aragon et al., 2017)"
+      },
+      {
+        "title": "备赛四个阶段，策略完全不同",
+        "body": "维持期（非赛季）：体重稳定在参赛级别 +3–5%，正常吃。减脂期（赛前 8–12 周）：每周 0.5–1%，蛋白提到 2.0–2.4 g/kg 保肌。微调期（赛前 1–2 周）：只动水、钠、纤维和胃肠内容物，不再动热量缺口。恢复期（称重后 12–24h）：补液补糖，把体重拉回 3–5%。把阶段写进 App，规则才知道该给你哪套建议。",
+        "source": "IOC consensus statement on sports nutrition (2018); ACSM/AND/DC joint position stand (2016)"
+      }
+    ],
+    "coachSummary": "评分 84(良) · 晨重 57.6kg · 脱水 1.2% · 蛋白 107g · 摄入 1720kcal · 酸痛 2 · sRPE 540",
+    "date": "2026-05-18"
+  }
+];
+let cur = 0;
+
+function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = DATA.map((d,i)=>
+    '<button class="tab '+(i===cur?'on':'')+'" onclick="pick('+i+')"><strong>'+esc(d.title)+'</strong><small>'+esc(d.note)+'</small></button>'
+  ).join('');
+}
+
+function pick(i){ cur = i; renderTabs(); render(); }
+
+function render(){
+  const d = DATA[cur];
+  const tone = d.tone;
+  const alerts = d.alerts.map((a,idx)=>`
+    <div class="alert ${a.level}" onclick="document.getElementById('kb${idx}').classList.toggle('on')">
+      <div class="alert-head">
+        <span class="badge ${a.level==='red'?'red':(a.level==='amber'?'amber':'info')}">${a.level==='red'?'必须':(a.level==='amber'?'注意':'提示')}</span>
+        <span class="alert-title">${esc(a.title)}</span>
+      </div>
+      <div class="alert-body">${esc(a.text)}</div>
+      <div class="kb" id="kb${idx}">
+        <div class="tiny">依据</div>
+        ${a.kbTitles.filter(Boolean).map(t=>'<div class="kb-line">· '+esc(t)+'</div>').join('')}
+      </div>
+    </div>`).join('');
+
+  const metrics = d.metrics.map(m=>`
+    <div class="cell"><div class="cell-label">${esc(m.label)}</div>
+    <div class="cell-val">${esc(m.value)}<span class="cell-unit">${esc(m.unit)}</span></div></div>`).join('');
+
+  const tips = d.tips.map(t=>`
+    <div class="tip"><div class="tip-title">${esc(t.title)}</div>
+    <div class="tip-body">${esc(t.body)}</div><div class="tiny">${esc(t.source)}</div></div>`).join('');
+
+  document.getElementById('screen').innerHTML = `
+    <div class="nav">今日</div>
+    <div class="top">
+      <div><div class="date">${esc(d.date)} <span class="muted">周六</span></div>
+      <div class="tiny">减脂期 · 距称重 35 天</div></div>
+    </div>
+    <div class="card score-card">
+      <div style="min-width:74px;text-align:center">
+        <div class="score-num tone-${tone}">${d.score}</div>
+        <div class="score-level tone-${tone}">${esc(d.level)}</div>
+      </div>
+      <div class="headline">${esc(d.headline)}</div>
+    </div>
+    <div class="grid">${metrics}</div>
+    <div class="card">
+      <div class="row"><div style="font-size:14px;font-weight:600">今日要点</div><span class="muted">${d.alerts.length} 条</span></div>
+      ${alerts}
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">今天值得知道</div>
+      ${tips}
+    </div>
+    <div class="card"><div class="coach"><b style="color:#8a968f">教练端会收到的摘要</b><br>${esc(d.coachSummary)}</div></div>
+    <div class="footnote">静态预览 · 数据由 rules.js 真实计算</div>`;
+}
+
+renderTabs();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+.chat-page { padding-bottom: 160rpx; }
+.msg { display: flex; margin-bottom: 18rpx; }
+.msg.mine { justify-content: flex-end; }
+.bubble { max-width: 76%; padding: 18rpx 22rpx; border-radius: 16rpx; background: #1d2320; }
+.mine .bubble { background: #2f3a12; }
+.txt { font-size: 27rpx; line-height: 1.5; }
+.at { font-size: 18rpx; color: #6b7772; margin-top: 6rpx; text-align: right; }
+.quick { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 20rpx 0; }
+.qchip { background: #1d2320; border: 1rpx solid #2a3330; border-radius: 999rpx; padding: 10rpx 20rpx; font-size: 22rpx; color: #b9c4be; }
+.input-bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12rpx; padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom)); background: #111413; border-top: 1rpx solid #242b28; }
+.input.flex { flex: 1; }
+.send-btn { padding: 0 34rpx; font-size: 26rpx; }
+.err { color: #ff7a6b; font-size: 24rpx; margin-bottom: 16rpx; }

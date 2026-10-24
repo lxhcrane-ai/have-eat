@@ -1,0 +1,36 @@
+.top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20rpx; }
+.date { font-size: 36rpx; font-weight: 700; }
+.inbox { background: #2a1a12; color: #ffc46b; border-radius: 999rpx; padding: 8rpx 20rpx; font-size: 22rpx; display: flex; align-items: center; }
+.dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: #ff7a6b; margin-right: 10rpx; }
+.score-card { display: flex; align-items: center; gap: 28rpx; }
+.score-left { text-align: center; min-width: 150rpx; }
+.score-num { font-size: 78rpx; font-weight: 800; line-height: 1; }
+.score-level { font-size: 24rpx; margin-top: 8rpx; }
+.tone-ok { color: #5ce39a; }
+.tone-amber { color: #ffc46b; }
+.tone-red { color: #ff7a6b; }
+.tone-info { color: #6bc4ff; }
+.score-right { flex: 1; }
+.headline { font-size: 28rpx; line-height: 1.5; }
+.grid { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 20rpx; }
+.cell { width: calc(33.33% - 11rpx); background: #161a18; border: 1rpx solid #242b28; border-radius: 16rpx; padding: 18rpx 16rpx; box-sizing: border-box; }
+.cell-label { color: #8a968f; font-size: 22rpx; }
+.cell-val { font-size: 40rpx; font-weight: 700; margin-top: 4rpx; }
+.cell-unit { font-size: 20rpx; color: #8a968f; font-weight: 400; margin-left: 4rpx; }
+.v-red { color: #ff7a6b; }
+.v-amber { color: #ffc46b; }
+.alert { border-left: 6rpx solid #2a3330; padding: 16rpx 0 16rpx 18rpx; margin-top: 14rpx; }
+.alert.a-red { border-color: #ff7a6b; }
+.alert.a-amber { border-color: #ffc46b; }
+.alert.a-info { border-color: #3a5a6b; }
+.alert-head { display: flex; align-items: center; gap: 12rpx; }
+.alert-title { font-weight: 600; font-size: 27rpx; flex: 1; }
+.alert-body { color: #b9c4be; font-size: 25rpx; margin-top: 8rpx; line-height: 1.6; }
+.kb-ref { margin-top: 12rpx; padding: 12rpx 16rpx; background: #0f1211; border-radius: 10rpx; }
+.kb-line { color: #8a968f; font-size: 22rpx; margin-top: 6rpx; }
+.tip { padding: 16rpx 0; border-bottom: 1rpx solid #1f2523; }
+.tip:last-child { border-bottom: none; }
+.tip-title { font-weight: 600; font-size: 27rpx; color: #e8ff47; }
+.tip-body { color: #b9c4be; font-size: 25rpx; margin: 8rpx 0; line-height: 1.6; }
+.actions { display: flex; gap: 16rpx; margin-top: 10rpx; }
+.actions .btn { flex: 1; }

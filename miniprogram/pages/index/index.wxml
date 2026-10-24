@@ -1,0 +1,67 @@
+<view class="page">
+  <view class="top">
+    <view>
+      <view class="date">{{date}} <text class="muted">{{wd}}</text></view>
+      <view class="tiny">{{phaseLabel}}<text wx:if="{{daysToWeigh !== null}}"> · 距称重 {{daysToWeigh}} 天</text></view>
+    </view>
+    <view class="inbox" bindtap="goChat" wx:if="{{unread > 0}}">
+      <text class="dot"></text>{{unread}} 条教练消息
+    </view>
+  </view>
+
+  <!-- 评分 -->
+  <view class="card score-card">
+    <view class="score-left">
+      <view class="score-num tone-{{tone}}">{{score}}</view>
+      <view class="score-level tone-{{tone}}">{{level}}</view>
+    </view>
+    <view class="score-right">
+      <view class="headline">{{headline}}</view>
+      <view class="tiny" wx:if="{{offline}}">离线模式：数据已存本机，联网后自动同步</view>
+    </view>
+  </view>
+
+  <!-- 指标 -->
+  <view class="grid" wx:if="{{hasLog}}">
+    <view class="cell" wx:for="{{metrics}}" wx:key="label">
+      <view class="cell-label">{{item.label}}</view>
+      <view class="cell-val {{item.tone ? 'v-' + item.tone : ''}}">{{item.value}}<text class="cell-unit">{{item.unit}}</text></view>
+    </view>
+  </view>
+
+  <!-- 告警 -->
+  <view class="card" wx:if="{{alerts.length}}">
+    <view class="card-title">今日要点<text class="muted">{{alerts.length}} 条</text></view>
+    <view class="alert a-{{item.level}}" wx:for="{{alerts}}" wx:key="title" data-i="{{index}}" bindtap="toggleKb">
+      <view class="alert-head">
+        <text class="badge {{item.level === 'red' ? 'red' : (item.level === 'amber' ? 'amber' : 'info')}}">{{item.level === 'red' ? '必须' : (item.level === 'amber' ? '注意' : '提示')}}</text>
+        <text class="alert-title">{{item.title}}</text>
+      </view>
+      <view class="alert-body">{{item.text}}</view>
+      <view class="kb-ref" wx:if="{{item.open && item.kbTitles.length}}">
+        <view class="tiny">依据</view>
+        <view class="kb-line" wx:for="{{item.kbTitles}}" wx:for-item="t" wx:key="*this">· {{t}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 知识库提示 -->
+  <view class="card" wx:if="{{tips.length}}">
+    <view class="card-title">今天值得知道</view>
+    <view class="tip" wx:for="{{tips}}" wx:key="id">
+      <view class="tip-title">{{item.title}}</view>
+      <view class="tip-body">{{item.body}}</view>
+      <view class="tiny">{{item.source}}</view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!hasLog && !loading}}">
+    <view>今天还没有记录</view>
+    <view class="tiny" style="margin-top:12rpx">称重 → 填三餐 → 30 秒出反馈</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn" bindtap="goLog">{{hasLog ? '修改今日记录' : '填写今日记录'}}</button>
+    <button class="btn ghost" bindtap="goTrend">趋势</button>
+  </view>
+</view>

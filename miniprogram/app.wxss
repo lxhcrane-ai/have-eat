@@ -1,0 +1,48 @@
+page {
+  background: #0d0f0e;
+  color: #e9eeec;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-size: 28rpx;
+  line-height: 1.55;
+}
+.page { padding: 24rpx 24rpx 60rpx; }
+.card {
+  background: #161a18;
+  border: 1rpx solid #242b28;
+  border-radius: 20rpx;
+  padding: 26rpx;
+  margin-bottom: 20rpx;
+}
+.card-title { font-size: 30rpx; font-weight: 600; margin-bottom: 14rpx; display: flex; align-items: center; justify-content: space-between; }
+.muted { color: #8a968f; font-size: 24rpx; }
+.tiny { color: #6b7772; font-size: 22rpx; }
+.row { display: flex; align-items: center; justify-content: space-between; padding: 14rpx 0; }
+.row + .row { border-top: 1rpx solid #1f2523; }
+.label { color: #b9c4be; }
+.val { color: #e9eeec; font-weight: 600; }
+.hl { color: #e8ff47; }
+.btn {
+  background: #e8ff47; color: #10130f; border-radius: 14rpx;
+  font-size: 30rpx; font-weight: 600; padding: 20rpx; text-align: center;
+  border: none; line-height: 1.2;
+}
+.btn.ghost { background: transparent; color: #e8ff47; border: 1rpx solid #3a453f; }
+.btn:active { opacity: .82; }
+.chip {
+  display: inline-block; padding: 10rpx 22rpx; border-radius: 999rpx;
+  background: #1d2320; color: #b9c4be; font-size: 24rpx; margin: 0 12rpx 12rpx 0;
+  border: 1rpx solid #2a3330;
+}
+.chip.on { background: #e8ff47; color: #10130f; border-color: #e8ff47; font-weight: 600; }
+.badge { font-size: 22rpx; padding: 4rpx 14rpx; border-radius: 8rpx; }
+.badge.red { background: #3d1a1a; color: #ff7a6b; }
+.badge.amber { background: #3a2c12; color: #ffc46b; }
+.badge.ok { background: #12301f; color: #5ce39a; }
+.badge.info { background: #162630; color: #6bc4ff; }
+.input {
+  background: #0f1211; border: 1rpx solid #262e2b; border-radius: 12rpx;
+  padding: 18rpx; color: #e9eeec; font-size: 28rpx;
+}
+.hint { color: #6b7772; font-size: 22rpx; margin-top: 6rpx; }
+.empty { text-align: center; color: #5c6862; padding: 80rpx 0; font-size: 26rpx; }
+.hr { height: 1rpx; background: #1f2523; margin: 18rpx 0; }

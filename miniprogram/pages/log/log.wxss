@@ -1,0 +1,38 @@
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18rpx; }
+.date-pick { font-size: 34rpx; font-weight: 700; }
+.preview { font-size: 22rpx; color: #e8ff47; text-align: right; max-width: 380rpx; }
+.input-wrap { display: flex; align-items: center; gap: 8rpx; }
+.input.num { width: 160rpx; text-align: right; }
+.input.flex { flex: 1; margin-left: 16rpx; }
+.unit { color: #8a968f; font-size: 24rpx; }
+.sub-label { color: #8a968f; font-size: 23rpx; margin: 16rpx 0 10rpx; }
+.chips { display: flex; flex-wrap: wrap; }
+.sore-row { display: flex; align-items: center; gap: 12rpx; }
+.sore-row .label { width: 80rpx; }
+.sore-slider { flex: 1; margin: 0 12rpx; }
+.sore-val { width: 46rpx; text-align: right; font-weight: 600; font-size: 26rpx; }
+.meal { background: #0f1211; border-radius: 14rpx; padding: 18rpx; margin-bottom: 16rpx; }
+.meal-head { display: flex; justify-content: space-between; align-items: center; }
+.meal-slot { font-weight: 700; }
+.meal-ops { display: flex; gap: 18rpx; }
+.op { color: #6bc4ff; font-size: 23rpx; }
+.op.danger { color: #ff7a6b; }
+.meal-photo { width: 100%; height: 220rpx; border-radius: 10rpx; margin-top: 12rpx; }
+.food-item { display: flex; align-items: center; gap: 12rpx; padding: 12rpx 0; border-bottom: 1rpx solid #1a201e; font-size: 25rpx; }
+.fi-name { flex: 1; }
+.fi-gram { color: #8a968f; }
+.fi-kcal { color: #5ce39a; font-size: 23rpx; }
+.add-food { color: #e8ff47; font-size: 25rpx; padding-top: 14rpx; }
+.slot-row { display: flex; gap: 12rpx; flex-wrap: wrap; }
+.slot-btn { background: #1d2320; border: 1rpx dashed #3a453f; color: #b9c4be; border-radius: 10rpx; padding: 12rpx 20rpx; font-size: 24rpx; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 10; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #161a18; border-radius: 24rpx 24rpx 0 0; z-index: 11; padding: 24rpx; max-height: 78vh; display: flex; flex-direction: column; }
+.sheet-head { display: flex; align-items: center; gap: 16rpx; }
+.food-list { max-height: 50vh; margin-top: 16rpx; }
+.food-row { display: flex; justify-content: space-between; align-items: center; padding: 18rpx 12rpx; border-bottom: 1rpx solid #1f2523; }
+.food-row.on { background: #1f2a22; color: #e8ff47; }
+.add-bar { display: flex; align-items: center; gap: 12rpx; padding-top: 18rpx; border-top: 1rpx solid #242b28; }
+.add-name { flex: 1; font-size: 26rpx; }
+.input.grams { width: 130rpx; text-align: center; }
+.btn.tiny-btn { padding: 14rpx 30rpx; font-size: 26rpx; }
+.center { text-align: center; }

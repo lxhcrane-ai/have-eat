@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="card search-card">
+    <input class="input" placeholder="搜索：脱水、蛋白、称重、咖啡因…" bindinput="onSearch" value="{{query}}" />
+    <view class="tiny" style="margin-top:10rpx">共 {{total}} 条，全部带出处。规则引擎给出的每条建议都指向这里的条目。</view>
+  </view>
+
+  <scroll-view scroll-x class="cats">
+    <view class="chip {{active === item.id ? 'on' : ''}}" wx:for="{{cats}}" wx:key="id" data-id="{{item.id}}" bindtap="pickCat">{{item.name}}</view>
+  </scroll-view>
+
+  <view class="card item" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="toggle">
+    <view class="item-head">
+      <text class="item-title">{{item.title}}</text>
+      <text class="tiny">{{item.catName}}</text>
+    </view>
+    <view class="item-body {{openId === item.id ? '' : 'clamp'}}">{{item.body}}</view>
+    <view class="src" wx:if="{{openId === item.id}}">{{item.source}}</view>
+  </view>
+
+  <view class="empty" wx:if="{{!list.length}}">没有匹配的条目</view>
+</view>
