@@ -52,6 +52,10 @@
         <text class="tiny">阶段</text>
         <view class="chip sm {{item.phase === p.id ? 'on' : ''}}" wx:for="{{phases}}" wx:for-item="p" wx:for-index="pi" wx:key="id" data-id="{{item.openid}}" data-phase="{{p.id}}" bindtap="setPhase">{{p.name}}</view>
       </view>
+      <view class="suggest" wx:if="{{item.suggest}}">
+        <view class="tiny">系统建议：切到 {{item.suggest.label}}（{{item.suggest.reason}}）</view>
+        <text class="op" data-id="{{item.openid}}" data-phase="{{item.suggest.phase}}" bindtap="setPhase">采纳建议 ›</text>
+      </view>
 
       <view class="alert-mini" wx:for="{{item.reds}}" wx:key="title" wx:for-item="r">
         <text class="badge red">必须</text> {{r.title}}
@@ -59,6 +63,7 @@
 
       <view class="ath-ops">
         <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="goChat">发消息</text>
+        <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="goReport">周报</text>
         <text class="op" data-id="{{item.openid}}" bindtap="openDetail">{{detailOpen === item.openid ? '收起' : '看最近 14 天'}}</text>
       </view>
 

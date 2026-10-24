@@ -193,6 +193,29 @@ peak → 不报 HYD-01/PRO-01/ENE-01；改报 HYD-05（缺计划数据）+ LOG-0
 
 ---
 
+## 四·八、周报与阶段建议
+
+**周报**（`utils/weekly.js` + `pages/report`）：7 天窗口，输出晨重斜率、蛋白达标率、能量、sRPE、睡眠、脱水天数、规则触发统计、3–6 条带数字的结论、1–4 条下周动作，外加一段可直接复制发教练的文本。
+
+- 微调期口径不同：不统计脱水百分比，改统计补液计划执行率（与阶段机一致，测试有断言）。
+- 只统计有记录的天，缺记录不会算成"做得差"，但会单独提示完整记录天数。
+- 教练端每个拳王卡片有「周报」入口，可看下属的周报。
+
+**阶段建议**（`rules.suggestPhase(profile, {today})`）：按距称重天数给出建议阶段与文字理由。
+
+```
+距称重 > 84 天 → 维持期     15–84 天 → 减脂期（体重已接近目标则仍维持）
+≤ 14 天 → 微调期            称重后 0–2 天 → 恢复期      更久 → 维持期
+```
+
+只建议不自动改：教练端显示"建议切到 X（理由）+ 采纳建议"，拳王端「我的」只读展示推算结果。理由是不让人事后无法解释历史评分口径。
+
+**演示数据**：`node scripts/gen-seed.js 2026-10-25` 生成 14 天（60.6 → 59.7kg，约 0.83%/周；其中 2 天蛋白 59g、脱水 3%、睡眠 5.6h、酸痛 8 且次日速度课）。首次启动本机无记录时自动导入，打开就能看到趋势折线、周报和今日评分。
+
+细节与示例文本：`docs/weekly-report.md`；测试：`node scripts/test-weekly.js`（59 项）。
+
+---
+
 ## 五、数据契约
 
 见 `docs/schema.md`。要点：
@@ -220,13 +243,15 @@ node scripts/preflight.js     # 编译前自检：页面/跳转/事件/标签/re
 node scripts/test-rules.js    # 36 项规则回归（真实老数据、崩盘日、速率、引用完整性）
 node scripts/test-phases.js   # 47 项阶段对照（同数据在 cut/peak 下告警与评分必须不同）
 node scripts/test-followup.js # 35 项跟进队列（合并、升级、确认、提醒、id 唯一）
+node scripts/test-weekly.js   # 59 项周报与阶段建议（10 个阶段边界 + cut/peak/空数据）
 node scripts/lint-pages.js    # WXML 引用字段 vs 页面 data 一致性
 node scripts/dump-docs.js     # 从代码生成 docs/phase-matrix.md 与 docs/rule-source-table.md
+node scripts/gen-seed.js      # 重新生成 14 天演示数据（首次启动导入）
 bash scripts/sync-shared.sh   # 同步规则引擎/登记表/队列逻辑到云函数
 for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; done
 ```
 
-当前状态：preflight 0 阻塞（只剩 AppID / 环境 ID 两条待填提醒），规则 36/36、阶段 47/47、队列 35/35 通过，字段一致性 0 冲突。
+当前状态：preflight 0 阻塞（3 条提示：AppID / 环境 ID / 演示种子），规则 36/36、阶段 47/47、队列 35/35、周报 59/59 通过，字段一致性 0 冲突。
 
 ---
 
@@ -247,13 +272,15 @@ for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; do
 - ~~称重日倒计时联动自动切换阶段~~ → `PHASE_PROFILES` + `coachApi.setPhase`，阶段由营养师后台设置，写 `phase_history`。
 - ~~教练端只有一行摘要~~ → 跟进队列（`pages/queue`），连续未解决自动合并升级，确认后生成次日提醒。
 - ~~告警依据只有知识库标题~~ → 规则登记表 + 文献锚点（`pages/rules`），支持"待复核"不改代码。
+- ~~周报~~ → `utils/weekly.js` + `pages/report`，7 天结论 + 下周动作 + 可复制文本。
+- ~~阶段靠人记~~ → `suggestPhase` 按距称重天数给建议，教练端一键采纳（不自动改）。
 
 还没做的：
 
-- 称重日临近时**自动建议**切阶段（现在仍需营养师手动点；建议加"距称重 N 天 → 建议进入 peak"的提示条，不自动改）。
-- 周报：把 7 天 sRPE、蛋白达标率、体重斜率导成一张图（教练端分享）。
+- 周报导出长图（现在只能复制文本；要图得接 canvas 或后端绘图，真机验证后再做）。
 - 餐食拍照接多模态模型，把 `items.source` 从 `library` 改成 `vision`，规则引擎无需改动。
 - 跟进项的规则级统计（确认率/忽略率），用来识别阈值过松的规则。
+- **真机验证**：8 个旧页面 + 3 个新页面还没在微信开发者工具里跑过，WXML 渲染与云函数写库是唯一的空白。
 
 ---
 
@@ -267,6 +294,7 @@ boxer-coach/
     utils/rules.js         规则引擎（阶段状态机 + 规则开关 + 评分权重，双端共用）
     utils/followup.js      跟进队列逻辑（合并连续天数、升级、生成次日提醒，纯函数）
     utils/coachApi.js      营养师后台 API 封装（离线退化为本机存储）
+    utils/weekly.js        周报计算（7 天指标、规则触发统计、结论与分享文本）
     utils/food.js          食物库 42 种
     utils/store.js         本地存储 + 待同步队列
     utils/api.js           云函数调用封装
@@ -281,13 +309,14 @@ boxer-coach/
     pages/coach            营养师后台：待处理数 + 拳王列表 + 阶段切换
     pages/queue            跟进队列：分组、证据、确认发送次日提醒/稍后/忽略
     pages/rules            规则库：判定逻辑、阈值、来源锚点、复核状态
+    pages/report           周报：7 天结论 + 规则触发统计 + 下周动作 + 复制文本
     pages/chat             一对一沟通
     pages/bind             邀请码绑定
   cloudfunctions/
     whoami saveLog getFeed chat bind saveProfile inbox coachApi
   scripts/
-    preflight.js  test-rules.js  test-phases.js  test-followup.js
-    demo-followup.js  dump-docs.js  lint-pages.js  migrate.js  sync-shared.sh
+    preflight.js  test-rules.js  test-phases.js  test-followup.js  test-weekly.js
+    demo-followup.js  dump-docs.js  gen-seed.js  lint-pages.js  migrate.js  sync-shared.sh
     fixtures/followup-demo.js
   docs/
     schema.md  knowledge.md  migrated_example.json
@@ -295,4 +324,5 @@ boxer-coach/
     rule-registry.md       规则登记与复核流程、两处阈值冲突
     rule-source-table.md   规则–来源对照表（生成式）
     followup-queue.md      跟进队列模型/页面/模拟数据集
+    weekly-report.md       周报口径、阶段建议、演示数据
 ```

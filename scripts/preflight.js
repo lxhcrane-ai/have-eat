@@ -208,10 +208,20 @@ regIds.forEach(function (id) {
 function PHASE_LIST() { return ['maintain', 'cut', 'peak', 'recover']; }
 if (driftProblems.length) err('阶段与登记表不一致：' + driftProblems.join('；'));
 
-// 两条新页面必须能被找到（队列 / 规则库）
-['pages/queue/queue', 'pages/rules/rules'].forEach(function (p) {
+// 新页面必须能被找到（队列 / 规则库 / 周报）
+['pages/queue/queue', 'pages/rules/rules', 'pages/report/report'].forEach(function (p) {
   if (!exists(path.join(MP, p + '.js'))) err('缺少页面 ' + p);
 });
+
+// 演示种子数据：非空时会在首次启动导入，必须提醒
+try {
+  const seed = require(path.join(MP, 'data', 'seed.js'));
+  if (Array.isArray(seed) && seed.length) {
+    warn('data/seed.js 含 ' + seed.length + ' 条演示数据（首次启动导入），正式使用前改回 []');
+  }
+} catch (e) {
+  err('data/seed.js 不是合法模块');
+}
 
 // ---------- 9. 配置占位符 ----------
 console.log('\n9) 配置');

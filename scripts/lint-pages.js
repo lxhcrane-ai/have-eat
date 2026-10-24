@@ -5,7 +5,8 @@ const path = require('path');
 const PAGES = path.join(__dirname, '../miniprogram/pages');
 // 循环项 / 事件参数 / data-* 数据集字段：都不该被当成"页面 data 字段"
 const LOOP_VARS = new Set(['item', 'index', 'it', 'j', 'i', 'r', 'd', 't', 'idx', 'p', 's', 'gi', 'ii', 'pi']);
-const IGNORE = new Set(['true', 'false', 'null', 'undefined', 'Math', 'JSON']);
+// 颜色名 / class 后缀（写在单引号里的 'v-amber' 会被拆成 amber）不算页面字段
+const IGNORE = new Set(['true', 'false', 'null', 'undefined', 'Math', 'JSON', 'red', 'amber', 'green', 'ok', 'info', 'warn', 'on', 'off', 'sm', 'mini', 'ghost']);
 
 function walk(dir) {
   let out = [];

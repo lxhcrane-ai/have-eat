@@ -29,6 +29,7 @@ Page({
     const athletes = (res.athletes || []).map(function (a) {
       const f = a.lastFeedback || {};
       const phase = rules.resolvePhase((a.profile && a.profile.phase) || 'maintain');
+      const sug = rules.suggestPhase(a.profile || {}, { today: fmt.todayStr() });
       const reds = (f.alerts || []).filter(function (x) { return x.level === 'red'; });
       return {
         openid: a.openid,
@@ -41,6 +42,8 @@ Page({
         headline: f.headline || '',
         phase: phase,
         phaseLabel: rules.phaseLabel(phase),
+        suggest: sug.changed ? { phase: sug.phase, label: sug.phaseLabel, reason: sug.reason } : null,
+        daysToWeigh: sug.daysToWeigh,
         reds: reds.slice(0, 3),
         targets: (a.profile && a.profile.weighInDate) ? ('距称重 ' + fmt.daysBetween(fmt.todayStr(), a.profile.weighInDate) + ' 天') : ''
       };
@@ -67,6 +70,10 @@ Page({
 
   goQueue() { wx.navigateTo({ url: '/pages/queue/queue' }); },
   goRules() { wx.navigateTo({ url: '/pages/rules/rules' }); },
+  goReport(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/report/report?athleteId=' + id + '&name=' + encodeURIComponent(e.currentTarget.dataset.name || '') });
+  },
 
   async openDetail(e) {
     const id = e.currentTarget.dataset.id;

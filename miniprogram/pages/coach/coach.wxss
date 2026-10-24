@@ -21,3 +21,6 @@
 .link-row { text-align: right; margin: -8rpx 0 16rpx; }
 .phase-row { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; margin: 10rpx 0; }
 .chip.sm { font-size: 22rpx; padding: 6rpx 16rpx; }
+
+.suggest { background: #1a160c; border: 1rpx solid #4a3a12; border-radius: 12rpx; padding: 12rpx 14rpx; margin: 10rpx 0; }
+.suggest .op { color: #ffc46b; }

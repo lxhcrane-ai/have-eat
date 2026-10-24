@@ -12,12 +12,13 @@ Page({
   data: {
     profile: { name: '', sex: 'male', heightCm: '', age: '', weightKg: '', targetWeightKg: '', weighInDate: '', phase: 'maintain', restingHrBaseline: '' },
     phases: PHASES, openid: '', role: 'athlete', coachOpenid: '', pending: 0, logCount: 0,
-    genderIndex: 0, saving: false
+    genderIndex: 0, saving: false, suggest: null
   },
 
   onShow() {
     const p = wx.getStorageSync('profile') || {};
     const profile = Object.assign({}, this.data.profile, p);
+    const sug = rules.suggestPhase(profile, { today: fmt.todayStr() });
     this.setData({
       profile: profile,
       genderIndex: profile.sex === 'female' ? 1 : 0,
@@ -25,7 +26,8 @@ Page({
       role: wx.getStorageSync('role') || 'athlete',
       coachOpenid: wx.getStorageSync('coachOpenid') || '',
       pending: store.pending().length,
-      logCount: store.all().length
+      logCount: store.all().length,
+      suggest: sug
     });
     this.refresh();
   },

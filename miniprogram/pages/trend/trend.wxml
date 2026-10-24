@@ -18,6 +18,12 @@
     </view>
 
     <view class="card">
+      <view class="card-title">周报<text class="tiny">7 天汇总，可复制发给教练</text></view>
+      <view class="tiny">体重斜率、蛋白达标率、sRPE、睡眠、规则触发统计，一段话讲完这周。</view>
+      <button class="btn" bindtap="goReport" style="margin-top:16rpx">看本周报告</button>
+    </view>
+
+    <view class="card">
       <view class="card-title">晨重趋势<text class="tiny">{{weightRange}}</text></view>
       <view class="chart">
         <view class="seg" wx:for="{{segs}}" wx:key="index" style="left:{{item.left}}rpx; top:{{item.top}}rpx; width:{{item.width}}rpx; transform: rotate({{item.angle}}deg);"></view>

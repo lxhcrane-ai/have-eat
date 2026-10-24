@@ -8,6 +8,7 @@
     "pages/coach/coach",
     "pages/queue/queue",
     "pages/rules/rules",
+    "pages/report/report",
     "pages/chat/chat",
     "pages/bind/bind"
   ],

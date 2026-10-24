@@ -319,6 +319,84 @@ function proteinBand(phase) {
   return { min: 1.6, max: 2.2 };
 }
 
+// 日期差（a → b，天数；b 在后为正）
+function daysBetween(a, b) {
+  if (!a || !b) return null;
+  var t1 = new Date(a + 'T00:00:00').getTime();
+  var t2 = new Date(b + 'T00:00:00').getTime();
+  if (!isFinite(t1) || !isFinite(t2)) return null;
+  return Math.round((t2 - t1) / 86400000);
+}
+
+// ---------------------------------------------------------------------------
+// 阶段建议：只建议，不自动改。真正切换仍由营养师在后台点（setAthletePhase）。
+//   - 距称重 ≤14 天 → peak
+//   - 15–84 天且体重未接近目标 → cut
+//   - 称重已过 0–2 天 → recover
+//   - 其余 → maintain
+// ---------------------------------------------------------------------------
+function suggestPhase(profile, ctx) {
+  ctx = ctx || {};
+  var p = profile || {};
+  var current = resolvePhase(p.phase);
+  var today = ctx.today || '';
+  var out = {
+    current: current,
+    currentLabel: phaseLabel(current),
+    phase: current,
+    phaseLabel: phaseLabel(current),
+    reason: '',
+    daysToWeigh: null,
+    gapPct: null,
+    changed: false,
+    urgency: 'ok'
+  };
+  var weighIn = p.weighInDate || '';
+  if (!weighIn || !today) {
+    out.reason = '未设称重日（或缺当天日期），按维持期算';
+    out.phase = 'maintain';
+    out.phaseLabel = '维持期';
+    out.changed = out.phase !== current;
+    out.urgency = out.changed ? 'info' : 'ok';
+    return out;
+  }
+
+  var days = daysBetween(today, weighIn);
+  out.daysToWeigh = days;
+  var bw = num(p.weightKg);
+  var tgt = num(p.targetWeightKg);
+  if (bw && tgt) out.gapPct = round1(((bw - tgt) / tgt) * 100);
+
+  if (days < 0) {
+    if (days >= -2) {
+      out.phase = 'recover';
+      out.reason = '称重已过 ' + Math.abs(days) + ' 天，处于 12–24h 恢复窗口：补液补糖，把体重拉回';
+    } else {
+      out.phase = 'maintain';
+      out.reason = '称重已过 ' + Math.abs(days) + ' 天，比赛结束回到维持期';
+    }
+  } else if (days <= 14) {
+    out.phase = 'peak';
+    out.reason = '距称重 ' + days + ' 天（≤2 周）：只动水、钠、纤维与胃肠内容物，不再动热量缺口';
+  } else if (days <= 84) {
+    if (out.gapPct !== null && out.gapPct <= 1.5) {
+      out.phase = 'maintain';
+      out.reason = '距称重 ' + days + ' 天，但体重只差 ' + out.gapPct + '%（已接近目标），不需要主动减脂';
+    } else {
+      out.phase = 'cut';
+      out.reason = '距称重 ' + days + ' 天（约 ' + Math.round(days / 7) + ' 周）：进入减脂期，周降 0.5–1%';
+    }
+  } else {
+    out.phase = 'maintain';
+    out.reason = '距称重 ' + days + ' 天（>12 周）：还没到减脂窗口，先维持';
+  }
+
+  out.phaseLabel = phaseLabel(out.phase);
+  out.changed = out.phase !== current;
+  out.urgency = out.changed ? (days <= 21 ? 'amber' : 'info') : 'ok';
+  return out;
+}
+
 // ---------- 规则登记表桥接 ----------
 function ruleSources(ruleId) {
   var r = REG.getRule(ruleId);
@@ -1028,6 +1106,8 @@ module.exports = {
   fieldsFor: fieldsFor,
   resolvePhase: resolvePhase,
   phaseLabel: phaseLabel,
+  suggestPhase: suggestPhase,
+  daysBetween: daysBetween,
   proteinBand: proteinBand,
   getRuleById: function (ruleId) { return REG.getRule(ruleId); },
   listRules: function () { return REG.listRules(); },

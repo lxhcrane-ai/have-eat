@@ -1,0 +1,74 @@
+<view class="page">
+  <view class="rep-head">
+    <view class="rep-title">
+      {{isCoachView ? athleteName + ' 的周报' : '我的周报'}}
+      <text class="tiny"> {{w.phaseLabel}}</text>
+    </view>
+    <view class="tiny">{{fromDate}} ~ {{endDate}}</view>
+  </view>
+
+  <view class="week-nav">
+    <text class="nav" bindtap="prevWeek">‹ 上一周</text>
+    <text class="nav" bindtap="thisWeek">本周</text>
+    <text class="nav" bindtap="nextWeek">下一周 ›</text>
+  </view>
+
+  <block wx:if="{{w}}">
+    <!-- 四个关键数字 -->
+    <view class="grid">
+      <view class="cell">
+        <view class="cell-label">晨重</view>
+        <view class="cell-val">{{w.weight.lastKg === null ? '--' : w.weight.lastKg}}<text class="cell-unit">kg</text></view>
+        <view class="tiny" wx:if="{{w.weight.deltaKg !== null}}">周内 {{w.weight.deltaKg > 0 ? '+' : ''}}{{w.weight.deltaKg}}kg</view>
+      </view>
+      <view class="cell">
+        <view class="cell-label">周速率</view>
+        <view class="cell-val {{w.weight.weeklyPct > 1 ? 'v-red' : ''}}">{{w.weight.weeklyRate === null ? '--' : w.weight.weeklyRate}}<text class="cell-unit">kg/周</text></view>
+        <view class="tiny" wx:if="{{w.weight.weeklyPct !== null}}">{{w.weight.weeklyPct}}% 体重</view>
+      </view>
+      <view class="cell">
+        <view class="cell-label">蛋白达标</view>
+        <view class="cell-val {{w.protein.rate < 85 ? 'v-amber' : 'v-ok'}}">{{w.protein.rate === null ? '--' : w.protein.rate}}<text class="cell-unit">%</text></view>
+        <view class="tiny" wx:if="{{w.protein.knownDays}}">{{w.protein.okDays}}/{{w.protein.knownDays}} 天 · 均 {{w.protein.avgG}}g</view>
+      </view>
+      <view class="cell">
+        <view class="cell-label">训练负荷</view>
+        <view class="cell-val">{{w.load.total}}<text class="cell-unit">sRPE</text></view>
+        <view class="tiny">{{w.load.sessions}} 次课 · 睡眠 {{w.sleep.avg === null ? '--' : w.sleep.avg}}h</view>
+      </view>
+    </view>
+
+    <!-- 结论 -->
+    <view class="card">
+      <view class="card-title">这周发生了什么<text class="tiny">{{w.loggedDays}}/7 天有记录</text></view>
+      <view class="concl" wx:for="{{w.conclusions}}" wx:key="*this">· {{item}}</view>
+      <view class="tiny" wx:if="{{w.completeDays < w.loggedDays}}">其中 {{w.loggedDays - w.completeDays}} 天缺本阶段必填项，相关结论只能算"部分"</view>
+    </view>
+
+    <!-- 规则触发 -->
+    <view class="card" wx:if="{{w.ruleHits.length}}">
+      <view class="card-title">哪条规则最常触发<text class="tiny">按红灯数排序</text></view>
+      <view class="hit" wx:for="{{w.ruleHits}}" wx:key="ruleId">
+        <view class="hit-top">
+          <text class="rid">{{item.ruleId}}</text>
+          <text class="hit-name">{{item.name}}</text>
+          <text class="hit-count">{{item.count}} 天</text>
+        </view>
+        <view class="hit-bar"><view class="hit-fill {{item.red ? 'red' : 'amber'}}" style="width:{{item.count / maxHit * 100}}%"></view></view>
+      </view>
+      <view class="tiny">点单项展开"依据"可看到规则 ID 与文献锚点（今日页 / 规则库）</view>
+    </view>
+
+    <!-- 下周 -->
+    <view class="card">
+      <view class="card-title">下周先做这几件</view>
+      <view class="next" wx:for="{{w.nextWeek}}" wx:key="*this">{{index + 1}}. {{item}}</view>
+    </view>
+
+    <button class="btn" bindtap="copyText">复制周报文本（发给教练）</button>
+    <button class="btn ghost" bindtap="goLog" style="margin-top:12rpx">补记今天的记录</button>
+    <view class="tiny center" style="margin:20rpx 0 40rpx">周报只统计有记录的日期；缺记录的天不会当成"做得不好"</view>
+  </block>
+
+  <view class="empty" wx:if="{{!w && !loading}}">这一周还没有记录</view>
+</view>

@@ -128,5 +128,7 @@ Page({
     // log 是 tabBar 页，switchTab 不能带参数，用 storage 传递要编辑的日期
     wx.setStorageSync('edit_date', date);
     wx.switchTab({ url: '/pages/log/log' });
-  }
+  },
+
+  goReport() { wx.navigateTo({ url: '/pages/report/report' }); }
 });

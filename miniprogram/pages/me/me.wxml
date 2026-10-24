@@ -25,6 +25,12 @@
     </view>
     <view class="tiny" wx:if="{{profile.phaseEffectiveDate}}">自 {{profile.phaseEffectiveDate}} 起生效 · 阶段决定评分权重与告警规则</view>
     <view class="tiny" wx:else>还没设置阶段：默认按维持期计算。让营养师在后台切阶段后，规则集和评分权重会跟着变。</view>
+    <view class="sug" wx:if="{{suggest && suggest.changed}}">
+      按称重日推算，系统建议是「{{suggest.phaseLabel}}」：{{suggest.reason}}。实际切换由营养师在后台操作。
+    </view>
+    <view class="sug ok" wx:elif="{{suggest && suggest.daysToWeigh !== null}}">
+      距称重 {{suggest.daysToWeigh}} 天，当前阶段与推算一致。
+    </view>
     <button class="btn" bindtap="save" loading="{{saving}}" style="margin-top:20rpx">保存档案</button>
   </view>
 

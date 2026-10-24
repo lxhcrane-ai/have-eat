@@ -1,0 +1,22 @@
+.rep-head { margin-bottom: 12rpx; }
+.rep-title { font-size: 36rpx; font-weight: 700; }
+.week-nav { display: flex; justify-content: space-between; margin: 8rpx 0 20rpx; }
+.nav { color: #6bc4ff; font-size: 24rpx; }
+.grid { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 20rpx; }
+.cell { width: calc(50% - 8rpx); background: #161a18; border: 1rpx solid #242b28; border-radius: 16rpx; padding: 18rpx; box-sizing: border-box; }
+.cell-label { color: #8a968f; font-size: 22rpx; }
+.cell-val { font-size: 42rpx; font-weight: 700; margin-top: 4rpx; }
+.cell-unit { font-size: 20rpx; color: #8a968f; font-weight: 400; margin-left: 4rpx; }
+.v-red { color: #ff7a6b; } .v-amber { color: #ffc46b; } .v-ok { color: #5ce39a; }
+.concl { font-size: 26rpx; color: #d6e0da; line-height: 1.65; margin-top: 8rpx; }
+.hit { margin-top: 14rpx; }
+.hit-top { display: flex; align-items: center; gap: 10rpx; }
+.rid { font-family: monospace; font-size: 22rpx; color: #9aa8a1; background: #1a201d; padding: 4rpx 10rpx; border-radius: 6rpx; }
+.hit-name { flex: 1; font-size: 24rpx; color: #b9c4be; }
+.hit-count { font-size: 24rpx; color: #e9eeec; }
+.hit-bar { height: 8rpx; background: #1f2523; border-radius: 4rpx; margin-top: 8rpx; overflow: hidden; }
+.hit-fill { height: 8rpx; border-radius: 4rpx; }
+.hit-fill.red { background: #ff7a6b; }
+.hit-fill.amber { background: #ffc46b; }
+.next { font-size: 26rpx; line-height: 1.7; color: #d6e0da; margin-top: 10rpx; }
+.center { text-align: center; }
