@@ -152,13 +152,14 @@ node scripts/migrate.js "/mnt/e/AI/运动营养/boxer_logs_2026-05-16.json" docs
 ## 六、自检命令
 
 ```bash
+node scripts/preflight.js     # 编译前自检：页面声明/跳转目标/事件函数/标签配对/require/云函数/规则同步
 node scripts/test-rules.js    # 36 项规则回归（含真实老数据、崩盘日、BD 速率、引用完整性）
 node scripts/lint-pages.js    # WXML 引用字段 vs 页面 data 一致性
 bash scripts/sync-shared.sh   # 同步规则引擎到云函数
 for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; done
 ```
 
-当前状态：36/36 通过，字段一致性 0 冲突。
+当前状态：preflight 0 阻塞（只剩 AppID / 环境 ID 两条待填提醒），36/36 通过，字段一致性 0 冲突。
 
 ---
 
