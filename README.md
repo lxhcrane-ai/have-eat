@@ -48,22 +48,30 @@ followups  reminders phase_history rule_reviews
 （不建也能跑，代码里有默认码兜底。）
 
 ### 4. 上传云函数
-云函数目录里 8 个函数，逐个右键 → **上传并部署：云端安装依赖**（不要选"上传"）：
+云函数目录里 9 个函数，逐个右键 → **上传并部署：云端安装依赖**（不要选"上传"）：
 
 ```
-whoami   saveLog   getFeed   chat   bind   saveProfile   inbox   coachApi
+whoami   saveLog   getFeed   chat   bind   saveProfile   inbox   coachApi   visionFood
 ```
 
 `coachApi` 是营养师后台的唯一入口：阶段设置、跟进队列、规则复核。
-`saveLog` / `getFeed` / `coachApi` 都依赖 `lib/` 下的共享代码（规则引擎、知识库、规则登记表、跟进队列）。改过
-`miniprogram/utils/rules.js`、`miniprogram/utils/followup.js`、`miniprogram/data/knowledge.js` 或
+`visionFood` 负责餐食照片识别，需要单独配三个环境变量（不配也能跑，识别按钮会提示未配置）：
+
+```
+VISION_BASE_URL   例如 https://dashscope.aliyuncs.com/compatible-mode/v1
+VISION_MODEL      例如 qwen-vl-max / glm-4v / doubao-vision-pro
+VISION_API_KEY    供应商 key（只放云函数，不要写进小程序）
+```
+
+`saveLog` / `getFeed` / `coachApi` 都依赖 `lib/` 下的共享代码（规则引擎、知识库、规则登记表、跟进队列），`visionFood` 依赖 `lib/vision.js`。改过
+`miniprogram/utils/rules.js`、`miniprogram/utils/followup.js`、`miniprogram/utils/vision.js`、`miniprogram/data/knowledge.js` 或
 `miniprogram/data/ruleRegistry.js` 后，先跑一次：
 
 ```bash
 bash scripts/sync-shared.sh
 ```
 
-再重新上传这三个函数，否则服务端还是旧规则。
+再重新上传对应函数，否则服务端还是旧逻辑。
 
 ### 5. 给 messages 配安全规则（要 watch 时用）
 本项目聊天走云函数 + 4 秒轮询，**默认不需要**改安全规则。
@@ -216,6 +224,25 @@ peak → 不报 HYD-01/PRO-01/ENE-01；改报 HYD-05（缺计划数据）+ LOG-0
 
 ---
 
+## 四·九、餐食拍照识别
+
+`pages/log` 每餐的「拍照 → 识别」走云函数 `visionFood`，兼容 OpenAI `/chat/completions` 的视觉接口（通义 qwen-vl、智谱 glm-4v、豆包等都能用）：
+
+```
+拍照 → 上传云存储 → 云函数取图 → 多模态模型 → 解析/校验 → 候选条目
+     → 用户勾选、改克数 → 加入这餐（items.source='vision'）→ saveLog
+```
+
+- key 只在云函数环境变量（`VISION_BASE_URL` / `VISION_MODEL` / `VISION_API_KEY`），小程序端拿不到。
+- 模型输出必须过校验：JSON 兜底提取、字段别名、负数归零、克数 0–1500、单条热量上限 2500、条目上限 12、**4/4/9 自洽**（偏差 >35% 按宏量重算并告警）。
+- 失败即失败：未配置 / 限流 / 超时 / 没识别出食物都返回明确 `reason`，前端给可读提示并引导手工记录，不假装成功。
+- 每日 30 次上限（`users.visionCalls`），防 key 被刷。
+- 误差固定声明：±20–30%，有参照物更准；整餐含识别条目时 `meal.source='vision'`，周报与教练端能区分"估的"和"选的"。
+
+细节：`docs/vision-food.md`；测试：`node scripts/test-vision.js`（44 项）。
+
+---
+
 ## 五、数据契约
 
 见 `docs/schema.md`。要点：
@@ -244,21 +271,22 @@ node scripts/test-rules.js    # 36 项规则回归（真实老数据、崩盘日
 node scripts/test-phases.js   # 47 项阶段对照（同数据在 cut/peak 下告警与评分必须不同）
 node scripts/test-followup.js # 35 项跟进队列（合并、升级、确认、提醒、id 唯一）
 node scripts/test-weekly.js   # 59 项周报与阶段建议（10 个阶段边界 + cut/peak/空数据）
+node scripts/test-vision.js   # 44 项照片识别解析（别名/垃圾输出/4-4-9 校验/失败路径/引擎接缝）
 node scripts/lint-pages.js    # WXML 引用字段 vs 页面 data 一致性
 node scripts/dump-docs.js     # 从代码生成 docs/phase-matrix.md 与 docs/rule-source-table.md
 node scripts/gen-seed.js      # 重新生成 14 天演示数据（首次启动导入）
-bash scripts/sync-shared.sh   # 同步规则引擎/登记表/队列逻辑到云函数
+bash scripts/sync-shared.sh   # 同步规则引擎/登记表/队列/识别解析层到云函数
 for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; done
 ```
 
-当前状态：preflight 0 阻塞（3 条提示：AppID / 环境 ID / 演示种子），规则 36/36、阶段 47/47、队列 35/35、周报 59/59 通过，字段一致性 0 冲突。
+当前状态：preflight 0 阻塞（3 条提示：AppID / 环境 ID / 演示种子），规则 36/36、阶段 47/47、队列 35/35、周报 59/59、识别 44/44 通过，字段一致性 0 冲突。
 
 ---
 
 ## 七、已知边界（先说清楚，别踩坑）
 
 1. **没有后台推送。** 小程序切后台就停，做不到"忘记录入自动催"。教练端的通知只在拳王保存记录时产生（红/黄灯或当天首条）。想要微信服务通知，需要配订阅消息模板：在 `config.js` 填 `tplCoachLog`，并把模板 ID 写进 `saveLog` 云函数的环境变量 `TPL_COACH_LOG`；注意订阅消息是**一次性**的，教练每授权一次只能收一条。
-2. **拍照识别热量没接视觉模型。** 当前拍照只做存档 + 关联，热量来自食物库手工选择。要自动识别，在 `config.js` 填 `visionApi`/`visionKey` 后自行在云函数里调用（接口留了位置，没写死供应商）。照片估算误差通常 ±20–30%，放个参照物能提高准确度。
+2. **照片识别是估算，不是称重。** 已接多模态模型（`visionFood` 云函数，OpenAI 兼容接口），但结果只作为候选：必须勾选/改克数后才进记录，误差通常 ±20–30%，放参照物（手、勺子、身份证）能压到 ±15%。未配置 key 或离线时不识别，明确提示走手工记录，绝不假装成功。细节见 `docs/vision-food.md`。
 3. **聊天是 4 秒轮询**，不是 WebSocket。对"教练和拳王沟通"够用，但会更耗一点流量。要真实时就按上面第 5 步改成 `watch`。
 4. **一对一。** 一个教练带多个拳王可以，一个拳王只能绑一个教练。多人团队需要给 `users` 加教练数组。
 5. **不是医嘱。** 所有数值区间来自公开共识（ACSM / ISSN / IOC / 中国居民膳食指南），个体差异需要教练或注册营养师调。出现头晕、心悸、尿色异常要停止减重并就医。
@@ -274,11 +302,11 @@ for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; do
 - ~~告警依据只有知识库标题~~ → 规则登记表 + 文献锚点（`pages/rules`），支持"待复核"不改代码。
 - ~~周报~~ → `utils/weekly.js` + `pages/report`，7 天结论 + 下周动作 + 可复制文本。
 - ~~阶段靠人记~~ → `suggestPhase` 按距称重天数给建议，教练端一键采纳（不自动改）。
+- ~~拍照识别热量没接视觉模型~~ → `visionFood` 云函数 + 审核式确认，`items.source='vision'`。
 
 还没做的：
 
 - 周报导出长图（现在只能复制文本；要图得接 canvas 或后端绘图，真机验证后再做）。
-- 餐食拍照接多模态模型，把 `items.source` 从 `library` 改成 `vision`，规则引擎无需改动。
 - 跟进项的规则级统计（确认率/忽略率），用来识别阈值过松的规则。
 - **真机验证**：8 个旧页面 + 3 个新页面还没在微信开发者工具里跑过，WXML 渲染与云函数写库是唯一的空白。
 
@@ -295,6 +323,7 @@ boxer-coach/
     utils/followup.js      跟进队列逻辑（合并连续天数、升级、生成次日提醒，纯函数）
     utils/coachApi.js      营养师后台 API 封装（离线退化为本机存储）
     utils/weekly.js        周报计算（7 天指标、规则触发统计、结论与分享文本）
+    utils/vision.js        照片识别提示词 + JSON 提取 + 4/4/9 校验（双端共用）
     utils/food.js          食物库 42 种
     utils/store.js         本地存储 + 待同步队列
     utils/api.js           云函数调用封装
@@ -313,9 +342,9 @@ boxer-coach/
     pages/chat             一对一沟通
     pages/bind             邀请码绑定
   cloudfunctions/
-    whoami saveLog getFeed chat bind saveProfile inbox coachApi
+    whoami saveLog getFeed chat bind saveProfile inbox coachApi visionFood
   scripts/
-    preflight.js  test-rules.js  test-phases.js  test-followup.js  test-weekly.js
+    preflight.js  test-rules.js  test-phases.js  test-followup.js  test-weekly.js  test-vision.js
     demo-followup.js  dump-docs.js  gen-seed.js  lint-pages.js  migrate.js  sync-shared.sh
     fixtures/followup-demo.js
   docs/
@@ -325,4 +354,5 @@ boxer-coach/
     rule-source-table.md   规则–来源对照表（生成式）
     followup-queue.md      跟进队列模型/页面/模拟数据集
     weekly-report.md       周报口径、阶段建议、演示数据
+    vision-food.md         照片识别：环境变量、校验、失败路径、误差声明
 ```

@@ -223,6 +223,22 @@ try {
   err('data/seed.js 不是合法模块');
 }
 
+// ---------- 11. 照片识别（visionFood） ----------
+console.log('\n11) 照片识别云函数');
+const vf = path.join(CF, 'visionFood');
+if (!exists(path.join(vf, 'index.js'))) err('缺少云函数 visionFood');
+else {
+  const src = read(path.join(vf, 'index.js'));
+  ['VISION_BASE_URL', 'VISION_MODEL', 'VISION_API_KEY'].forEach(function (k) {
+    if (src.indexOf(k) < 0) err('visionFood 没有读取环境变量 ' + k);
+  });
+  if (!exists(path.join(vf, 'lib', 'vision.js'))) err('visionFood/lib/vision.js 不存在，跑 bash scripts/sync-shared.sh');
+  else if (read(path.join(vf, 'lib', 'vision.js')) !== read(path.join(MP, 'utils', 'vision.js'))) {
+    err('visionFood/lib/vision.js 与 miniprogram/utils/vision.js 不一致，跑 bash scripts/sync-shared.sh');
+  }
+  if (!exists(path.join(vf, 'package.json'))) err('visionFood 缺少 package.json');
+}
+
 // ---------- 9. 配置占位符 ----------
 console.log('\n9) 配置');
 const cfg = read(path.join(MP, 'config.js'));

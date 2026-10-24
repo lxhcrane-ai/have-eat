@@ -18,3 +18,8 @@ for fn in saveLog getFeed coachApi; do
   sed -e "s#require('../data/ruleRegistry.js')#require('./ruleRegistry.js')#" "$FU" > "cloudfunctions/$fn/lib/followup.js"
   echo "synced -> cloudfunctions/$fn/lib/"
 done
+
+# visionFood 只需要照片识别的解析层，不需要规则引擎
+mkdir -p cloudfunctions/visionFood/lib
+cp miniprogram/utils/vision.js cloudfunctions/visionFood/lib/vision.js
+echo "synced -> cloudfunctions/visionFood/lib/"

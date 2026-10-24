@@ -218,6 +218,7 @@
         <view class="meal-ops">
           <text class="op" data-i="{{i}}" bindtap="copyLastMeal">复用上次</text>
           <text class="op" data-i="{{i}}" bindtap="choosePhoto">{{item.photoLocal ? '已拍照' : '拍照'}}</text>
+          <text class="op" wx:if="{{item.photoFileId}}" data-i="{{i}}" bindtap="recognize">识别</text>
           <text class="op danger" data-i="{{i}}" bindtap="removeMeal">删除</text>
         </view>
       </view>
@@ -266,5 +267,35 @@
     <input class="input grams" type="number" value="{{pickGrams}}" bindinput="onGrams" />
     <text class="tiny">克</text>
     <button class="btn tiny-btn" bindtap="confirmAddFood">加入</button>
+  </view>
+</view>
+
+<!-- 照片识别结果面板：只给候选，用户确认/改克数后才进这一餐 -->
+<view class="mask" wx:if="{{visionOpen}}" bindtap="closeVision"></view>
+<view class="sheet" wx:if="{{visionOpen}}">
+  <view class="sheet-head">
+    <text class="v-title">照片识别结果</text>
+    <text class="op" bindtap="closeVision">关闭</text>
+  </view>
+  <view class="v-wrap">
+    <view class="tiny">勾选的合计 {{visionTotal}} kcal</view>
+    <view class="v-loading" wx:if="{{visionLoading}}">识别中…（通常 5–15 秒）</view>
+    <view class="v-err" wx:if="{{visionError}}">{{visionError}}</view>
+
+    <view class="v-item" wx:for="{{visionItems}}" wx:key="name" wx:for-index="vi">
+      <view class="v-check {{item.checked ? 'on' : ''}}" data-idx="{{vi}}" bindtap="toggleVision">{{item.checked ? '✓' : ''}}</view>
+      <view class="v-main">
+        <view class="v-name">{{item.name}}<text class="tiny" wx:if="{{item.confText}}"> 置信 {{item.confText}}</text></view>
+        <view class="tiny">{{item.grams === '' ? '份量未估' : '约 ' + item.grams + 'g'}} · {{item.kcal}} kcal · P{{item.protein}} C{{item.carbs}} F{{item.fat}}</view>
+      </view>
+      <input class="input v-grams" type="number" value="{{item.grams}}" data-idx="{{vi}}" bindinput="onVisionGrams" placeholder="克" />
+    </view>
+
+    <view class="v-warn" wx:for="{{visionWarnings}}" wx:key="*this">· {{item}}</view>
+    <view class="tiny" wx:if="{{visionNote}}">模型说明：{{visionNote}}</view>
+    <view class="tiny v-tip">{{visionDisclaimer}}</view>
+
+    <button class="btn" wx:if="{{!visionLoading && !visionError}}" bindtap="confirmVision">加入这餐（{{visionTotal}} kcal）</button>
+    <button class="btn ghost" wx:if="{{visionError}}" bindtap="closeVision">知道了，改用手工记录</button>
   </view>
 </view>

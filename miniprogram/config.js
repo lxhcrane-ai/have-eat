@@ -11,7 +11,9 @@ module.exports = {
   tplCoachLog: '',
   tplCoachMessage: '',
 
-  // 拍照识别热量（可选）。留空则走本地食物库估算，不影响使用。
+  // 照片识别热量：API key 不放小程序里（会被反编译），已改到云函数 visionFood 的环境变量：
+  //   VISION_BASE_URL / VISION_MODEL / VISION_API_KEY
+  // 下面两个字段仅保留兼容，留空即可；填了也不会被读取。
   visionApi: '',
   visionKey: '',
 

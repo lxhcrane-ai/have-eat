@@ -42,3 +42,16 @@
 .phase-bar .req { color: #ffc46b; margin-top: 6rpx; line-height: 1.5; }
 .supp-row { display: flex; align-items: center; gap: 12rpx; padding: 10rpx 0; }
 .supp-row .label { flex: 1; }
+
+.v-title { font-size: 30rpx; font-weight: 600; }
+.v-wrap { padding: 8rpx 4rpx 30rpx; }
+.v-loading { padding: 40rpx 0; text-align: center; color: #8a968f; font-size: 26rpx; }
+.v-err { background: #2a1512; color: #ffb3aa; border-radius: 12rpx; padding: 16rpx; font-size: 25rpx; line-height: 1.6; margin: 12rpx 0; }
+.v-item { display: flex; align-items: center; gap: 14rpx; padding: 16rpx 0; border-top: 1rpx solid #1f2523; }
+.v-check { width: 44rpx; height: 44rpx; border-radius: 10rpx; border: 1rpx solid #3a453f; color: #10130f; text-align: center; line-height: 44rpx; font-size: 26rpx; flex: none; }
+.v-check.on { background: #e8ff47; border-color: #e8ff47; }
+.v-main { flex: 1; }
+.v-name { font-size: 27rpx; }
+.v-grams { width: 130rpx; text-align: center; }
+.v-warn { color: #ffc46b; font-size: 23rpx; line-height: 1.6; margin-top: 8rpx; }
+.v-tip { color: #6b7772; margin: 14rpx 0; line-height: 1.6; }

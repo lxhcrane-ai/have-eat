@@ -3,6 +3,7 @@ const store = require('../../utils/store.js');
 const fmt = require('../../utils/format.js');
 const api = require('../../utils/api.js');
 const FOOD = require('../../utils/food.js');
+const visionUtil = require('../../utils/vision.js');
 
 const SESSIONS = [
   { id: 'cardio', name: '有氧' }, { id: 'strength', name: '力量' },
@@ -62,6 +63,10 @@ Page({
     phaseId: 'maintain', phaseLabel: '', phaseGoal: '', phaseNote: '',
     phaseRequired: [], phaseOptional: [],
     giList: [], suppList: [],
+    // 照片识别面板
+    visionOpen: false, visionMealIndex: 0, visionLoading: false,
+    visionItems: [], visionWarnings: [], visionNote: '', visionError: '',
+    visionHint: '', visionDisclaimer: '', visionTotal: 0,
     giKeys: [
       { key: 'nausea', name: '恶心' },
       { key: 'bloating', name: '腹胀' },
@@ -381,6 +386,125 @@ Page({
     });
   },
 
+  // ---------- 照片识别（多模态模型，云函数内调用） ----------
+  onVisionHint(e) { this.setData({ visionHint: e.detail.value }); },
+
+  async recognize(e) {
+    const i = e.currentTarget.dataset.i;
+    const meal = this.data.draft.meals[i];
+    if (!meal || !meal.photoFileId) {
+      wx.showToast({ title: '先拍照并等上传完成', icon: 'none' });
+      return;
+    }
+    this.setData({
+      visionOpen: true, visionMealIndex: i, visionLoading: true,
+      visionItems: [], visionWarnings: [], visionNote: '', visionError: '',
+      visionHint: '', visionTotal: 0, visionDisclaimer: visionUtil.DISCLAIMER
+    });
+
+    const res = await api.call('visionFood', { fileId: meal.photoFileId });
+    if (!res.ok) {
+      this.setData({
+        visionLoading: false,
+        visionError: this.visionErrorText(res),
+        visionDisclaimer: res.disclaimer || visionUtil.DISCLAIMER
+      });
+      return;
+    }
+
+    const items = (res.items || []).map(function (it) {
+      return {
+        name: it.name,
+        grams: it.grams === null || it.grams === undefined ? '' : String(it.grams),
+        baseGrams: it.grams,
+        kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat,
+        baseKcal: it.kcal, baseProtein: it.protein, baseCarbs: it.carbs, baseFat: it.fat,
+        confidence: it.confidence,
+        confText: it.confidence === null || it.confidence === undefined ? '' : Math.round(it.confidence * 100) + '%',
+        checked: true
+      };
+    });
+
+    this.setData({
+      visionLoading: false,
+      visionItems: items,
+      visionWarnings: res.warnings || [],
+      visionNote: res.note || '',
+      visionDisclaimer: res.disclaimer || visionUtil.DISCLAIMER,
+      visionTotal: this.sumVision(items)
+    });
+  },
+
+  visionErrorText(res) {
+    if (res && res.offline) return '离线状态无法识别照片（需要云开发环境）——先用「添加食物」手工记录';
+    const map = {
+      not_configured: '视觉模型未配置（云函数环境变量 VISION_API_KEY）———先用「添加食物」手工记录',
+      quota: res.error || '今天识别次数已用完',
+      auth: '模型 key 无效，检查云函数环境变量',
+      rate: '模型限流，等一分钟再试',
+      timeout: '模型超时，换一张更小的照片再试',
+      too_large: res.error || '照片太大',
+      file: res.error || '照片读取失败',
+      no_items: '没识别出食物：换个角度、放个参照物（手/勺子）再拍',
+      unparsable: '模型返回格式异常，可重试一次',
+      network: '网络异常，稍后重试',
+      bad_request: res.error || '参数错误'
+    };
+    return map[res.reason] || res.error || '识别失败';
+  },
+
+  sumVision(items) {
+    return (items || []).reduce(function (s, it) { return it.checked ? s + (Number(it.kcal) || 0) : s; }, 0);
+  },
+
+  // 改克数：按比例缩放热量与宏量（始终以模型给的原始值为基准，避免多次修改累积误差）
+  onVisionGrams(e) {
+    const idx = Number(e.currentTarget.dataset.idx);
+    const val = parseFloat(e.detail.value);
+    const items = this.data.visionItems.slice();
+    const it = items[idx];
+    if (!it) return;
+    it.grams = e.detail.value;
+    const base = Number(it.baseGrams);
+    if (base > 0 && isFinite(val) && val > 0) {
+      const k = val / base;
+      it.kcal = Math.round(it.baseKcal * k);
+      it.protein = Math.round(it.baseProtein * k * 10) / 10;
+      it.carbs = Math.round(it.baseCarbs * k * 10) / 10;
+      it.fat = Math.round(it.baseFat * k * 10) / 10;
+    }
+    this.setData({ visionItems: items, visionTotal: this.sumVision(items) });
+  },
+
+  toggleVision(e) {
+    const idx = Number(e.currentTarget.dataset.idx);
+    const items = this.data.visionItems.slice();
+    if (!items[idx]) return;
+    items[idx].checked = !items[idx].checked;
+    this.setData({ visionItems: items, visionTotal: this.sumVision(items) });
+  },
+
+  closeVision() { this.setData({ visionOpen: false }); },
+
+  confirmVision() {
+    const picked = (this.data.visionItems || []).filter(function (it) { return it.checked; });
+    if (!picked.length) { wx.showToast({ title: '至少勾选一项', icon: 'none' }); return; }
+    const i = this.data.visionMealIndex;
+    const meals = this.data.draft.meals.slice();
+    picked.forEach(function (it) {
+      meals[i].items.push(visionUtil.toMealItem({
+        name: it.name,
+        grams: it.grams === '' ? null : Number(it.grams),
+        kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat,
+        confidence: it.confidence
+      }));
+    });
+    meals[i].source = 'vision';
+    this.setData({ 'draft.meals': meals, visionOpen: false });
+    this.recalc();
+    wx.showToast({ title: '已加入 ' + picked.length + ' 项，记得核对份量', icon: 'none' });
+  },
+
   recalc() {
     const meals = this.data.draft.meals || [];
     let kcal = 0, p = 0, c = 0, f = 0, count = 0;
@@ -408,10 +532,13 @@ Page({
     const meals = (d.meals || []).map(function (m) {
       let kcal = 0, p = 0, c = 0, f = 0;
       (m.items || []).forEach(function (it) { kcal += it.kcal || 0; p += it.protein || 0; c += it.carbs || 0; f += it.fat || 0; });
+      // 只要有一项来自照片识别，整餐标 vision：周报/教练端能看出这是估算值
+      const hasVision = (m.items || []).some(function (it) { return it.source === 'vision'; });
       return {
         slot: m.slot, time: m.time, note: m.note || '', items: m.items || [],
         kcal: Math.round(kcal), protein: Math.round(p), carbs: Math.round(c), fat: Math.round(f),
-        photoFileId: m.photoFileId || '', source: (m.items && m.items.length) ? 'library' : 'text_only'
+        photoFileId: m.photoFileId || '',
+        source: hasVision ? 'vision' : ((m.items && m.items.length) ? 'library' : 'text_only')
       };
     });
 

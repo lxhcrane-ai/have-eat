@@ -1,0 +1,9 @@
+{
+  "name": "visionFood",
+  "version": "1.0.0",
+  "description": "餐食照片识别：云函数内调多模态模型，返回候选食物条目",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

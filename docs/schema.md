@@ -91,7 +91,7 @@
 ```
 
 - `slot`: `breakfast | lunch | dinner | snack`
-- `source`: `library`（食物库）/ `vision`（拍照识别，预留）/ `text_only`（只有文字，不计热量）
+- `source`: `library`（食物库）/ `vision`（照片识别，见 docs/vision-food.md）/ `text_only`（只有文字，不计热量）
 - 每餐的 `kcal/protein/...` 是 items 的汇总，冗余存一份方便查询排序。
 - **只有 `items` 非空的餐才计入"结构化餐数"**，餐数 <2 时引擎输出"数据不足"，不输出达标结论。
 
