@@ -3,7 +3,7 @@ const store = require('../../utils/store.js');
 const fmt = require('../../utils/format.js');
 const api = require('../../utils/api.js');
 
-const PHASE_LABEL = { maintain: '维持期', cut: '减脂期', weighin: '微调期', recover: '恢复期' };
+const PHASE_LABEL = { maintain: '维持期', cut: '减脂期', peak: '微调期', recover: '恢复期' };
 
 Page({
   data: {

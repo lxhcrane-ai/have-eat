@@ -370,6 +370,7 @@ Page({
       success(res) {
         const path = res.tempFiles[0].tempFilePath;
         const meals = that.data.draft.meals.slice();
+        if (!meals[i]) return;
         meals[i].photoLocal = path;
         that.setData({ 'draft.meals': meals });
         wx.cloud.uploadFile({
@@ -377,6 +378,7 @@ Page({
           filePath: path,
           success(up) {
             const m2 = that.data.draft.meals.slice();
+            if (!m2[i]) return;
             m2[i].photoFileId = up.fileID;
             that.setData({ 'draft.meals': m2 });
           },
@@ -570,7 +572,8 @@ Page({
 
   async save() {
     const log = this.buildLog();
-    if (!log.weights.morning.kg && !log.weights.pre.kg && !log.weights.post.kg) {
+    const w = log.weights;
+    if (!(w.morning && w.morning.kg) && !(w.pre && w.pre.kg) && !(w.post && w.post.kg)) {
       wx.showToast({ title: '至少填一个体重', icon: 'none' });
       return;
     }
