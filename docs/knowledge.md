@@ -1,34 +1,75 @@
 # 知识库来源
 
-`miniprogram/data/knowledge.js` 共 33 条，8 个分类。每条都有 `source` 字段，规则引擎输出的每个结论都指向具体条目。
+`miniprogram/data/knowledge.js` 当前为 `version: 9`，共 149 条、17 个分类。每条用 `sources` 数组记录来源，不用旧的单个 `source` 字符串；规则引擎输出的每个结论都指向具体条目，条目的每条来源都带核实状态。
 
-## 采用的共识文件
+## 分类与条数
 
-| 缩写 | 全称 |
+| 分类 | 条数 | 范围 |
+|---|---|---|
+| `weightcut` 赛前减重 | 5 | 分级、控重节奏、称重后恢复 |
+| `protein` 蛋白质 | 4 | 总量、分配、质量、时机 |
+| `carb` 碳水与能量 | 4 | 训练日碳水、补糖、能量可用性 |
+| `hydration` 水合与电解质 | 4 | 脱水判定、补液量、钠 |
+| `recovery` 恢复与睡眠 | 18 | 睡眠、跨时区、午睡、负荷、冷热加压、免疫、心理 |
+| `fightday` 赛前与比赛日 | 3 | 赛前餐、赛前 24–48h 碳水、回合间补液 |
+| `postfight` 赛后 0–24 小时 | 7 | 终场补液补糖、正餐、当夜睡眠、次日自查与恢复课 |
+| `supplement` 补剂 | 3 | 肌酸、咖啡因、风险边界 |
+| `basic` 基础营养 | 6 | 餐盘、早餐、纤维、酒精、记录 |
+| `bodycomp` 体成分与能量消耗 | 12 | 测量方法、去脂体重、代谢率 |
+| `assessment` 营养评估 | 12 | 膳食记录、能量与蛋白、水合与铁 |
+| `food` 食物与膳食指导 | 12 | 餐盘、宝塔、成分表、外食 |
+| `female` 女性拳手与 RED-S | 12 | 月经周期、低能量可用性、铁与骨健康 |
+| `youth` 青少年拳手 | 12 | 生长、分级、睡眠、补剂边界 |
+| `rehab` 伤病与康复期营养 | 10 | 停训能量蛋白、愈合营养素、复训 |
+| `recoveryfood` 恢复期饮食 | 13 | 各恢复场景的进食时机与配比 |
+| `training` 训练课型与阶段营养 | 12 | 八种课型 + 四阶段叠加 |
+
+## 来源分层
+
+| 层级 | `sourceTier` | 包含 |
+|---|---|---|
+| 一等 | `primary` | 立场声明、共识、系统综述、指南、法规、权威参考数据 |
+| 二等 | `secondary` | 教材、叙述性综述 |
+
+`sourceType` 取值：`position_stand`、`consensus`、`systematic_review`、`narrative_review`、`textbook`、`guideline`、`reference_data`、`regulation`、`official_report`。期刊与声明用 `J()` 生成默认字段，教材用 `B()`；教材章节未核实用 `chap()` 覆盖章节号并把状态降级。
+
+## 结构化来源字段
+
+每条来源是一个对象，常用字段：
+
+| 字段 | 用法 |
 |---|---|
-| ACSM 2016 | Nutrition and Athletic Performance（ACSM / AND / DC 联合立场声明，Thomas, Erdman & Burke）|
-| ACSM 2007 | Exercise and Fluid Replacement Position Stand（Sawka et al.）|
-| ISSN Protein | Protein and Exercise Position Stand（Jäger et al., 2017）|
-| ISSN Diets | Diets and Body Composition（Aragon et al., 2017）|
-| ISSN Timing | Nutrient Timing（Kerksick et al., 2017）|
-| ISSN Creatine | Creatine Supplementation（Kreider et al., 2017）|
-| ISSN Caffeine | Caffeine and Exercise Performance（Guest et al., 2021）|
-| IOC 2018 | IOC consensus statement on sports nutrition（Maughan et al.）|
-| IOC RED-S | RED-S consensus（Mountjoy et al., 2018）|
-| 中国居民膳食指南 | 2022 版，用于一般餐盘与食物选择 |
-| Walsh 2021 | Sleep and the athlete（共识综述）|
-| WADA | Prohibited List，用于补剂风险提示 |
+| `sourceType` / `sourceTier` | 判断证据层级，规则文案据此区分“共识结论”与“教材建议” |
+| `citation` | 完整可读引用，知识库页面和反馈卡片直接展示 |
+| `authors` / `editors` | 作者或主编；教材必填，期刊按原文 |
+| `year` / `edition` / `publisher` | 版次信息；无法确认写“待核实” |
+| `title` | 文献或教材全名 |
+| `doi` / `url` | 有 DOI 必须填；没有 DOI 填可访问链接 |
+| `isbn` | 教材用；未核实写“待核实” |
+| `chapterNo` / `chapterTitle` / `pages` | 教材定位；期刊类写“不适用” |
+| `language` | `zh` / `en` |
+| `verificationStatus` | `verified`、`version_pending`、`chapter_pending`、`isbn_pending`、`pages_pending` |
+| `note` | 核实说明，例如“DOI 已核实，卷期待核实”“中文版章节待核实” |
+
+`verificationStatus` 是硬约束：状态不是 `verified` 的字段一律写“待核实”，不编造卷期、页码、ISBN 或版次。
 
 ## 数值是怎么用的
 
 知识库里的数字都是**区间**，引擎取区间中点做单点判断，区间上下限展示给用户：
 
 - 蛋白：维持 1.6–2.2 g/kg，减脂 2.0–2.4 g/kg（按当前体重，不是去脂体重；去脂体重需体脂率，本版本未采集）
-- 补液：每 1kg 体重缺口 1.25–1.5 L
+- 补液：每 1 kg 体重缺口 1.25–1.5 L；含钠 300–700 mg/L
+- 训练后补糖：1.0–1.2 g/kg/h；训练前 1–3 小时 1–2 g/kg
 - 减重速率：每周 0.5–1% 体重
 - 睡眠：7–9 小时，<6.5 视为不足
-- 咖啡因：3–6 mg/kg，赛前 60 分钟
+- 咖啡因：3–6 mg/kg，赛前 60 分钟；睡前 8 小时避免
 - 肌酸：3–5 g/天，不需要冲击期
+
+## 证据强度
+
+- 强/中证据条目直接写区间和执行动作。
+- 弱证据条目在 `tags` 里加 `weak`（如 `TN-04`、`TN-06`、`PF-07`、`PF-08`），正文只给方向，**不给克数、千卡、小时数**；具体量写“由营养师确认”。
+- 矩阵里的 `evidenceStatus`（`strong/moderate/weak/mixed`）是另一层口径，存在 `goalMatrix.js`，不与知识库标签混用。
 
 ## 明确的取舍
 
@@ -39,8 +80,9 @@
 
 ## 新增条目的规矩
 
-1. `id` 用 `分类-短词`，全局唯一，测试会检查。
-2. 必须有 `source`，写得出具体文件；写不出就说明这条不该进库。
-3. `tags` 至少一个，供规则引擎或提示逻辑匹配。
-4. 正文 3–5 句，给"怎么吃/怎么补/多少量"，不写科普段子。
-5. 加完跑 `bash scripts/sync-shared.sh && node scripts/test-rules.js`。
+1. `id` 用 `分类-短词`，全局唯一，测试会检查；新增分类要同时加进 `CATEGORIES`，`kb` 页面会自动适配。
+2. `sources` 必须是非空数组，至少一条能写得出具体文献或教材；写不出就说明这条不该进库。
+3. 每条来源补齐 `sourceType`、`sourceTier`、`citation`、`verificationStatus`；无法确认的字段写“待核实”。
+4. `tags` 至少一个，供规则引擎或提示逻辑匹配；弱证据条目加 `weak`。
+5. 正文 3–5 句，给"怎么吃/怎么补/多少量"，不写科普段子；与已有条目重叠时引用 id，不重写。
+6. 新增条目后 `version` 升一级，并跑 `node --check`、`node scripts/test-rules.js`、`bash scripts/sync-shared.sh`。

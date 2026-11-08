@@ -34,7 +34,7 @@
 }
 ```
 
-规则编号段位：`HYD` 水合、`PRO` 蛋白、`ENE` 能量、`PHASE` 减重速率与阶段、`SLE` 睡眠、`REC` 恢复、`GI` 胃肠、`SUP` 补剂、`LOG` 记录完整性。共 18 条、34 个来源锚点。
+规则编号段位：`HYD` 水合、`PRO` 蛋白、`ENE` 能量、`PHASE` 减重速率与阶段、`SLE` 睡眠、`REC` 恢复、`GI` 胃肠、`SUP` 补剂、`LOG` 记录完整性。共 18 条、34 个来源锚点。另有 1 条**营养护栏**规则 `G-CONC` 已出规格、待实施（见 §七），实施后为 19 条。
 
 ---
 
@@ -103,3 +103,24 @@ node scripts/preflight.js     # 登记表完整性：来源字段、doi/url、�
 node scripts/test-phases.js   # 47 项：告警必须可追溯到 ruleId + 非空 evidence + 至少 1 个来源锚点
 node scripts/dump-docs.js     # 重新生成 docs/rule-source-table.md 与 docs/phase-matrix.md
 ```
+
+---
+
+## 七、待实施规则：`G-CONC`（打击后营养护栏）
+
+> 规格全文见 `docs/concussion-spec.md`。本节只登记编号与边界，**未写入 `ruleRegistry.js` 前不生效**。
+
+| 项 | 内容 |
+|---|---|
+| 编号 | `G-CONC`（注意：不是目标原子，不写入 `goalMatrix.js` 的 `ATOMS`） |
+| 名称 | 打击后营养护栏 |
+| 定位 | 只输出营养动作，不做医学诊断、不判停训/复训/送医 |
+| 判定 | 按 `health.concussion` 的症状强度、受击/击倒/中止、记忆空白/平衡异常，以及近 7/30 天累积，分「营养降级」「营养降级 + 转介提示」两档；无受击无症状不出告警 |
+| 出参 | `nutritionGuardrail`：`level / action / flags / referralPrompt / reasons`；不写 `goalBlockers`、不进 `score`、不进 `goalAdherence` |
+| 一级来源 | `patricios2023`（只用于「建议按队队医/医生流程评估」一句）；`turnagol2022`（康复期营养方向） |
+| 适用阶段 | 四阶段全部（`applicablePhases` 与 `PHASE_PROFILES.activeRuleIds` 必须一致） |
+| 复核状态 | `needs_review`（营养降级幅度是产品保守策略，不是文献剂量） |
+| 人工跟进 | `requiresHumanFollowUp: true`，跟进动作只能是营养侧降级 |
+| 知识库 | `RC-06`、`RF-06`、`RH-08`（按 `docs/concussion-spec.md` §5 软化后） |
+
+**禁止出参**：停训/复训/送医/分级/时间表、`stopTraining`、`returnToPlay`、`referralLevel`。

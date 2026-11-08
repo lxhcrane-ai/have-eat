@@ -23,7 +23,7 @@
 | tzOffset | number | **UTC 以东分钟数**，北京 +480。注意不是 `getTimezoneOffset()` 的符号 |
 | createdAt / updatedAt | string | ISO 8601 UTC |
 
-复合目标相关字段（`profile.goals`、`profile.goalEffectiveDate`、`profile.goalSource`、`profile.bodyFatPct`、`profile.refeedDays`、`training.startTime`、`training.quality`、`health.illness`）是 v4.0 的**加法字段**：`schemaVersion` 仍为 2，缺失为 `null`，不改变旧日志解析。
+复合目标相关字段（`profile.goals`、`profile.goalEffectiveDate`、`profile.goalSource`、`profile.bodyFatPct`、`profile.refeedDays`、`training.startTime`、`training.quality`、`health.illness`、`health.concussion`）是 v4.0 的**加法字段**：`schemaVersion` 仍为 2，缺失为 `null`，不改变旧日志解析。
 
 ## profile（账号档案）
 
@@ -103,14 +103,51 @@
 ## health（可选）
 
 ```json
-"health": { "illness": 0 }
+"health": {
+  "illness": 0,
+  "concussion": {
+    "headache": null,
+    "dizziness": null,
+    "photophobia": null,
+    "tinnitus": null,
+    "slowedReaction": null,
+    "memoryGap": null,
+    "balanceIssue": null,
+    "impact": null,
+    "knockdown": null,
+    "stoppedTraining": null,
+    "staff": {
+      "lossOfConsciousness": null,
+      "worsening": null,
+      "enteredBy": null,
+      "enteredAt": null
+    }
+  }
+}
 ```
 
 | 字段 | 类型 | 取值域 | 必填 | 写入方 | 说明 |
 |---|---|---|---|---|---|
 | `health.illness` | number | `0 / 1 / 2`，默认 `null` | 否 | 拳王 | 0 无、1 轻微上呼吸道症状、2 发热/就医。只在 `G-IMM` 监测激活时出现；弱证据，只监测，不产生新告警 |
+| `health.concussion.headache` | number | `0 / 1 / 2 / 3` | 否 | 拳王 | 头痛自评强度；0 无、1 轻微、2 中等、3 重度。**不是医学分级**，只用于决定营养降级档位 |
+| `health.concussion.dizziness` | number | `0 / 1 / 2 / 3` | 否 | 拳王 | 眩晕自评强度，同上 |
+| `health.concussion.photophobia` | number | `0 / 1 / 2 / 3` | 否 | 拳王 | 畏光自评强度，同上 |
+| `health.concussion.tinnitus` | number | `0 / 1 / 2 / 3` | 否 | 拳王 | 耳鸣自评强度，同上 |
+| `health.concussion.slowedReaction` | number | `0 / 1 / 2 / 3` | 否 | 拳王 | 反应变慢自评强度，同上 |
+| `health.concussion.memoryGap` | boolean | `true / false`，默认 `null` | 否 | 拳王 | 记忆空白；阳性只触发营养降级与转介提示，不作诊断 |
+| `health.concussion.balanceIssue` | boolean | `true / false`，默认 `null` | 否 | 拳王 | 平衡异常；同上 |
+| `health.concussion.impact` | boolean | `true / false`，默认 `null` | 否 | 拳王 | 头部/面部被重击 |
+| `health.concussion.knockdown` | boolean | `true / false`，默认 `null` | 否 | 拳王 | 被击倒/裁判计数 |
+| `health.concussion.stoppedTraining` | boolean | `true / false`，默认 `null` | 否 | 拳王 | 训练/比赛是否中止；是事实记录，不是系统停训判定 |
+| `health.concussion.staff.lossOfConsciousness` | boolean | `true / false`，默认 `null` | 否 | **仅教练/队医**（`coachApi`） | 只用于确认营养降级+转介提示；拳王提交时服务端必须丢弃 |
+| `health.concussion.staff.worsening` | boolean | `true / false`，默认 `null` | 否 | **仅教练/队医**（`coachApi`） | 同上 |
+| `health.concussion.staff.enteredBy` / `enteredAt` | string | 角色/姓名 ≤32 字；ISO 8601 | 否 | 教练/队医 | 留痕 |
 
-`health` 是 v2 的加法对象，缺失时整体为 `null` 或 `{ "illness": null }`；`normalizeLog()` 不得用 `0` 代替“没填”。
+恶心/呕吐不新增字段：复用 `giSymptoms.nausea`（0–4）与 `giSymptoms.vomiting`（boolean）。只有同时存在受击或其他神经症状时，`G-CONC` 才读取；孤立恶心/呕吐归 `GI-01`。
+
+`health` 是 v2 的加法对象，缺失时整体为 `null` 或 `{ "illness": null }`；`normalizeLog()` 不得用 `0` 或 `false` 代替“没填”。`health.concussion` 整体缺失为 `null`；未填字段保持 `null`。二值字段归一建议新增 `boolOrNull(v)`，只接受 `true / false`。
+
+> 规格来源：`docs/concussion-spec.md`。`G-CONC` 只做营养护栏，不输出停训/复训/送医判定。
 
 ## meals
 
@@ -166,7 +203,7 @@
 | `coachApi.setGoals` | 营养师设置目标的唯一入口（G6） | 校验 `coachOpenid` 归属；拒绝未知 ID、重复 ID、计入名额 >3、`G-IMM` >1、`G-MED` 等不可选标记；**对当前阶段不合法的目标直接拒绝写入**，返回错误码（`E_GOAL_UNKNOWN/DUPLICATE/QUOTA/PHASE_ILLEGAL/CONFLICT/FORBIDDEN/EMPTY_DATE/BODYFAT/WRITE`）并整次不落库；可携带可选 `bodyFatPct`（3–50；省略 = 保留原值，显式 `null` = 清除，非法 = `E_GOAL_BODYFAT`）；`E_GOAL_EMPTY_DATE` 由 G6 校验，G2 不触发；初次保存只接受 `legality='legal'`，预检为 `partial` 时返回 `E_GOAL_CONFLICT`、整次不落库；`G-IMM` 不在末尾时先归一化到末尾；不自动改 `phase`；`setPhase` 后旧目标变不合法由 `GOAL-01` 提示 |
 | `coachApi.setBodyComp` | 营养师写入 `bodyFatPct` | 校验 `coachOpenid` 归属；`bodyFatPct` 取 3–50；只存百分比，测量方法写 `profile.note`；只用于 EA/FFM 粗估，不参与 `score`；与 `setGoals` 可携带的 `bodyFatPct` 写同一字段、共存：只更新体脂时走本 action，不改目标；三态一致：省略 = 保留原值，显式 `null` = 清除，非法 = `E_GOAL_BODYFAT` |
 | `coachApi.setRefeedPlan` | 营养师写入 `refeedDays` | `refeedDays` 唯一写入方；校验 `coachOpenid` 归属；取值 0–7 整数，非法返回 `E_GOAL_REFEED`，`null`/`0` 视为本周无计划；同时写 `refeedDaysSource='coach' / refeedDaysUpdatedAt / refeedDaysSetBy` 审计；只写 `profile` 下的 `refeedDays` 及上述审计字段，不改目标、不改阶段；运行时按 `event.refeedDays → profile.refeedDays → null` 取值 |
-| `saveLog` | 通过 `normalizeLog()` 接收日志 | `training.startTime`、`training.quality`、`health.illness` 必须进入 `normalizeLog()`，否则云端会丢弃；`athleteId` 仍由服务端写 openid |
+| `saveLog` | 通过 `normalizeLog()` 接收日志 | `training.startTime`、`training.quality`、`health.illness`、`health.concussion` 必须进入 `normalizeLog()`，否则云端会丢弃；`athleteId` 仍由服务端写 openid；拳王提交的 `health.concussion.staff` 必须丢弃，只接受 `coachApi` 写入；`feedback` 增 `nutritionGuardrail`（只含 `level / action / flags / referralPrompt / reasons`），`feedback.version` 3 → 4 |
 | `getFeed` / `advice` | 读取 `profile.goals` 生成目标计划/快照 | 只读；`advice` 快照存 `rulesVersion`、`goalMatrixVersion`、`goalPlan`、`goalAdherence`、`goalBlockers`、`goalEffectiveDate`、`goalSource` |
 
 目标字段的通用约束：
