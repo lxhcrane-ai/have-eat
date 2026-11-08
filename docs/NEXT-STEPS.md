@@ -8,7 +8,7 @@
 
 ## 零、现在到哪一步了（30 秒）
 
-代码侧已完成：阶段状态机（18 条规则 / 4 阶段开关）、跟进队列、规则登记表（34 个文献锚点）、周报、阶段建议、照片识别、14 天演示数据、**复合目标矩阵（15 原子 / 60 格 / 27 配方 / GOAL-01、GOAL-02 / 拳王端与营养师端展示 / `setGoals` 写入）**。
+代码侧已完成：阶段状态机（18 条规则 / 4 阶段开关）、跟进队列、规则登记表（34 个文献锚点）、周报、阶段建议、照片识别、14 天演示数据、**复合目标矩阵（16 原子 / 64 格 / 29 配方 / GOAL-01、GOAL-02 / 拳王端与营养师端展示 / `setGoals` 写入）**。
 验证：preflight 0 阻塞；8 套测试共 530 项断言全过；lint-pages 0 冲突。
 **剩余只有两件事：云端部署 + 真机。** 页面尚未在微信开发者工具真机走查，`coachApi.setGoals`/`advice` 快照也尚未在真实云环境写库验证。
 
@@ -130,7 +130,7 @@ node scripts/test-weekly.js    # 85
 node scripts/test-vision.js    # 44
 node scripts/test-advice-core.js # 15
 node scripts/test-demo-seed.js # 41
-node scripts/check-goal-matrix-doc.js # 60 格 legal/goal01Level/evidence 与文档一致
+node scripts/check-goal-matrix-doc.js # 64 格 legal/goal01Level/evidence 与文档一致
 node scripts/lint-pages.js     # 一致：未发现未定义字段
 node scripts/dump-docs.js      # 改了规则后必跑，否则文档和代码漂移
 ```
@@ -150,7 +150,7 @@ node scripts/dump-docs.js      # 改了规则后必跑，否则文档和代码�
 
 ## 七、复合目标矩阵收尾（G7 结论）
 
-状态：**代码完成**。`test-rules`/`test-goals`/`test-phases`/`test-followup`/`test-weekly`/`test-vision`/`test-advice-core`/`test-demo-seed` 全过，`preflight` 0 阻塞，60 格与文档逐格一致。
+状态：**代码完成**。`test-rules`/`test-goals`/`test-phases`/`test-followup`/`test-weekly`/`test-vision`/`test-advice-core`/`test-demo-seed` 全过，`preflight` 0 阻塞，64 格与文档逐格一致。
 
 剩余（都需要云端或真机）：
 1. 部署 `coachApi`（含 `setGoals`、`setRefeedPlan`、队列目标 chips）、`advice`（快照 `goal` 块）、`saveProfile`（LOCKED 五字段）。
@@ -158,7 +158,7 @@ node scripts/dump-docs.js      # 改了规则后必跑，否则文档和代码�
 3. 控制台测试 `setGoals`：合法写入、超 3 个、重复、未知 ID、`G-MED`、阶段不允许、缺日期，确认均为整次拒绝且 `profile.goals` 不变。
 4. 发布一条建议后核对 `advice` 快照含 `goalMatrixVersion/goalPlan/goalAdherence/goalBlockers/goalEffectiveDate/goalSource`。
 5. 真机走查：无目标时看板/队列/复核页不出现目标块；有目标时 chips、弱证据徽标、独立 `goalAdherence`、复核页“带入建议开头”不覆盖正文。
-6. ~~营养师端“调整目标”交互 UI 尚未实现~~ 已补齐：`pages/goals/*`（入口在营养师看板每位拳王卡片内），15 原子可选、阶段 N/A 与 `G-MED` 置灰并写明原因、条件类显示“需满足”、名额实时占用、增删/调序、错误码中文映射；离线禁止提交且不本地假写。
+6. ~~营养师端“调整目标”交互 UI 尚未实现~~ 已补齐：`pages/goals/*`（入口在营养师看板每位拳王卡片内），16 原子可选、阶段 N/A 与 `G-MED` 置灰并写明原因、条件类显示“需满足”、名额实时占用、增删/调序、错误码中文映射；离线禁止提交且不本地假写。
 
 新增 / 改动文件：
 - 新增：`miniprogram/data/goalMatrix.js`、`miniprogram/utils/goals.js`、`miniprogram/utils/goalDraft.js`、`miniprogram/pages/goals/*`、`scripts/check-goal-matrix-doc.js`

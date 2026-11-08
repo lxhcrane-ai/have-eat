@@ -19,7 +19,12 @@ const CATEGORIES = [
   { id: 'basic', name: '基础营养', desc: '食物选择、餐次结构' },
   { id: 'bodycomp', name: '体成分与能量消耗', desc: '测量方法、去脂体重、代谢率、青少年与女性' },
   { id: 'assessment', name: '营养评估', desc: '膳食记录、能量与蛋白评估、水合与铁状态' },
-  { id: 'food', name: '食物与膳食指导', desc: '餐盘、宝塔、食物成分表、外食与备赛食物' }
+  { id: 'food', name: '食物与膳食指导', desc: '餐盘、宝塔、食物成分表、外食与备赛食物' },
+  { id: 'female', name: '女性拳手与 RED-S', desc: '月经周期、低能量可用性、铁与骨健康' },
+  { id: 'youth', name: '青少年拳手', desc: '生长、分级、睡眠、补剂边界' },
+  { id: 'rehab', name: '伤病与康复期营养', desc: '停训期能量与蛋白、愈合期营养素、复训渐进' },
+  { id: 'recoveryfood', name: '恢复期饮食', desc: '各恢复场景的进食时机、碳水蛋白配比与避免事项' },
+  { id: 'training', name: '训练课型与阶段营养', desc: '按能力类型与阶段叠加的训练营养执行' }
 ];
 
 // ---------- 公用书目 ----------
@@ -384,6 +389,157 @@ const SRC = {
     language: 'zh',
     verificationStatus: 'version_pending',
     note: '作者、版次与出版社待核实；章节按清单定位。'
+  }),
+  bergeron2015: J({
+    sourceType: 'consensus', year: 2015,
+    authors: 'Bergeron MF, Mountjoy M, Armstrong N, et al.',
+    title: 'International Olympic Committee consensus statement on youth athletic development',
+    citation: 'Bergeron MF, Mountjoy M, Armstrong N, et al. International Olympic Committee consensus statement on youth athletic development. Br J Sports Med. 2015;49(11):843-851.',
+    doi: '10.1136/bjsports-2015-094868',
+    url: 'https://bjsm.bmj.com/content/49/11/843',
+    publisher: 'British Journal of Sports Medicine',
+    pages: '843-851'
+  }),
+  paruthi2016: J({
+    sourceType: 'consensus', year: 2016,
+    authors: 'Paruthi S, Brooks LJ, D’Ambrosio C, et al.',
+    title: 'Recommended amount of sleep for pediatric populations: a consensus statement of the American Academy of Sleep Medicine',
+    citation: 'Paruthi S, Brooks LJ, D’Ambrosio C, et al. Recommended amount of sleep for pediatric populations: a consensus statement of the American Academy of Sleep Medicine. J Clin Sleep Med. 2016;12(6):785-786.',
+    doi: '10.5664/jcsm.5866',
+    url: 'https://doi.org/10.5664/jcsm.5866',
+    publisher: 'Journal of Clinical Sleep Medicine',
+    pages: '785-786'
+  }),
+  kellmann2018: J({
+    sourceType: 'consensus', year: 2018,
+    authors: 'Kellmann M, Bertollo M, Bosquet L, Brink M, Coutts AJ, Duffield R, et al.',
+    title: 'Recovery and performance in sport: consensus statement',
+    citation: 'Kellmann M, Bertollo M, Bosquet L, Brink M, Coutts AJ, Duffield R, et al. Recovery and performance in sport: consensus statement. Int J Sports Physiol Perform. 2018;13(2):240-245.',
+    doi: '10.1123/ijspp.2017-0759',
+    url: 'https://doi.org/10.1123/ijspp.2017-0759',
+    publisher: 'International Journal of Sports Physiology and Performance',
+    pages: '240-245'
+  }),
+  patricios2023: J({
+    sourceType: 'consensus', year: 2023,
+    authors: 'Patricios JS, Schneider KJ, Dvorak J, Ahmed OH, Blauwet C, Cantu RC, et al.',
+    title: 'Consensus statement on concussion in sport: the 6th International Conference on Concussion in Sport–Amsterdam, October 2022',
+    citation: 'Patricios JS, Schneider KJ, Dvorak J, Ahmed OH, Blauwet C, Cantu RC, et al. Consensus statement on concussion in sport: the 6th International Conference on Concussion in Sport–Amsterdam, October 2022. Br J Sports Med. 2023;57(11):695-711.',
+    doi: '10.1136/bjsports-2023-106898',
+    url: 'https://bjsm.bmj.com/content/57/11/695',
+    publisher: 'British Journal of Sports Medicine',
+    pages: '695-711'
+  }),
+  janse2021: J({
+    sourceType: 'consensus', year: 2021,
+    authors: 'Janse van Rensburg DC, Jansen van Rensburg A, Fowler PM, Bender AM, Stevens D, Sullivan KO, et al.',
+    title: 'Managing travel fatigue and jet lag in athletes: a review and consensus statement',
+    citation: 'Janse van Rensburg DC, Jansen van Rensburg A, Fowler PM, Bender AM, Stevens D, Sullivan KO, et al. Managing travel fatigue and jet lag in athletes: a review and consensus statement. Sports Med. 2021;51(10):2029-2050.',
+    doi: '10.1007/s40279-021-01502-0',
+    url: 'https://doi.org/10.1007/s40279-021-01502-0',
+    publisher: 'Sports Medicine',
+    pages: '2029-2050'
+  }),
+  lastella2021: J({
+    sourceType: 'systematic_review', year: 2021,
+    authors: 'Lastella M, Halson SL, Vitale JA, Memon AR, Vincent GE',
+    title: 'To nap or not to nap? A systematic review evaluating napping behavior in athletes and the impact on various measures of athletic performance',
+    citation: 'Lastella M, Halson SL, Vitale JA, Memon AR, Vincent GE. To nap or not to nap? A systematic review evaluating napping behavior in athletes and the impact on various measures of athletic performance. Nat Sci Sleep. 2021;13:841-862.',
+    doi: '10.2147/NSS.S315556',
+    url: 'https://doi.org/10.2147/NSS.S315556',
+    publisher: 'Nature and Science of Sleep',
+    pages: '841-862'
+  }),
+  versey2013: J({
+    sourceType: 'narrative_review', sourceTier: 'secondary', year: 2013,
+    authors: 'Versey NG, Halson SL, Dawson BT',
+    title: 'Water immersion recovery for athletes: effect on exercise performance and practical recommendations',
+    citation: 'Versey NG, Halson SL, Dawson BT. Water immersion recovery for athletes: effect on exercise performance and practical recommendations. Sports Med. 2013;43(11):1101-1130.',
+    doi: '10.1007/s40279-013-0063-8',
+    url: 'https://doi.org/10.1007/s40279-013-0063-8',
+    publisher: 'Sports Medicine',
+    pages: '1101-1130'
+  }),
+  dupuy2018: J({
+    sourceType: 'systematic_review', year: 2018,
+    authors: 'Dupuy O, Douzi W, Theurot D, Bosquet L, Dugué B',
+    title: 'An evidence-based approach for choosing post-exercise recovery techniques to reduce markers of muscle damage, soreness, fatigue, and inflammation: a systematic review with meta-analysis',
+    citation: 'Dupuy O, Douzi W, Theurot D, Bosquet L, Dugué B. An evidence-based approach for choosing post-exercise recovery techniques to reduce markers of muscle damage, soreness, fatigue, and inflammation: a systematic review with meta-analysis. Front Physiol. 2018;9:403.',
+    doi: '10.3389/fphys.2018.00403',
+    url: 'https://doi.org/10.3389/fphys.2018.00403',
+    publisher: 'Frontiers in Physiology',
+    pages: '403'
+  }),
+  hill2014: J({
+    sourceType: 'systematic_review', year: 2014,
+    authors: 'Hill JA, Howatson G, van Someren KA, Leeder J, Pedlar CR',
+    title: 'Compression garments and recovery from exercise-induced muscle damage: a meta-analysis',
+    citation: 'Hill JA, Howatson G, van Someren KA, Leeder J, Pedlar CR. Compression garments and recovery from exercise-induced muscle damage: a meta-analysis. Br J Sports Med. 2014;48(18):1340-1346.',
+    doi: '10.1136/bjsports-2013-092456',
+    url: 'https://bjsm.bmj.com/content/48/18/1340',
+    publisher: 'British Journal of Sports Medicine',
+    pages: '1340-1346'
+  }),
+  walsh2018: J({
+    sourceType: 'narrative_review', sourceTier: 'secondary', year: 2018,
+    authors: 'Walsh NP',
+    title: 'Recommendations to maintain immune health in athletes',
+    citation: 'Walsh NP. Recommendations to maintain immune health in athletes. Eur J Sport Sci. 2018;18(6):820-831.',
+    doi: '10.1080/17461391.2018.1449895',
+    url: 'https://doi.org/10.1080/17461391.2018.1449895',
+    publisher: 'European Journal of Sport Science',
+    pages: '820-831'
+  }),
+  barnes2014: J({
+    sourceType: 'narrative_review', sourceTier: 'secondary', year: 2014,
+    authors: 'Barnes MJ',
+    title: 'Alcohol: impact on sports performance and recovery in male athletes',
+    citation: 'Barnes MJ. Alcohol: impact on sports performance and recovery in male athletes. Sports Med. 2014;44(7):909-919.',
+    doi: '10.1007/s40279-014-0192-8',
+    url: 'https://doi.org/10.1007/s40279-014-0192-8',
+    publisher: 'Sports Medicine',
+    pages: '909-919'
+  }),
+  peternelj2011: J({
+    sourceType: 'narrative_review', sourceTier: 'secondary', year: 2011,
+    authors: 'Peternelj TT, Coombes JS',
+    title: 'Antioxidant supplementation during exercise training: beneficial or detrimental?',
+    citation: 'Peternelj TT, Coombes JS. Antioxidant supplementation during exercise training: beneficial or detrimental? Sports Med. 2011;41(12):1043-1069.',
+    doi: '10.2165/11594400-000000000-00000',
+    url: 'https://doi.org/10.2165/11594400-000000000-00000',
+    publisher: 'Sports Medicine',
+    pages: '1043-1069'
+  }),
+  soligard2016: J({
+    sourceType: 'consensus', year: 2016,
+    authors: 'Soligard T, Schwellnus M, Alonso JM, Bahr R, Clarsen B, Dijkstra HP, et al.',
+    title: 'How much is too much? (Part 1) International Olympic Committee consensus statement on load in sport and risk of injury',
+    citation: 'Soligard T, Schwellnus M, Alonso JM, Bahr R, Clarsen B, Dijkstra HP, et al. How much is too much? (Part 1) International Olympic Committee consensus statement on load in sport and risk of injury. Br J Sports Med. 2016;50(17):1030-1041.',
+    doi: '10.1136/bjsports-2016-096581',
+    url: 'https://bjsm.bmj.com/content/50/17/1030',
+    publisher: 'British Journal of Sports Medicine',
+    pages: '1030-1041'
+  }),
+  schwellnus2016: J({
+    sourceType: 'consensus', year: 2016,
+    authors: 'Schwellnus M, Soligard T, Alonso JM, Bahr R, Clarsen B, Dijkstra HP, et al.',
+    title: 'How much is too much? (Part 2) International Olympic Committee consensus statement on load in sport and risk of illness',
+    citation: 'Schwellnus M, Soligard T, Alonso JM, Bahr R, Clarsen B, Dijkstra HP, et al. How much is too much? (Part 2) International Olympic Committee consensus statement on load in sport and risk of illness. Br J Sports Med. 2016;50(17):1043-1052.',
+    doi: '10.1136/bjsports-2016-096572',
+    url: 'https://bjsm.bmj.com/content/50/17/1043',
+    publisher: 'British Journal of Sports Medicine',
+    pages: '1043-1052'
+  }),
+  turnagol2022: J({
+    sourceType: 'narrative_review', sourceTier: 'secondary', year: 2022,
+    authors: 'Turnagöl HH, Koşar ŞN, Güzel Y, Aktitiz S, Atakan MM',
+    title: 'Nutritional considerations for injury prevention and recovery in combat sports',
+    citation: 'Turnagöl HH, Koşar ŞN, Güzel Y, Aktitiz S, Atakan MM. Nutritional considerations for injury prevention and recovery in combat sports. Nutrients. 2022;14(1):53.',
+    doi: '10.3390/nu14010053',
+    url: 'https://doi.org/10.3390/nu14010053',
+    publisher: 'Nutrients',
+    pages: '53',
+    note: '在线发表于 2021-12-23，按期刊 2022 年第 14 卷第 1 期引用。'
   })
 };
 
@@ -840,7 +996,451 @@ const ITEMS = [
     body: '赛前最后几天用体积小、能量密度高的食物：白米、面条、香蕉、蜂蜜、运动饮料、少量坚果酱。减少大份沙拉、豆类、粗粮和碳酸饮料，避免胃肠胀气。称重后恢复期再逐步把蔬菜、粗粮加回来，不要一次吃撑。',
     sources: [chap('sport_nutrition4', '8'), chap('sport_nutrition4', '17'), chap('cn_dietary2022', '待核实', { note: '准则三、准则四' })],
     tags: ['food', 'fightweek']
+  },
+
+  // ---------- 女性拳手与 RED-S（FE-01 ~ FE-12） ----------
+  {
+    id: 'FE-01', cat: 'female', title: '相对能量缺乏（REDs）的核心：能量可用性长期不够',
+    body: '相对能量缺乏（REDs）的核心不是体重，而是能量可用性（EA）长期低于需求。EA 低于 30 kcal/kg 去脂体重（FFM）/天属于低能量可用性，30–45 属于降低，要结合月经、骨伤和表现一起判断。出现停经、反复应力性骨折、晨脉升高或成绩停滞时，先停止减脂、把能量吃回来并转诊，而不是继续压体重。女性拳手在减重期要每月自查这一组信号。',
+    sources: [src('reds2023')],
+    tags: ['female', 'reds']
+  },
+  {
+    id: 'FE-02', cat: 'female', title: '女性拳手减重：取更慢的一端，不用脱水补进度',
+    body: '女性拳手减重仍按每周 0.5–1% 体重推进，但在低能量可用性（LEA）背景下要取更慢的一端。能量缺口越大，月经紊乱、骨密度下降和伤病风险出现得越早。距称重不足 2 周只做水盐和胃肠内容物微调，不启动新的热量缺口。不要用脱水减重去补减重进度落后的账。',
+    sources: [src('acsm2021'), src('reds2023')],
+    tags: ['female', 'weightcut']
+  },
+  {
+    id: 'FE-03', cat: 'female', title: '月经周期与训练日营养：按本人反应调整',
+    body: '月经周期会影响训练日的能量和碳水需求：黄体期基础体温升高、静息消耗略增、食欲往往更强。这一阶段训练日主食可以比卵泡期多一餐或加一次加餐，优先补碳水而不是只加蛋白。经期前一两天胃口差、腹胀时，改成小份多餐、低纤维、易消化。个体差异很大，以本人连续记录的反应为准，不套统一模板。',
+    sources: [chap('female_athlete2022', '待核实', { note: '月经周期与营养章节待核实' }), chap('cscn6', '6')],
+    tags: ['female', 'cycle']
+  },
+  {
+    id: 'FE-04', cat: 'female', title: '铁：女性拳手最常见的隐性短板',
+    body: '女性拳手、素食者和大量出汗者要定期查血红蛋白和铁蛋白，铁不足会先拖累耐力和恢复。补铁前先看血，不要长期自行服用铁剂。进餐时把红肉、动物肝脏或豆类与富含维生素 C 的蔬果同吃，能提高非血红素铁吸收；浓茶和咖啡尽量与正餐错开。铁蛋白低但血红蛋白正常时也要处理，具体方案由医生决定。',
+    sources: [chap('cscn6', '9'), src('reds2023')],
+    tags: ['female', 'iron']
+  },
+  {
+    id: 'FE-05', cat: 'female', title: '低能量可用性（LEA）的六个早期信号',
+    body: '低能量可用性（LEA）的早期信号常在成绩下滑之前出现：月经稀发或停经、反复应力性骨伤、静息心率升高、情绪低落、睡眠变差、恢复变慢。教练和营养师应把这些写进月度随访表，而不是只看体重和体脂。六项里持续出现两项以上，就先增加能量摄入并安排医学评估。不要等症状凑齐才处理。',
+    sources: [src('reds2023'), chap('cscn6', '6')],
+    tags: ['female', 'reds', 'screening']
+  },
+  {
+    id: 'FE-06', cat: 'female', title: '月经期训练与进食：没有统一方案',
+    body: '月经期的训练和进食没有统一方案，按本人反应调整，不照搬别人的做法。痛经明显时优先保证补液和易消化的碳水，训练量该降就降。腹泻或胀气时减少高纤维食物和乳制品，等症状缓解再恢复。出现持续大量出血、晕厥或痛经加重，先就医，不要靠调整饮食硬扛。',
+    sources: [chap('female_athlete2022', '待核实', { note: '月经期训练与营养章节待核实' }), chap('cscn6', '6')],
+    tags: ['female', 'cycle']
+  },
+  {
+    id: 'FE-07', cat: 'female', title: '女性拳手体脂目标：不设统一数字',
+    body: '女性拳手的体脂目标不设统一数字，要看体成分趋势、月经规律、骨健康和运动表现四项一起判断。体脂下降伴随月经紊乱或反复骨伤，说明已经越过安全线，应停止减脂。不要拿男性拳手的体脂标准套用，也不要用单次生物电阻抗（BIA）读数下结论。目标由营养师结合连续数据设定。',
+    sources: [src('reds2023'), chap('acsm_bc', '7')],
+    tags: ['female', 'bodycomp']
+  },
+  {
+    id: 'FE-08', cat: 'female', title: '口服避孕药与营养：只做提醒，不调剂量',
+    body: '口服避孕药可能影响部分 B 族维生素、镁和体液状态，但证据并不一致，不足以支持统一加量。不要因为服药就自行增加复合维生素或矿物质的剂量。把用药情况告诉营养师，评估时一起考虑；具体是否需要调整，由医生判断。',
+    sources: [chap('female_athlete2022', '待核实', { note: '避孕药与营养章节待核实' }), chap('cscn6', '6')],
+    tags: ['female', 'medication']
+  },
+  {
+    id: 'FE-09', cat: 'female', title: '孕期与产后拳手：先转诊，App 只做记录',
+    body: '孕期和产后拳手的营养方案必须由产科医生和营养师共同制定，App 只做记录，不给减重或脱水建议。孕期不建议任何形式的控重或脱水减重，训练以医嘱为准。产后恢复训练时，能量和蛋白要跟上恢复与哺乳需求，不要一边哺乳一边压热量。出现头晕、恶露异常或情绪持续低落，先就医。',
+    sources: [chap('cscn6', '6'), chap('cn_dietary2022', '待核实', { note: '孕期与哺乳期妇女膳食指南' })],
+    tags: ['female', 'pregnancy']
+  },
+  {
+    id: 'FE-10', cat: 'female', title: '女性拳手补剂：能用的还是那几样',
+    body: '女性拳手可用的补剂和有证据的选项基本一致：咖啡因按 3–6 mg/kg 在训练前用，肌酸每天 3–5 g 长期补充。其他宣称“调激素”“促燃脂”的产品，先看是否有第三方检测和独立研究。孕期、哺乳期和月经紊乱期间，补剂一律先问医生。不要把补剂当成解决能量不足的手段。',
+    sources: [src('issn_caffeine2021'), src('issn_creatine2017')],
+    tags: ['female', 'supplement']
+  },
+  {
+    id: 'FE-11', cat: 'female', title: '骨健康：钙和维生素 D 不能替代能量',
+    body: '能量长期不足时，单纯补钙和维生素 D 救不了骨健康，先解决能量可用性（EA）再谈微量营养素。日常保证奶类、豆制品和日照，负重与抗阻训练是骨刺激的主要来源。不要用大剂量钙片替代正常进食。反复应力性骨折要转诊，由医生判断是否需要药物或进一步检查。',
+    sources: [src('reds2023'), chap('cn_dietary2022', '待核实', { note: '奶类与骨健康' })],
+    tags: ['female', 'bone']
+  },
+  {
+    id: 'FE-12', cat: 'female', title: '女性拳手称重后恢复：窗口放得更宽',
+    body: '女性拳手赛前减重叠加低能量可用性（LEA）时，称重后的恢复窗口要放得更宽。按每丢失 1 kg 体重补 1.25–1.5 L 含钠液体，碳水按 1.0–1.2 g/kg/h 分次补，蛋白 20–40 g 起步。恢复期不要只补糖，钠和蛋白同样要跟上。第二天仍头晕、心率偏高或无法正常进食时，推迟训练并评估。',
+    sources: [src('acsm2007'), src('issn2025'), chap('cscn6', '8')],
+    tags: ['female', 'weighin']
+  },
+
+  // ---------- 青少年拳手（YT-01 ~ YT-12） ----------
+  {
+    id: 'YT-01', cat: 'youth', title: '青少年拳手：先长个子，再谈控体重',
+    body: '青少年拳手的首要目标是长个子，不是把体重压到成年级别。赛季中能量长期不足会拖慢身高增长、骨密度积累和青春期发育。控体重前先看生长曲线和发育阶段，优先维持体重、让身高追上。需要减重时由医生或营养师参与，不用成人那套快速减脂方案。',
+    sources: [src('bergeron2015'), src('reds2023')],
+    tags: ['youth', 'growth']
+  },
+  {
+    id: 'YT-02', cat: 'youth', title: '青少年蛋白：按体重给，分到每餐',
+    body: '青少年拳手的蛋白按体重给，参考区间 1.2–2.0 g/kg/天，训练量大时取上限。把蛋白分到三餐和一到两次加餐，每餐都有奶、蛋、肉、鱼或豆制品。不要用蛋白粉替代正餐，也不要把成人健身餐直接套给孩子。主食和蔬菜同样要吃够，蛋白不是越多越好。',
+    sources: [src('acsm2016'), chap('cn_dris2023', '待核实', { note: '蛋白质参考摄入量章节待核实' })],
+    tags: ['youth', 'protein']
+  },
+  {
+    id: 'YT-03', cat: 'youth', title: '青少年碳水：训练日必须吃够主食',
+    body: '青少年训练日的碳水按训练量给：中等训练约 3–5 g/kg/天，大强度或一天两练可到 6–10 g/kg/天。主食要占到每餐的一半左右，训练前后各留一次碳水。低碳水饮食不适合还在长身体的拳手。体重不涨、训练后半段掉速，先加主食而不是加补剂。',
+    sources: [src('acsm2016'), chap('cn_dietary2022', '待核实', { note: '谷类与主食' })],
+    tags: ['youth', 'carb']
+  },
+  {
+    id: 'YT-04', cat: 'youth', title: '青少年睡眠时长：按年龄守住下限',
+    body: '美国睡眠医学会（AASM）对青少年的推荐是：6–12 岁每晚 9–12 小时，13–18 岁每晚 8–10 小时。训练日、比赛期和减重期都要守住这个下限。睡眠不足会放大食欲、降低恢复速度并增加受伤风险。不要把熬夜补作业当成可以牺牲睡眠的理由。',
+    sources: [src('paruthi2016'), src('walsh2021')],
+    tags: ['youth', 'sleep']
+  },
+  {
+    id: 'YT-05', cat: 'youth', title: '青少年补剂：默认不补，先看三餐',
+    body: '青少年补剂默认不补，先把三餐和睡眠做好。确有缺乏时（如明确诊断的缺铁性贫血）按医嘱补，不自行买“长高”“增肌”产品。补剂市场针对青少年的宣传最多、证据最少。任何产品先查成分和第三方检测，拿不准就问医生。',
+    sources: [src('bergeron2015'), src('ioc2018')],
+    tags: ['youth', 'supplement']
+  },
+  {
+    id: 'YT-06', cat: 'youth', title: '青少年禁止脱水减重',
+    body: '青少年拳手不应使用脱水减重，包括蒸桑拿、限水、穿发汗服。青少年体温调节和心血管调节尚未成熟，脱水带来的风险和表现损失都更大。分级和控重应以长期饮食与训练调整为主，不用赛前急速脱水。教练发现队员在用脱水手段，应立即叫停。',
+    sources: [src('acsm2021'), src('bergeron2015'), src('reds2023')],
+    tags: ['youth', 'weightcut']
+  },
+  {
+    id: 'YT-07', cat: 'youth', title: '青少年分级：按发育阶段，不按成人级别',
+    body: '青少年分级要按发育阶段和生长曲线安排，不按成人级别硬套。同一年龄的发育差异可达数年，按体重分级时要把发育程度一起考虑。赛前称重频率不宜过高，避免把注意力引向体重数字。具体级别和称重安排由赛事与医生共同确认。',
+    sources: [src('acsm2021'), src('bergeron2015')],
+    tags: ['youth', 'weightcut']
+  },
+  {
+    id: 'YT-08', cat: 'youth', title: '学校与食堂场景：先保证三餐结构',
+    body: '青少年在学校和食堂吃饭，先保证每餐有主食、有蛋白、有蔬菜，再谈细节。训练日可以在书包里带面包、牛奶、香蕉这类方便加餐。不用精确称重，也别让孩子自己算热量。发现长期只吃零食、跳过正餐，先和家长沟通。',
+    sources: [chap('cn_dietary2022', '待核实', { note: '学龄儿童膳食指南' }), chap('cscn6', '21')],
+    tags: ['youth', 'food']
+  },
+  {
+    id: 'YT-09', cat: 'youth', title: '青少年女拳手：REDs 风险更高',
+    body: '青少年女拳手是相对能量缺乏（REDs）的高风险人群，月经初潮延迟、停经和反复骨伤都要当信号处理。发育期同时面对控体重和成绩压力，能量不足的代价比成年更大。发现生长停滞或月经异常，先加能量并转诊，不继续减脂。评估时把月经史和生长曲线一起看。',
+    sources: [src('reds2023'), chap('young_female_athlete2016', '待核实', { note: '青少年女运动员章节待核实' })],
+    tags: ['youth', 'female', 'reds']
+  },
+  {
+    id: 'YT-10', cat: 'youth', title: '青少年训练日加餐：两餐之间不能省',
+    body: '青少年训练日要在两餐之间加一次碳水加蛋白，别空腹练、也别练完只喝水。训练前 1–3 小时吃易消化主食，训练后补主食加奶或蛋。一天两练时，中间那次加餐不能省。加餐的目的是补足总能量，不是替代正餐。',
+    sources: [src('acsm2016'), src('bergeron2015')],
+    tags: ['youth', 'timing']
+  },
+  {
+    id: 'YT-11', cat: 'youth', title: '青少年咖啡因与能量饮料：能不给就不给',
+    body: '青少年对咖啡因更敏感，能量饮料和浓缩咖啡因产品能不给就不给。咖啡因会影响入睡和心率，训练日午后尽量不摄入。需要提神时先查睡眠和总能量，而不是加咖啡因。比赛期不使用未测试过的含咖啡因产品。',
+    sources: [src('issn_caffeine2021'), chap('cn_dietary2022', '待核实', { note: '含糖饮料与添加糖' })],
+    tags: ['youth', 'caffeine']
+  },
+  {
+    id: 'YT-12', cat: 'youth', title: '体重焦虑与进食行为：超出营养范围要转诊',
+    body: '青少年出现明显体重焦虑、催吐、暴食或长期躲开集体进食，已经超出营养调整的范围，要转心理或医学评估。不要用 App 的体重曲线去加压，也不要在队里公开称重排名。家长和教练先统一口径：成绩和健康优先于体重数字。营养方案只做配合，不替代治疗。',
+    sources: [src('reds2023'), src('bergeron2015')],
+    tags: ['youth', 'behavior']
+  },
+
+  // ---------- 伤病与康复期营养（RH-01 ~ RH-10） ----------
+  {
+    id: 'RH-01', cat: 'rehab', title: '受伤后第一周：能量别马上砍，蛋白先给足',
+    body: '受伤后第一周不要马上大幅砍热量，组织修复本身需要能量和蛋白。蛋白维持在平时训练期水平，约 1.4–2.0 g/kg/天，分散到每餐。若完全停训，能量按实际活动量下调，但不要低于静息代谢率（RMR）估算太多。先保证蛋白和微量营养素，再谈减重。',
+    sources: [src('issn2017'), chap('cscn6', '待核实', { note: '损伤与康复营养章节待核实' })],
+    tags: ['rehab', 'energy']
+  },
+  {
+    id: 'RH-02', cat: 'rehab', title: '愈合期关键微量营养素：从食物里拿',
+    body: '愈合期优先保证蛋白质、维生素 C、维生素 D、锌和钙，从正常食物里拿，不靠大剂量单片。每天有奶类、豆制品、瘦肉、鱼、蛋和新鲜蔬果，日照不足时再评估维生素 D。不要相信“骨头汤补钙”的说法，汤里钙很少、脂肪不少。微量营养素缺乏明确时按医嘱补。',
+    sources: [chap('cscn6', '待核实', { note: '损伤愈合与微量营养素章节待核实' }), chap('cn_dietary2022', '待核实', { note: '奶类、蔬果与适量蛋白' })],
+    tags: ['rehab', 'micronutrient']
+  },
+  {
+    id: 'RH-03', cat: 'rehab', title: '停训期体重管理：缺口调小，不急着掉秤',
+    body: '停训期体重管理先把热量缺口调小，不要按赛前减重的速度掉秤。减重仍以每周 0.5–1% 体重为上限，受伤早期可以更慢。用 7 日体重移动平均看趋势，不因单日波动砍餐。体重上升明显时先查饮食记录和活动量，再决定是否调整。',
+    sources: [src('acsm2021'), chap('acsm_bc', '7')],
+    tags: ['rehab', 'weight']
+  },
+  {
+    id: 'RH-04', cat: 'rehab', title: '停训期体成分：肌肉掉得比脂肪快',
+    body: '停训期肌肉流失比脂肪快，蛋白和抗阻训练要同时保住。蛋白按 1.4–2.0 g/kg/天，能做上肢或健侧抗阻时保持每周两次以上。完全不能训练的部位要避免二次损伤，训练方案由康复师定。体成分用同一方法、同一条件隔期对比，不看单次读数。',
+    sources: [chap('acsm_bc', '7'), src('issn2017')],
+    tags: ['rehab', 'bodycomp']
+  },
+  {
+    id: 'RH-05', cat: 'rehab', title: '手部损伤：先解决“吃得到”',
+    body: '手部骨折或韧带损伤后，切菜、开包装、拿餐具都会变难，进食安排要围绕“能吃到”来设计。优先选即食、软食、已切好的食物，或用吸管杯、代餐保证正餐不缺席。手部固定期间不必追求精确份量，先保证三餐有主食和蛋白。恢复抓握后再逐步换回正常食物。',
+    sources: [chap('cscn6', '待核实', { note: '手部损伤进食安排待核实' }), chap('cn_dietary2022', '待核实', { note: '谷类与适量蛋白' })],
+    tags: ['rehab', 'hand']
+  },
+  {
+    id: 'RH-06', cat: 'rehab', title: '肋骨损伤：小份多餐，少胀气',
+    body: '肋骨损伤时深呼吸和咳嗽都会痛，吃太饱、胀气会更难受。改成小份多餐，减少豆类、碳酸饮料和大量生蔬菜。饭后不要立刻平躺，慢慢走动帮助消化。疼痛影响进食或体重持续下降时，要及时复诊。',
+    sources: [chap('cscn6', '待核实', { note: '肋骨损伤进食安排待核实' }), chap('cn_dietary2022', '待核实', { note: '蔬果与适量蛋白' })],
+    tags: ['rehab', 'rib']
+  },
+  {
+    id: 'RH-07', cat: 'rehab', title: '膝踝损伤：能量按活动量降，不靠极端节食',
+    body: '膝或踝损伤需要减少负重时，能量可以下调，但不要用极端节食换掉秤。活动量骤降后食欲往往还在，先按实际活动量安排三餐，别按原来的训练日食量吃。蔬菜和蛋白不能省，主食按活动量减。肿胀加重或疼痛持续，先找康复师而不是继续压热量。',
+    sources: [chap('cscn6', '待核实', { note: '下肢损伤期能量调整待核实' }), chap('acsm_bc', '7')],
+    tags: ['rehab', 'knee']
+  },
+  {
+    id: 'RH-08', cat: 'rehab', title: '脑震荡：能量和水分不能少，酒精不要',
+    body: '脑震荡恢复期不能限能量，规律三餐和充足饮水是基础。酒精会影响平衡、睡眠和恢复，恢复期避免饮酒。咖啡因按平时习惯少量保留，不要突然加量提神。症状持续、头痛加重或无法正常进食时，按医生安排处理，营养只做配合。',
+    sources: [chap('cscn6', '待核实', { note: '脑震荡恢复期营养待核实' }), src('acsm2016')],
+    tags: ['rehab', 'concussion']
+  },
+  {
+    id: 'RH-09', cat: 'rehab', title: '复训渐进：先恢复食欲和消化，再加训练量',
+    body: '复训第一阶段的重点是恢复食欲和消化，不是马上把训练量加满。训练前少量易消化碳水，训练后再补一次正餐，观察腹胀、反酸和腹泻。吃不下时用液体食物过渡，少量多次。消化症状持续不缓解时，先减训练量并就医。',
+    sources: [chap('cscn6', '待核实', { note: '复训与消化适应待核实' }), chap('sport_nutrition4', '17')],
+    tags: ['rehab', 'return']
+  },
+  {
+    id: 'RH-10', cat: 'rehab', title: '康复期补剂边界：只补缺口，不指望“修复”',
+    body: '康复期补剂只补明确缺口，不指望“修复关节”“加速愈合”的产品。维生素 D、钙、铁等只有在检测或饮食明确不足时才考虑，按医嘱用。蛋白粉可以用，但它只是食物替代，不是治疗。任何宣称替代康复训练的产品都不要买。',
+    sources: [src('ioc2018'), chap('cscn6', '待核实', { note: '康复期补剂边界待核实' })],
+    tags: ['rehab', 'supplement']
+  },
+
+  // ---------- 日常恢复补缺（RC-01 ~ RC-13） ----------
+  {
+    id: 'RC-01', cat: 'recovery', title: '午睡与补觉：短睡为主，别影响夜间睡眠',
+    body: '训练日午睡以短睡为主，控制在不会醒后发懵的长度，醒后留出缓冲再上训练。午睡能补夜间睡眠不足，但睡得太久或太晚会影响当晚入睡。比赛期把午睡固定成日程的一部分，而不是累了才睡。夜间已经睡够的人不必强行午睡。',
+    sources: [src('lastella2021'), src('walsh2021')],
+    tags: ['recovery', 'sleep', 'nap']
+  },
+  {
+    id: 'RC-02', cat: 'recovery', title: '跨时区与旅行：按目的地时间调作息',
+    body: '跨时区比赛前按目的地时间逐步调整睡眠和进食，到达后白天多接触自然光、按当地时间吃三餐。长途飞行中少量多次补水，避免用酒精助眠。向东飞通常比向西飞更难适应，跨时区越多越要提前安排。到达后头两天不做高强度测试或减重，把训练放到作息稳定之后。',
+    sources: [src('janse2021'), src('walsh2021')],
+    tags: ['recovery', 'travel', 'sleep']
+  },
+  {
+    id: 'RC-03', cat: 'recovery', title: '训练负荷：sRPE 之外看“陡增”，不迷信单一比值',
+    body: '主观用力感训练负荷（sRPE）之外，还要看周与周之间的负荷陡增，而不是只算一周总量。急慢性负荷比（ACWR）可以作为提示，但没有一个适用于所有拳手的单一安全比值，不能拿一个数字直接决定上不上量。负荷连续上升、同时酸痛和睡眠变差时，先减载再观察。把训练日志和晨脉、睡眠放在一起看，比单看负荷曲线可靠。',
+    sources: [src('soligard2016'), src('foster2001'), src('kellmann2018')],
+    tags: ['recovery', 'load', 'acwr']
+  },
+  {
+    id: 'RC-04', cat: 'recovery', title: '心率变异性（HRV）：只看趋势，不做单日决策',
+    body: '心率变异性（HRV）只看个人基线和滚动趋势，不用单日读数做决策。HRV 连续低于自己的正常范围，同时晨脉升高、睡眠变差或酸痛加重，才说明恢复不足。HRV 高于基线也不等于可以无限加量，要结合主观状态和训练负荷。测量条件尽量固定：同一时间、同一姿势、同一设备。',
+    sources: [src('buchheit2014'), src('kellmann2018')],
+    tags: ['recovery', 'hrv']
+  },
+  {
+    id: 'RC-05', cat: 'recovery', title: '中枢疲劳：几项信号同时出现才值得警惕',
+    body: '神经/中枢疲劳不是单一指标能判断的：表现持续下降、情绪低落、睡眠变差、晨脉升高、对训练失去兴趣，几项同时出现才值得警惕。先排除缺铁、甲状腺、感染和能量不足这些可查原因。确认是负荷累积后，减载并保证能量、碳水和睡眠，不要靠咖啡因硬顶。持续数周不恢复、或伴随发热和明显体重下降，转医生评估。',
+    sources: [src('meeusen2013'), src('schwellnus2016'), src('kellmann2018')],
+    tags: ['recovery', 'overtraining', 'fatigue']
+  },
+  {
+    id: 'RC-06', cat: 'recovery', title: '打击累积与脑震荡：先停训，再谈恢复',
+    body: '拳击的打击累积不能只按“有没有被打晕”判断：出现头痛、眩晕、恶心、反应变慢、记忆空白或平衡异常，立即停训并转医生。脑震荡恢复期不做减重、不脱水、不饮酒，也不要用补剂宣称能“修复脑损伤”。重返训练要按医生的分级流程逐步加量，不能凭感觉当天回到实战。教练发现队员被击中后表现异常，应先停练而不是问能不能继续。',
+    sources: [src('patricios2023'), src('turnagol2022')],
+    tags: ['recovery', 'concussion', 'medical']
+  },
+  {
+    id: 'RC-07', cat: 'recovery', title: '冷水浸泡（CWI）：用于快速恢复，不做每日流程',
+    body: '冷水浸泡（CWI）主要用于连续比赛、一天两练这类需要快速恢复的场景，而不是每次训练后的固定流程。力量或增肌期频繁长时间浸泡，可能削弱部分训练适应。赛后不要立刻长时间泡冰水，先补液补糖、让体温回落。心血管疾病、末梢循环问题或对冷刺激不适的人，先问医生。',
+    sources: [src('versey2013'), src('dupuy2018')],
+    tags: ['recovery', 'cold', 'physical']
+  },
+  {
+    id: 'RC-08', cat: 'recovery', title: '加压、按摩与拉伸：缓解酸痛不等于修复',
+    body: '加压衣、按摩和拉伸能减轻延迟性肌肉酸痛（DOMS）的主观感受，但不等于组织已经修复。加压衣在赛后穿着有一定证据，按摩可作为辅助手段，拉伸不能预防受伤也不加速恢复。这些手段都不能替代睡眠、能量和蛋白。手法和压力以不加重疼痛为准，受伤部位先问康复师。',
+    sources: [src('dupuy2018'), src('hill2014'), src('kellmann2018')],
+    tags: ['recovery', 'massage', 'compression']
+  },
+  {
+    id: 'RC-09', cat: 'recovery', title: '主动恢复：低强度活动，不要变成第二次训练',
+    body: '主动恢复指低强度活动，比如慢走、轻松骑车、低强度技术课，强度以能正常对话为准。它比完全躺平更能缓解酸痛和僵硬，但不能替代睡眠和进食。大负荷后第二天做主动恢复，不要变成又一次训练。出现发热、明显乏力或疼痛加重时，改为休息并评估。',
+    sources: [src('dupuy2018'), src('kellmann2018')],
+    tags: ['recovery', 'active']
+  },
+  {
+    id: 'RC-10', cat: 'recovery', title: '大负荷后免疫：防上呼吸道感染（URTI）靠睡眠和进食',
+    body: '大负荷、旅行、睡眠不足和能量缺口叠加时，上呼吸道感染（URTI）风险会上升。防护的重点是手卫生、充足睡眠、规律进食和避免带病硬练，而不是靠大剂量维生素或“免疫增强”产品。出现发热、全身酸痛、咳嗽加重时停训并就医，不要用发汗或脱水“排毒”。恢复训练从低强度开始，别一退烧就回到实战。',
+    sources: [src('walsh2018'), src('schwellnus2016')],
+    tags: ['recovery', 'immune']
+  },
+  {
+    id: 'RC-11', cat: 'recovery', title: '酒精与恢复：越靠近训练、量越大，影响越明显',
+    body: '训练后饮酒会干扰蛋白合成、免疫、补水和睡眠，越接近训练、量越大，影响越明显。研究认为约 0.5 g/kg 体重对多数恢复指标影响较小，但这是“上限参考”，不是推荐量。备赛期和减重期直接避免；赛后庆祝也先补液、进食、睡够再考虑。用酒精助眠会破坏后半夜睡眠，跨时区时尤其不要用。',
+    sources: [src('barnes2014')],
+    tags: ['recovery', 'alcohol']
+  },
+  {
+    id: 'RC-12', cat: 'recovery', title: '抗氧化补剂：大剂量可能拖慢适应',
+    body: '长期大剂量补充维生素 C 和维生素 E，可能削弱训练带来的适应，而不是加快恢复。日常从蔬果、坚果和正常饮食里获取抗氧化物质就够了。不要为了“抗炎”长期吃高剂量抗氧化补剂；明确缺乏时按医嘱补。搏击项目的损伤恢复证据里，抗氧化剂也不是主力，能量、蛋白和睡眠优先。',
+    sources: [src('peternelj2011'), src('ioc2018'), src('turnagol2022')],
+    tags: ['recovery', 'antioxidant', 'supplement']
+  },
+  {
+    id: 'RC-13', cat: 'recovery', title: '心理恢复：压力和睡眠会把疲劳放大',
+    body: '心理恢复和身体恢复是一起发生的：压力大、焦虑、睡眠差时，酸痛感和疲劳感都会被放大。把放松训练、呼吸练习、规律作息和与教练的沟通写进周计划，而不是等崩了再处理。比赛后安排真正的休整期，不用每天盯着体重和训练数据。持续情绪低落、失眠、失去训练兴趣或出现极端体重行为，转心理或医学评估。',
+    sources: [src('kellmann2018'), src('meeusen2013')],
+    tags: ['recovery', 'psychology', 'stress']
+  },
+
+  // ---------- 恢复期饮食（RF-01 ~ RF-13，与 RC 互链） ----------
+  {
+    id: 'RF-01', cat: 'recoveryfood', title: '午睡与补觉的饮食落点',
+    body: '配合 RC-01：午睡前 1–2 小时不吃大餐、高脂或高纤维食物，避免胃胀影响短睡质量。午睡醒后如果要接训练，按训练前加餐吃少量易消化碳水，不要空腹上强度。全天咖啡因按矩阵 G-SLE 口径管理，睡前 8 小时内不摄入，午睡前也不要临时补咖啡因。夜间睡眠已经足够时，不需要为了“补恢复”额外加餐。',
+    sources: [src('lastella2021'), src('walsh2021')],
+    tags: ['recoveryfood', 'rc-01', 'sleep', 'nap']
+  },
+  {
+    id: 'RF-02', cat: 'recoveryfood', title: '跨时区与旅行的饮食落点',
+    body: '配合 RC-02：到达目的地后按当地时间吃三餐，早餐保证蛋白，不要用一顿大餐把时差“顶过去”。长途飞行中少量多次补水，机舱干燥或出汗多时选含钠液体，不要一次灌大量白水。避免用酒精助眠，酒精会加重脱水和后半夜睡眠碎片化。跨时区头两天不启动新的减重计划，也不在到达当天做脱水或大负荷测试。',
+    sources: [src('janse2021'), src('walsh2021'), src('acsm2007')],
+    tags: ['recoveryfood', 'rc-02', 'travel', 'hydration']
+  },
+  {
+    id: 'RF-03', cat: 'recoveryfood', title: '训练负荷陡增日的饮食落点',
+    body: '配合 RC-03：训练负荷陡增的那几天，碳水按训练日区间取中上限（见 carb-training），不要同时加深热量缺口。训练后 2 小时内补 25–40 g 蛋白，并按 1.0–1.2 g/kg/h 补碳水，帮助糖原恢复。大量出汗时按 hyd-replace 补含钠液体，不要只喝白水。负荷连续上升、睡眠和晨脉同时变差时，先减载，不要靠咖啡因或加餐硬顶。',
+    sources: [src('acsm2016'), src('issn_timing2017'), src('kellmann2018')],
+    tags: ['recoveryfood', 'rc-03', 'load', 'carb']
+  },
+  {
+    id: 'RF-04', cat: 'recoveryfood', title: 'HRV 偏低时的饮食落点',
+    body: '配合 RC-04：心率变异性（HRV）偏低不是加补剂或加餐的理由，先确认全天能量和碳水没有长期不足。训练日照常吃够碳水与蛋白，不要把“恢复差”变成进一步节食的借口。连续低 HRV 同时晨脉升高、睡眠变差时，减载并检查能量可用性（EA），必要时按相对能量缺乏（REDs）评估。咖啡因只按计划使用，不用来对冲疲劳。',
+    sources: [src('buchheit2014'), src('kellmann2018'), src('reds2023')],
+    tags: ['recoveryfood', 'rc-04', 'hrv', 'energy']
+  },
+  {
+    id: 'RF-05', cat: 'recoveryfood', title: '中枢疲劳的饮食落点',
+    body: '配合 RC-05：中枢疲劳先排除能量不足、缺铁和感染，再谈训练调整。三餐规律、碳水按训练日区间吃够，蛋白按全天总量分配，不在疲劳时额外加补剂。训练前留出消化时间吃少量碳水，避免空腹上强度后靠咖啡因硬撑。持续数周不恢复、伴随发热或明显体重下降时，转医生评估，营养只做配合。',
+    sources: [src('meeusen2013'), src('schwellnus2016'), src('kellmann2018')],
+    tags: ['recoveryfood', 'rc-05', 'overtraining', 'fatigue']
+  },
+  {
+    id: 'RF-06', cat: 'recoveryfood', title: '打击累积与脑震荡的饮食落点',
+    body: '配合 RC-06：饮食落点已被 RH-08 覆盖——不限能量、规律三餐、充足饮水、避免酒精、咖啡因不突然加量。本条只补执行：恶心或吃不下时先用清淡碳水加液体少量多次，症状稳定后再加蛋白，不要一次吃大餐。不要用宣称“修复脑损伤”的补剂，也不要用脱水或发汗“排毒”。呕吐、无法正常进食或头痛加重时就医。',
+    sources: [src('patricios2023'), src('turnagol2022'), src('cscn6')],
+    tags: ['recoveryfood', 'rc-06', 'concussion', 'medical']
+  },
+  {
+    id: 'RF-07', cat: 'recoveryfood', title: '冷水浸泡后的饮食落点',
+    body: '配合 RC-07：冷水浸泡（CWI）前先补液补糖，不要空腹或脱水状态下长时间泡冰水。泡完后按训练后常规吃蛋白和碳水，冷疗不能替代进食，也不要用“已经做了恢复”当理由少吃。力量或增肌期频繁冷疗时，训练后那一餐照常吃，不要借冷疗后控重。出现寒战、头晕或心血管不适时先停止并就医。',
+    sources: [src('versey2013'), src('dupuy2018'), src('issn_timing2017')],
+    tags: ['recoveryfood', 'rc-07', 'cold', 'physical']
+  },
+  {
+    id: 'RF-08', cat: 'recoveryfood', title: '加压、按摩与拉伸的饮食落点',
+    body: '配合 RC-08：加压衣、按摩和拉伸不改变当天的饮食需求，也不能替代蛋白、碳水和睡眠。做完这些手段后照常吃训练后那一餐，不要因为“已经放松了”就减少进食。受伤部位需要修复时，能量和蛋白按 rehab 分类的条目执行，不靠按摩或拉伸“补营养”。手法和压力以不加重疼痛为准。',
+    sources: [src('dupuy2018'), src('hill2014'), src('kellmann2018')],
+    tags: ['recoveryfood', 'rc-08', 'massage', 'compression']
+  },
+  {
+    id: 'RF-09', cat: 'recoveryfood', title: '主动恢复日的饮食落点',
+    body: '配合 RC-09：主动恢复日碳水取训练日下限（矩阵 B-HOLD 的 3–5 g/kg），但不要断碳；蛋白按全天总量正常分配。低强度活动不需要额外补糖，除非出汗多或时间很长，才按 hyd-replace 补液补钠。主动恢复不是加餐的理由，也不要用“今天练得少”制造更大缺口。出现发热、明显乏力或疼痛加重时改为休息。',
+    sources: [src('acsm2016'), src('kellmann2018')],
+    tags: ['recoveryfood', 'rc-09', 'active', 'carb']
+  },
+  {
+    id: 'RF-10', cat: 'recoveryfood', title: '大负荷后免疫的饮食落点',
+    body: '配合 RC-10：大负荷后防上呼吸道感染（URTI），先把能量、碳水和蛋白吃够，再谈补剂。蛋白按每餐 0.3–0.4 g/kg 分配到 3–5 餐，训练后 2 小时内补 25–40 g，碳水按 1.0–1.2 g/kg/h 补。避免酒精，避免大剂量维生素 C/E 和“免疫增强”产品。感染期不要用发汗或脱水“排毒”，发热时停训就医。',
+    sources: [src('walsh2018'), src('schwellnus2016'), src('issn2017')],
+    tags: ['recoveryfood', 'rc-10', 'immune', 'protein']
+  },
+  {
+    id: 'RF-11', cat: 'recoveryfood', title: '酒精的饮食落点',
+    body: '配合 RC-11：酒精的饮食落点已被 basic-alcohol 和 RC-11 覆盖——训练后越早、量越大，对蛋白合成、补水、免疫和睡眠影响越明显。本条只补执行：备赛期和减重期直接避免；赛后若无法完全避免，先补液、吃蛋白餐，再把量控制在 0.5 g/kg 体重以下，且不要睡前饮酒。用酒精助眠会破坏后半夜睡眠，跨时区时尤其不要用。',
+    sources: [src('barnes2014')],
+    tags: ['recoveryfood', 'rc-11', 'alcohol']
+  },
+  {
+    id: 'RF-12', cat: 'recoveryfood', title: '抗氧化补剂的饮食落点',
+    body: '配合 RC-12：抗氧化物质从蔬果、坚果和正常饮食里拿，训练后不要追加高剂量维生素 C/E 补剂。长期大剂量抗氧化补剂可能削弱训练适应，不能当成“抗炎恢复”的主力。明确缺乏时按医嘱补，不要自行加量。训练后优先蛋白、碳水和补液，抗氧化补剂不替代这些。',
+    sources: [src('peternelj2011'), src('ioc2018')],
+    tags: ['recoveryfood', 'rc-12', 'antioxidant', 'supplement']
+  },
+  {
+    id: 'RF-13', cat: 'recoveryfood', title: '心理恢复的饮食落点',
+    body: '配合 RC-13：心理恢复期保持规律三餐，不跳餐、不用极端节食或暴食来应对压力。碳水按训练日区间吃够，血糖稳定有助于情绪和睡眠；咖啡因按矩阵 G-SLE 口径睡前 8 小时内避免。比赛后休整期不要每天盯体重和体成分，先把进食节奏拉回正常。持续情绪低落、失眠、失去训练兴趣或出现极端体重行为时，转心理或医学评估。',
+    sources: [src('kellmann2018'), src('meeusen2013')],
+    tags: ['recoveryfood', 'rc-13', 'psychology', 'stress']
+  },
+
+  // ---------- 训练课型与阶段营养（TN-01 ~ TN-12） ----------
+  {
+    id: 'TN-01', cat: 'training', title: '最大力量课：碳水够、蛋白到位、别追泵感',
+    body: '最大力量课的能量按矩阵 MX-MAINTAIN-P-POW 执行：维持期蛋白（P）1.6–2.2、碳水（C）4–6 g/kg、能量盈亏 ±350 kcal；减脂期 P 2.0–2.4、C 3–5、缺口 300–400 kcal（见 MX-CUT-P-POW）。蛋白总量按 pro-total，训练后 2 小时内补 25–40 g，其余分到 3–5 餐；训练前 1–3 小时吃 1–2 g/kg 碳水。肌酸每天 3–5 g，咖啡因只在强度日按 3–6 mg/kg、睡前 8 小时避免。最容易踩的坑是追求“泵感”堆高次数和容量，或在减脂期先砍强度、训练后只吃蛋白不吃碳水。',
+    sources: [src('issn2025'), src('issn2017'), src('issn_timing2017'), src('issn_creatine2017'), src('acsm2016')],
+    tags: ['training', 'strength', 'max-strength']
+  },
+  {
+    id: 'TN-02', cat: 'training', title: '爆发力课：强度不砍，辅助量封顶',
+    body: '爆发力课按矩阵 MX-MAINTAIN-P-POW / MX-CUT-P-POW 执行：维持期碳水（C）4–6 g/kg、能量盈亏 ±350 kcal；减脂期 C 3–5、缺口不超过 400 kcal，辅助量砍 20–30% 但不砍强度。蛋白（P）总量 1.6–2.2（减脂 2.0–2.4），训练后 25–40 g，训练前 1–3 小时 1–2 g/kg 碳水。咖啡因按 3–6 mg/kg、赛前 60 分钟使用，先试过且不影响睡眠；肌酸每天 3–5 g 可维持。最常见的坑是疲劳状态下做爆发、用高次数辅助动作代替质量，以及下午补咖啡因后睡不够。',
+    sources: [src('issn2025'), src('issn_caffeine2021'), src('issn_creatine2017'), src('acsm2016')],
+    tags: ['training', 'power', 'strength']
+  },
+  {
+    id: 'TN-03', cat: 'training', title: '速度课：神经新鲜优先，缺口别加深',
+    body: '速度课按矩阵 MX-MAINTAIN-P-SPD / MX-CUT-P-SPD 执行：维持期碳水（C）4–6 g/kg、能量盈亏 ±350 kcal；减脂期 C 3–5，速度日缺口不超过 300 kcal（C04 的封顶模式，即 cap）。训练前 2–3 小时吃 1–2 g/kg 碳水，选低纤维低脂；训练后按常规补 25–40 g 蛋白。咖啡因按需、按 3–6 mg/kg，睡前 8 小时避免；睡眠按 SLE-01 守住 7 小时以上。最容易踩的坑是空腹晨速、前一天大负荷后硬上速度，以及脱水状态下做神经课。',
+    sources: [src('issn2025'), src('issn_caffeine2021'), src('acsm2016'), src('walsh2021')],
+    tags: ['training', 'speed', 'neural']
+  },
+  {
+    id: 'TN-04', cat: 'training', title: '肌肉耐力课：矩阵已有独立原子 P-MEND，证据仍弱',
+    body: '肌肉耐力已有独立原子 P-MEND，但证据仍弱，本条只给定性方向、不给数值。能量按训练日碳水区间吃够（见 carb-training），不额外制造缺口；减脂期只维持现有容量，不新增循环/间歇课；蛋白按全天总量正常分配。训练前留出消化时间吃少量易消化碳水，训练后按常规补蛋白和碳水，不要用“酸胀”判断练到位。最容易踩的坑是把高次数练到力竭、低碳水做高容量，以及用补剂代替主食。',
+    sources: [src('cscn6'), src('sport_nutrition4'), src('acsm2016')],
+    tags: ['training', 'muscular-endurance', 'weak']
+  },
+  {
+    id: 'TN-05', cat: 'training', title: '有氧耐力课：碳水优先，补液补钠',
+    body: '有氧耐力课按矩阵 MX-MAINTAIN-P-END / MX-CUT-P-END 执行：维持期蛋白（P）1.6–2.2、碳水（C）4–7 g/kg、能量盈亏 ±350 kcal；减脂期 P 2.0–2.4、C≥3、缺口不超过 400 kcal，大负荷日不加深缺口（C08）。训练后 2 小时内补 25–40 g 蛋白，碳水按 1.0–1.2 g/kg/h 补；一天两练时两练间隔至少 6 小时。大量出汗按 hyd-replace 补含钠液体，女性拳手长期耐力负荷要查铁状态（见 AS-09/FE-04）。最常见的坑是低碳水做长课、只补白水不补钠，以及在大负荷日继续加深缺口。',
+    sources: [src('acsm2016'), src('acsm2007'), src('issn_timing2017'), src('reds2023')],
+    tags: ['training', 'endurance', 'aerobic']
+  },
+  {
+    id: 'TN-06', cat: 'training', title: '技战术课：不空腹，低纤维低脂',
+    body: '技战术课在矩阵 MX-*-P-SKL 里是弱证据格，宏量为空，本条只给方向、不给克数。不要空腹上技术课，训练前留出消化时间吃少量易消化碳水，具体时点与份量由营养师确认。训练前避免高纤维、高脂和大体积食物；训练中按口渴和出汗补液，大量出汗时补钠。蛋白按全天总量正常分配，课后吃一餐即可；不要用技术课代替恢复，也不要在技术日加深热量缺口。',
+    sources: [src('cscn6'), src('sport_nutrition4'), src('acsm2016')],
+    tags: ['training', 'technique', 'weak']
+  },
+  {
+    id: 'TN-07', cat: 'training', title: '一日两练：两练间隔与两次补糖',
+    body: '一日两练按矩阵 P-END 的时机执行：两练间隔至少 6 小时，第一练后 4 小时内按 1.0–1.2 g/kg/h 补碳水，并加 20–30 g 蛋白。第二练前 1–2 小时吃少量易消化碳水，避免高纤维高脂；两练之间按 hyd-replace 补液补钠。全天蛋白按 1.6–2.2 g/kg 分到 3–5 餐，睡前可加 30–40 g 缓释蛋白，睡眠按 SLE-01 守住。最容易踩的坑是两练挨太近、第二练空腹上、只补蛋白不补糖，以及用咖啡因掩盖睡眠不足。',
+    sources: [src('issn_timing2017'), src('acsm2016'), src('walsh2021')],
+    tags: ['training', 'two-a-day', 'carb']
+  },
+  {
+    id: 'TN-08', cat: 'training', title: '赛前减量周：减量不是减碳',
+    body: '赛前减量周按矩阵 MX-PEAK-* 执行：训练量下降，但能量盈亏为 0（E 0）、碳水（C）保持 3–5 g/kg、蛋白（P）1.6–2.2 g/kg，不要跟着训练量一起砍碳水。微调期只动水、钠、纤维和胃肠内容物（B-PEAK），选低纤维、低脂、小体积食物；快碳不超过 60 g/h，补液按计划走。赛前 24–48 小时才按 carb-fightweek 把碳水提到 8–10 g/kg，减量周本身不做碳水负荷。最容易踩的坑是把减量周当成减碳周、临时试新补剂或新食物，以及用减量周“补课”加练。',
+    sources: [src('acsm2016'), src('issn2025'), src('walsh2021')],
+    tags: ['training', 'taper', 'peak']
+  },
+  {
+    id: 'TN-09', cat: 'training', title: '维持期叠加：各课型怎么吃，别偷偷减',
+    body: '维持期叠加按矩阵 maintain 列执行：力量/爆发日看 MX-MAINTAIN-P-POW，速度日看 MX-MAINTAIN-P-SPD，耐力日看 MX-MAINTAIN-P-END，技术日看 MX-MAINTAIN-P-SKL，控级别看 MX-MAINTAIN-B-HOLD。执行上，力量与爆发日训练前 1–3 小时吃 1–2 g/kg 碳水、训练后 25–40 g 蛋白；耐力日碳水取 4–7 g/kg、两练间隔至少 6 小时；技术日不空腹、只吃少量易消化碳水。蛋白（P）总量 1.6–2.2 g/kg 分到 3–5 餐，控级别时碳水 3–5 g/kg、能量 ±350 kcal、正常三餐。增肌目标只在非赛季且距称重超过 84 天时开，盈余 200–400 kcal；距称重不足 12 周转 B-HOLD 加力量维持。最容易踩的坑是维持期变成“随便吃”或偷偷减，以及增肌期叠太多有氧。',
+    sources: [src('issn2017'), src('acsm2016'), src('issn_diets2017')],
+    tags: ['training', 'phase', 'maintain']
+  },
+  {
+    id: 'TN-10', cat: 'training', title: '减脂期叠加：力量课后的蛋白与碳水怎么保',
+    body: '减脂期叠加按矩阵 cut 列执行：力量课看 MX-CUT-P-POW、保肌看 MX-CUT-P-HYP、耐力课看 MX-CUT-P-END、速度课看 MX-CUT-P-SPD，让步模式以 C01/C04/C08/C26 为准。力量课后那一餐先保证 25–40 g 蛋白，碳水集中在训练前后，全天蛋白（P）2.0–2.4、碳水（C）3–5 g/kg，缺口封顶 400 kcal；力量只维持 1–2 次/周，不加量。大负荷日不加深缺口，训练后按 1.0–1.2 g/kg/h 补糖；速度日缺口不超过 300 kcal；技术日不加深缺口。每 2–3 周安排 1–2 天重新进食日（refeed），碳水为主，体重短期回升看 7 日移动平均。最容易踩的坑是用加练换更大缺口、先砍强度、蛋白吃不够，以及周降超过 1% 还继续压。',
+    sources: [src('issn2025'), src('refalo2025'), src('issn_diets2017'), src('acsm2021')],
+    tags: ['training', 'phase', 'cut', 'muscle-retention']
+  },
+  {
+    id: 'TN-11', cat: 'training', title: '微调期叠加：只保强度，不做大负荷补碳',
+    body: '微调期叠加按矩阵 peak 列执行：所有表现原子只保强度、不加量，能量盈亏为 0，蛋白（P）1.6–2.2、碳水（C）3–5 g/kg；B-CUT、B-HOLD、B-GAIN 在 peak 列都是 N/A，禁止再动热量缺口或增重。力量/爆发日训练前 1–2 小时吃小份碳水；速度日训练前 2–3 小时吃 1–2 g/kg 碳水；耐力日按补液计划执行，不新增负荷；技术日选低纤维、低体积食物。微调期只动水、钠、纤维和胃肠内容物（B-PEAK），快碳不超过 60 g/h，补水按 HYD-05 的执行率走。减量周不要加大负荷“补课”，也不要在赛前一周临时试新食物或新补剂（C14/C15/C25）。',
+    sources: [src('acsm2021'), src('issn2025'), src('acsm2007')],
+    tags: ['training', 'phase', 'peak']
+  },
+  {
+    id: 'TN-12', cat: 'training', title: '恢复期叠加：先补液补糖，掉肌问题归 rehab',
+    body: '恢复期叠加按矩阵 recover 列执行：P-POW、P-SPD、P-HYP、P-END、P-SKL 以及 B-CUT、B-HOLD、B-GAIN、B-PEAK 全部 N/A，唯一合法的是 B-REFUEL（C16/C17 先恢复再谈增肌或控重）。执行顺序是先补液再补糖：含钠液体按每流失 1 kg 补 1.25–1.5 L，糖原耗尽按 8–12 g/kg、轻度限制按 4–7 g/kg 两段独立执行，不取中间值；蛋白 20–40 g 与碳水同餐，快碳不超过 60 g/h，纤维逐步加回。称重后 24 小时内不继续减重，目标体重回升至少 50%（REC-04）；恢复窗只有 12–24 小时，不做减脂、控重或增肌决策。真正的停训掉肌属于 rehab，按 RH-01、RH-03、RH-04 处理；恢复期保证蛋白和能量、不制造缺口，就是避免掉肌的执行落点。',
+    sources: [src('issn2025'), src('acsm2007'), src('acsm2016'), src('cscn6')],
+    tags: ['training', 'phase', 'recover', 'refuel']
   }
 ];
 
-module.exports = { version: 4, categories: CATEGORIES, items: ITEMS };
+module.exports = { version: 7, categories: CATEGORIES, items: ITEMS };

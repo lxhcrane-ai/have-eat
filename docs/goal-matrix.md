@@ -11,9 +11,9 @@
 
 | 术语 | 含义 |
 |---|---|
-| 目标原子 | 一个可独立追求的目标方向，共 15 个，见第 1 节 |
-| 复合目标 | 2–3 个目标原子的组合，共 27 个配方，见第 4 节 |
-| 矩阵 | 行 = 15 个目标原子，列 = 现有 4 个阶段，共 60 格，见第 2 节 |
+| 目标原子 | 一个可独立追求的目标方向，共 16 个，见第 1 节 |
+| 复合目标 | 2–3 个目标原子的组合，共 29 个配方，见第 4 节 |
+| 矩阵 | 行 = 16 个目标原子，列 = 现有 4 个阶段，共 64 格，见第 2 节 |
 | 目标计划 | `evaluate` 输出的 `goalPlan`，是“目标如何叠加在阶段之上”的裁决结果 |
 | 护栏 | SLE / GI / EA / IMM / MED；SLE/GI/EA 可目标化，IMM 只监测，MED 是安全标记 |
 | owner 规则 | 某个现象的唯一负责规则；同一现象不允许被两个目标重复扣分 |
@@ -29,7 +29,7 @@
 
 ---
 
-## 1. 目标原子（15 个）
+## 1. 目标原子（16 个）
 
 ### 1.1 原子清单
 
@@ -39,6 +39,7 @@
 | P-SPD | 速度/神经 | 表现 | `nextPlan.type=speed`；短时长、`rpe≥7`；晨脉接近基线 | 酸痛≥7、睡眠<7、晨脉+5、前一日大负荷 | maintain / cut / peak |
 | P-HYP | 肌肥大 | 表现 | 近 7 日 `sessionType=strength` ≥2 次、`rpe 6–8`、体重斜率 +0.2~+0.5 kg/周、能量小幅盈余 | 减重速率>1%/周、睡眠<6.5、胃肠症状、距称重<12 周 | maintain / cut（仅保肌） |
 | P-END | 耐力/体能 | 表现 | `sessionType ∈ {cardio,sparring}`，或 `nextPlan.type=conditioning`；`durationMin≥60`；`rounds≥6`；sRPE 高 | 晨脉+5、睡眠<6.5、酸痛≥7、周负荷陡增 | maintain / cut / peak（仅低容量） |
+| P-MEND | 肌肉耐力（力量耐力） | 表现（弱证据） | `sessionType=strength` 且 `durationMin≥45`、`rpe 6–8`；`training.content` 含“循环 / 间歇 / 高次数 / 短间歇 / 沙袋连续输出 / EMOM”；或 `nextPlan.type=conditioning` 且为力量循环 | 酸痛≥7、睡眠<6.5、脱水≥3%、周降>1%、晨脉+5 | maintain / cut（仅维持，不新增容量） |
 | P-SKL | 技术/战术 | 表现 | `sessionType=technique`；`rpe≤7`；`nextPlan.type=technique` | 空腹技术课、睡眠<6、脱水≥2% | maintain / cut / peak |
 | B-CUT | 减脂 | 身体 | `phase=cut`；周斜率 -0.3~-1%；缺口 300–600；`gapPct>1.5` | 缺口>900、EA<30、睡眠<6.5、周斜率>1% | cut |
 | B-HOLD | 控级别/维持 | 身体 | `phase=maintain`，或 cut 且 `gapPct≤1.5`；周斜率 ±0.2；`driftPct≤maintainBandPct` | `driftPct>band`、连续两周单向漂移 | maintain / cut（仅 gap≤1.5） |
@@ -51,7 +52,14 @@
 | G-IMM | 免疫（名额外监测，不任 lead） | 护栏（弱证据，`role=monitor`） | `health.illness≥1`、睡眠<6、sRPE 周环比>20%、缺口>900 | 无感染症状 | 全阶段 |
 | G-MED | 医疗/女性/青少年 | 安全标记（否决，非可选目标，不任 lead；转诊信息写 `profile.note`） | 营养师标记、月经异常、反复骨伤、发热、青少年生长停滞 | — | 全阶段 |
 
-**精力归属（定稿）**：精力不是独立原子，统一由 `G-SLE` 承接。`mood.fatigue` 是睡眠/恢复不足的下游表现；由能量可用性不足导致的疲劳由 `G-EA` 单独承接。C11/C12/C22/C24 中的“精力”一律写成 `G-SLE`，不得再把 `EN` 作为别名或第 16 个原子。入口若收到旧值 `EN`，只在归一化层映射为 `G-SLE`，不得进入 `goalPlan` / `composites` / `atoms`；数据层不得保留 `docAtoms` / `aliasNote` 形式的 `EN` 别名。
+**P-MEND 证据裁定（先给结论）**：肌肉耐力这个练法**没有直接到能写数值的营养证据**。现有 KB `TN-04`（力量耐力课）本来就标注“矩阵无独立原子，只给方向”，来源是 `cscn6` / `sport_nutrition4` / `acsm2016` 的一般性论述，不是针对“肌耐力营养处方”的 RCT。因此本轮把 P-MEND 定位为**结构补全，证据仍弱**：
+
+- 四格 `evidenceStatus='weak'`、`macros=null`，不写任何 g/kg、g 或 kcal 区间；
+- 只给定性方向（不空腹、训练前后吃到碳水、训练后常规补蛋白与碳水、不追高次数到力竭）；
+- 不产出 `goalAdherence` 组件、不参与 GOAL-02 自动冲突判定、不升级任何规则的数值阈值；
+- 待出现可引用的直接证据后，再按 §8.2 的升级流程改 `evidenceStatus` 并补数值。
+
+**精力归属（定稿）**：精力不是独立原子，统一由 `G-SLE` 承接。`mood.fatigue` 是睡眠/恢复不足的下游表现；由能量可用性不足导致的疲劳由 `G-EA` 单独承接。C11/C12/C22/C24 中的“精力”一律写成 `G-SLE`，不得再把 `EN` 作为别名或补位原子。入口若收到旧值 `EN`，只在归一化层映射为 `G-SLE`，不得进入 `goalPlan` / `composites` / `atoms`；数据层不得保留 `docAtoms` / `aliasNote` 形式的 `EN` 别名。
 
 ### 1.2 判定口径
 
@@ -60,6 +68,7 @@
 3. **周频次来自周报/趋势**：`P-HYP` 的“近 7 日力量课≥2 次”、`P-END` 的周负荷、`B-CUT` 的 refeed 周期，均由周报或营养师端计算，不进入单日 `evaluate` 的必需输入。
 4. **数据不足不判红**：任何目标缺少关键字段时，只能输出 `data_missing` blocker 或 `unknown`，不能输出“达标/不达标”。
 5. **阶段仍由营养师设定**：`profile.phase` 只由 `coachApi.setPhase` 写；目标不改阶段。目标与阶段不匹配时由 `GOAL-01` 提示“改目标或改阶段”。
+6. **P-MEND 只由营养师显式设定，识别信号只用于确认/反证**：`logs` 没有组数、次数、组间休息的结构化字段，`training.content` 是自由文本；因此引擎不得据文本自动新增 `P-MEND`，也不得据文本升级证据等级或触发 `GOAL-02`。课型区分口径见 §1.4。
 
 ### 1.3 字段映射
 
@@ -75,11 +84,32 @@
 | 胃肠 | `giSymptoms` | log |
 | 水合 | `hydration`、`hydrationPlan`、`postWeighIn` | log |
 | 能量可用性 | `profile.bodyFatPct`（新增）、`meals`、训练课净消耗估算（见 §7.6.1） | profile / 引擎 |
+| 肌耐力识别 | `training.sessionType`、`training.durationMin`、`training.rpe`、`training.rounds`、`training.content`（自由文本，仅辅助） | log |
 | 目标本身 | `profile.goals`、`profile.goalEffectiveDate`、`profile.goalSource` | profile |
+
+### 1.4 P-MEND 与 P-HYP / P-END 的区分（定稿）
+
+三者都落在“训练课”层面，但判据不同。P-MEND 是**结构补全**，只回答“这节课要不要按肌耐力课给方向”，不承担任何数值处方。
+
+| 维度 | P-HYP 肌肥大 | P-END 有氧耐力 | P-MEND 肌肉耐力 |
+|---|---|---|---|
+| 训练课特征 | `sessionType=strength`；低次数高负荷、组间休息充分（≥2 min）；`rpe 6–8`；近 7 日频次≥2 | `sessionType ∈ {cardio, sparring}`，或 `nextPlan.type=conditioning`；`durationMin≥60`、`rounds≥6`、sRPE 高 | `sessionType=strength` 但高次数（≥12–15）/短组间休息（≤60 s）/循环或 EMOM；`durationMin≥45`；`rpe 6–8`；或 `content` 含“沙袋连续输出、间歇力量循环” |
+| 主营养约束 | 小幅盈余 + 蛋白总量 | 碳水可用性 + 补液 | 碳水吃够、不额外制造缺口、训练后常规补蛋白与碳水 |
+| 判据来源 | 周频次 + 体重斜率 + 能量方向 | 时长 + 回合 + 课型 | `sessionType` + 时长 + `content` 文本确认 |
+| 证据 | 中 | 强 | **弱**（§8.3，四格 `macros=null`） |
+
+**原子元数据（定稿）**：`id='P-MEND'`、`name='肌肉耐力'`、`dimension='performance'`、`occupiesSlot=true`（占 3 个主目标名额之一）、`selectable=true`、`role='atom'`、`evidenceDefault='weak'`、`legalPhases=['maintain','cut']`、`conditionalPhases={cut:'仅维持现有容量，不新增循环/间歇课'}`。因 L4 排序为 `P-HYP > P-END > P-MEND`，它只有在 HYP/END 均未激活时才可能成为 lead。
+
+**三者同时出现时的裁决（定稿）**：
+
+1. `P-HYP` 与 `P-MEND` 同时：`P-HYP` 优先（L4 内 HYP 排在 MEND 前）；`P-MEND` 用 `cap`，只维持容量，不加循环训练量。
+2. `P-END` 与 `P-MEND` 同时（同课或同日）：`P-END` 优先；`P-MEND` 用 `sequence` / `cap`，不与有氧课叠成双高容量，同日两课间隔≥6 h。
+3. `P-HYP` + `P-END` + `P-MEND` 三目标同时：允许（占 3 个名额），但**无专用配方**，`composites=[]`；`lead` 按 L4 顺序取 `P-HYP`，其余用通用 `cap` / `sequence` 裁决，不新增 C 编号。
+4. 同一节课文本同时命中“有氧耐力”和“肌耐力”：以 `sessionType` 为准——`cardio` / `sparring` 归 `P-END`；只有 `strength` 才可能归 `P-MEND`。`content` 只作辅助确认，不得覆盖 `sessionType`。
 
 ---
 
-## 2. 矩阵：4 阶段 × 15 原子 = 60 格
+## 2. 矩阵：4 阶段 × 16 原子 = 64 格
 
 ### 2.1 读法
 
@@ -100,6 +130,7 @@
 | P-SPD | ✅ | 神经新鲜优先；速度课前不安排大容量 | P 1.6–2.2；C 4–6；E ±350 | 前 2–3h C 1–2；咖啡因按需 | startTime, quality | SLE-01, REC-02, REC-03 |
 | P-HYP | ✅ | 小幅盈余；力量日为主 | P 1.8–2.2；C 4–6；E +200~+400 | 后 P 25–40g；C 1.0–1.2/kg/h | startTime | PHASE-02, REC-02, SLE-01 |
 | P-END | ✅ | 碳水优先；两练间隔≥6h | P 1.6–2.2；C 4–7；E ±350 | 后 C 1.0–1.2/kg/h | startTime | SLE-01, REC-03, REC-02 |
+| P-MEND | ✅ | 维持容量；不追高次数到力竭；能量按维持期方向 | —（weak，`macros=null`） | 训练前 2–3h 少量易消化碳水（具体量由营养师确认）；训练后按常规进食 | — | SLE-01, REC-02 |
 | P-SKL | ✅ | 不空腹；技术课为主 | —（weak，`macros=null`） | 前 1–2h 少量碳水，具体量由营养师确认 | quality | SLE-01, REC-02 |
 | B-CUT | N/A | 阶段不符：维持期不主动减脂；先切 cut | — | — | — | GOAL-01 |
 | B-HOLD | ✅ | 体重稳定；每周看斜率 | P 1.6–2.2；C 3–5；E ±350 | 正常三餐 | — | PHASE-02, ENE-01 |
@@ -120,6 +151,7 @@
 | P-SPD | ✅ | 速度日不加深缺口 | P 2.0–2.4；C 3–5；速度日 E≥−300 | 前 2–3h C 1–2 | startTime, quality | PHASE-01, SLE-01, REC-02 |
 | P-HYP | ✅（保肌） | 只保肌不加量；力量维持 1–2 次/周 | P 2.0–2.4；C 3–5；E −300~−400 | 后 P 25–40g | startTime | PRO-01, PHASE-01, REC-02 |
 | P-END | ✅ | 缺口≤400；大负荷日不加深 | P 2.0–2.4；C≥3；E −300~−400 | 后 C 1.0–1.2/kg/h | startTime | PHASE-01, ENE-01, SLE-01, REC-03 |
+| P-MEND | ✅（条件） | 仅维持现有容量，不新增循环/间歇课；缺口沿用 B-CUT 口径（≤400） | —（weak，`macros=null`） | 训练前 2–3h 少量易消化碳水（具体量由营养师确认）；训练后常规补蛋白与碳水 | — | PHASE-01, SLE-01, REC-02 |
 | P-SKL | ✅ | 技术日不加深缺口 | —（weak，`macros=null`） | 前 1–2h 少量碳水，具体量由营养师确认 | quality | PHASE-01, SLE-01 |
 | B-CUT | ✅ | 缺口 300–600；每 2–3 周 refeed | P 2.0–2.4；C 3–5；Fat 0.5–1.0；E −300~−600 | 训练前后集中碳水 | — | PHASE-01, ENE-01, PRO-01, HYD-01 |
 | B-HOLD | ✅（条件） | 仅 gap≤1.5%；只维持不再减 | P 2.0–2.4；C 3–5；E≤−300 | 正常三餐 | — | PHASE-02, PHASE-01, PRO-01 |
@@ -140,6 +172,7 @@
 | P-SPD | ✅ | 低容量保速度 | P 1.6–2.2；C 3–5；E 0 | 前 2–3h C 1–2 | startTime, quality | HYD-05, GI-01, SLE-01 |
 | P-HYP | N/A | 微调期不动热量盈余 | — | — | — | GOAL-01 |
 | P-END | ✅ | 只维持低容量，不新增负荷 | P 1.6–2.2；C 3–5；E 0 | 按计划补液 | startTime | HYD-05, GI-01, SLE-01 |
+| P-MEND | N/A | 阶段不符：微调期不做高容量肌耐力课；窗口未到或已过，可延后 | — | — | — | GOAL-01 |
 | P-SKL | ✅ | 低纤维低体积；技术课为主 | —（weak，`macros=null`） | 前 1–2h 少量碳水，具体量由营养师确认 | quality | GI-01, HYD-05 |
 | B-CUT | N/A | 禁止再动热量缺口 | — | — | — | GOAL-01 |
 | B-HOLD | N/A | 微调期按水盐计划，不做热量维持决策 | — | — | — | GOAL-01 |
@@ -160,6 +193,7 @@
 | P-SPD | N/A | 恢复期不安排速度课 | — | — | — | GOAL-01 |
 | P-HYP | N/A | 先补液补糖，不安排增肌目标 | — | — | — | GOAL-01 |
 | P-END | N/A | 恢复期不打训练课 | — | — | — | GOAL-01 |
+| P-MEND | N/A | 阶段不符：恢复期不排训练课，先补液补糖 | — | — | — | GOAL-01 |
 | P-SKL | N/A | 恢复期不安排技术课 | — | — | — | GOAL-01 |
 | B-CUT | N/A | 恢复期不做减脂决策 | — | — | — | GOAL-01 |
 | B-HOLD | N/A | 恢复期不做控重决策 | — | — | — | GOAL-01 |
@@ -172,7 +206,24 @@
 | G-IMM | ✅（监测） | 只监测；感染优先就医（人工提示） | — | — | illness | health.illness（无 owner 规则） |
 | G-MED | ✅（否决） | 医疗意见优先 | — | — | — | 人工 |
 
-### 2.6 三个详细策略卡示例
+### 2.5.1 P-MEND 四格契约明细
+
+| 格 | legality | 条件 / `illegalReason` | `goal01Level` | 证据 | anchor | 复核状态 | `extraFields` |
+|---|---|---|---|---|---|---|---|
+| `MX-MAINTAIN-P-MEND` | legal | — | 无（合法） | weak | `SLE-01`、`REC-02`、KB `TN-04` | `needs_review` | `[]` |
+| `MX-CUT-P-MEND` | conditional | 仅维持现有容量，不新增循环/间歇课；缺口沿用 `B-CUT`（≤400） | 无（条件满足即可执行） | weak | `PHASE-01`、`SLE-01`、`REC-02`、KB `TN-04` | `needs_review` | `[]` |
+| `MX-PEAK-P-MEND` | illegal | 微调期不做高容量肌耐力课：额外肌损伤与疲劳会拖累神经表现与水盐微调；窗口未到或已过，可延后 | **amber** | weak | KB `TN-04` | `active` | `[]` |
+| `MX-RECOVER-P-MEND` | illegal | 恢复期不排训练课，先补液补糖 | **amber** | weak | KB `TN-04` | `active` | `[]` |
+
+补充：
+
+1. `anchor` 只引用已存在的规则 ID 或 KB id；`TN-04` 是 KB 的“力量耐力课”条目，不是新增规则。
+2. 四格 `macros=null`、`targets=null`，不设 `numericRanges`；`strategy`/`timing` 只能是定性方向，不出现具体克数。
+3. `reviewStatus`：合法两格标 `needs_review`（新原子、弱证据，待营养师复核）；非法两格标 `active`，与其它 N/A 格一致。
+4. `peak` / `recover` 的 `goal01Level` 为 `amber` 而不是 `red`：P-MEND 不要求当前窗口改变能量方向，只是窗口不可用、可延后；判定依据见 §6.1 的“先 legality，再看是否要求立即改变能量方向”。
+5. **待核实**：识别阈值（高次数 ≥12–15、短组间休息 ≤60 s、EMOM/循环、`durationMin≥45`）与“`peak` 不做高容量肌耐力”均属训练学经验口径，KB/文献没有直接条目；只作辅助确认与提示，不做硬门禁，也不据此生成任何数值。
+
+### 2.6 四个详细策略卡示例
 
 #### MX-CUT-P-POW（爆发 × 减脂）
 
@@ -200,6 +251,15 @@
 - 监测：HYD-04、REC-01、REC-04、GI-01。
 - 证据：强（ISSN 2025 第 12–15 条、ACSM 2007、ACSM 2016）。
 - 冲突：与 CUT；模式 `forbid`。
+
+#### MX-MAINTAIN-P-MEND（肌耐力 × 维持期）
+
+- 策略：维持现有训练容量，不追高次数到力竭；能量按维持期方向，不额外制造缺口；不低碳水做高容量；不用“酸胀”判断是否练到位；不承诺任何 g/kg、g 或 kcal 数值。
+- 时机：训练前 2–3h 少量易消化碳水；训练后按常规进食（蛋白 + 碳水，按全天总量正常分配）；具体份量由营养师确认。
+- 额外字段：无新增；`training.content` 已存在，只作课型辅助确认。
+- 监测：SLE-01（睡眠<6.5h 当日不加量）；REC-02（酸痛≥7 当日不做循环课）。
+- 证据：弱（KB `TN-04` 已标注“矩阵无独立原子，只给方向”；新增原子不升级证据等级）。
+- 冲突：与 HYP/END/POW/SPD；模式 `cap` / `sequence`。
 
 ### 2.7 与现有 4 阶段共存
 
@@ -237,7 +297,7 @@
 
 ### 3.2 落点
 
-- `data/goalMatrix.js`：15 个原子、27 个组合、60 格矩阵、冲突边、优先级、证据状态。纯数据，双端共用。
+- `data/goalMatrix.js`：16 个原子、29 个组合、64 格矩阵、冲突边、优先级、证据状态。纯数据，双端共用。
 - `utils/goals.js`：`validateGoals()`、`resolveConflicts()`、`buildGoalPlan()`、`goalFields()`、`goalAdherence()`。纯函数，不依赖 `wx.*`。
 - `evaluate(rawLog, ctx)`：
   - 输入新增 `ctx.goals`（存在时优先于 `profile.goals`，用于未保存目标预览与复核）或 `profile.goals`；二者都不传时 `goals=[]`；最多 3 个计入名额 + ≤1 个 `G-IMM` 监测。
@@ -277,7 +337,7 @@
 
 ---
 
-## 4. 复合目标配方 C01–C27
+## 4. 复合目标配方 C01–C29
 
 | 编号 | 组合 | 主导 | 让步方式 / 护栏动作 | 关键策略 | 证据 | 触发阶段 |
 |---|---|---|---|---|---|---|
@@ -308,6 +368,8 @@
 | C25 | 微调+睡眠（PEAK+SLE） | B-PEAK | cap | 睡眠 7–9h 硬约束；固定作息 | 强 | peak |
 | C26 | 减脂+保肌（CUT+HYP） | B-CUT | cap | 蛋白 2.0–2.4；力量维持不加量；缺口≤400 | 强 | cut |
 | C27 | 增肌+耐力（GAIN+END） | B-GAIN | cap | 仅非赛季；碳水优先；盈余≤400 | 中 | maintain |
+| C28 | 增肌+肌耐力（HYP+MEND） | P-HYP | cap | 非赛季小幅盈余；P-MEND 只维持容量，不加循环训练量；不写数值 | 弱（组合间接） | maintain |
+| C29 | 减脂+肌耐力（MEND+CUT） | B-CUT | cap | 缺口≤400；P-MEND 只维持，不新增容量；训练前后碳水优先 | 弱 | cut |
 
 ---
 
@@ -330,6 +392,11 @@
 | GI ↔ END/GAIN/HYP | 高纤维/大体积 vs 耐受 | cap：低纤维、小体积、分餐 |
 | EA ↔ CUT | 低能量可用性 vs 减脂 | cap + 护栏动作 `veto`：EA 红灯否决加深缺口；`veto` 不进 `concessions[].mode` |
 | IMM ↔ END/CUT | 免疫 vs 高负荷/赤字 | monitor：只提示，由营养师人工决定，不 veto |
+| HYP ↔ MEND | 增肌容量 vs 肌耐力容量 | cap：HYP 主导，MEND 只维持，不加循环训练量 |
+| END ↔ MEND | 双高容量同一天 | sequence / cap：END 优先；同日不叠，两课间隔≥6 h |
+| POW/SPD ↔ MEND | 神经/高强度 vs 高次数疲劳 | sequence：大强度课排前，MEND 不排在同日速度课前 |
+| CUT ↔ MEND | 赤字 vs 高容量恢复 | cap：缺口≤400，不新增容量 |
+| PEAK ↔ MEND | 微调期不做高容量肌耐力 | forbid：阶段直接禁止（矩阵 N/A） |
 | MED ↔ 全部 | 医疗安全 | 护栏动作 `veto`：绝对优先；不产生 `concessions` |
 
 ### 5.2 优先级栈 L0–L6
@@ -338,7 +405,7 @@
 - **L1 比赛时间窗与资格（PEAK / REFUEL / HOLD 到级别）**：阶段合法性优先。
 - **L2 健康护栏（EA > GI > SLE；IMM 只监测，不参与否决）**：红灯时否决“用加练/加深缺口换比赛”的做法，**不否决比赛本身**。
 - **L3 神经表现（SPD > POW）**：赛前 2 周内优先保神经新鲜。
-- **L4 结构/体能（HYP / END）**：非赛季 HYP 优先，赛前 END 维持优先。
+- **L4 结构/体能（HYP / END / MEND）**：非赛季 HYP 优先，赛前 END 维持优先；MEND 排在末位，只作维持性目标，不担任 lead。
 - **L5 体型（CUT > GAIN）**：赛前 12 周内 CUT；GAIN 只允许非赛季。
 - **L6 辅助（SKL / IMM）**：只做监测，不让步主目标；`G-IMM` 不占 3 个名额。精力不属于 L6，统一由 L2 的 `G-SLE` 承接。
 
@@ -393,8 +460,8 @@
 |---|---|
 | ruleId | `GOAL-01` |
 | name | 目标与阶段互斥 |
-| logicSummary | 当生效目标（`ctx.goals` 优先，否则 `profile.goals`）中存在与当前阶段不合法（矩阵 N/A）的原子，或复合配方要求的时间窗与当前阶段不符，emit。典型：B-GAIN 在 cut/peak/recover；B-GAIN 在 maintain 但距称重<84 天；B-CUT 在 maintain/peak/recover；B-PEAK 不在 peak；B-REFUEL 不在 recover；B-HOLD 在 peak/recover；B-HOLD 在 cut 但 `gapPct>1.5`；P-POW/P-SPD/P-END/P-SKL 在 recover；P-HYP 在 peak/recover。 |
-| thresholds | **red**：目标要求的能量方向与当前阶段直接相反、且无法在当前窗口执行（`B-GAIN` 在 cut；`B-CUT` 在 maintain/peak/recover；`B-HOLD` 在 cut 但 `gapPct>1.5`）。**amber**：当前阶段窗口未到、可延后（`B-GAIN` 在 maintain 但距称重<84 天、`B-GAIN` 在 peak/recover、`B-HOLD` 在 peak/recover、`B-PEAK` 不在 peak、`B-REFUEL` 不在 recover、`P-POW/P-SPD/P-END/P-SKL` 在 recover、`P-HYP` 在 peak/recover）。`goals=[]` → 不 emit |
+| logicSummary | 当生效目标（`ctx.goals` 优先，否则 `profile.goals`）中存在与当前阶段不合法（矩阵 N/A）的原子，或复合配方要求的时间窗与当前阶段不符，emit。典型：B-GAIN 在 cut/peak/recover；B-GAIN 在 maintain 但距称重<84 天；B-CUT 在 maintain/peak/recover；B-PEAK 不在 peak；B-REFUEL 不在 recover；B-HOLD 在 peak/recover；B-HOLD 在 cut 但 `gapPct>1.5`；P-POW/P-SPD/P-END/P-SKL 在 recover；P-HYP 在 peak/recover；P-MEND 在 peak/recover。 |
+| thresholds | **red**：目标要求的能量方向与当前阶段直接相反、且无法在当前窗口执行（`B-GAIN` 在 cut；`B-CUT` 在 maintain/peak/recover；`B-HOLD` 在 cut 但 `gapPct>1.5`）。**amber**：当前阶段窗口未到、可延后（`B-GAIN` 在 maintain 但距称重<84 天、`B-GAIN` 在 peak/recover、`B-HOLD` 在 peak/recover、`B-PEAK` 不在 peak、`B-REFUEL` 不在 recover、`P-POW/P-SPD/P-END/P-SKL` 在 recover、`P-HYP` 在 peak/recover、`P-MEND` 在 peak/recover）。`goals=[]` → 不 emit |
 | 拦截行为 | 不自动改阶段或目标；red 进入 `alerts` 并按现有 red 排序，提示营养师二选一：改目标或改阶段；amber 只提示，不阻断当天执行 |
 | applicablePhases | maintain / cut / peak / recover |
 | requiresHumanFollowUp | true |
@@ -418,8 +485,21 @@
 | `P-POW` / `P-SPD` / `P-SKL` 在 recover | amber | 恢复期不排训练课，可延后 |
 | `P-END` 在 recover | amber | 恢复期不排耐力/体能课，可延后 |
 | `P-HYP` 在 peak / recover | amber | 微调/恢复期不安排增肌，可延后 |
+| `P-MEND` 在 peak | amber | 微调期不做高容量肌耐力课（额外肌损伤/疲劳拖累神经与水盐微调），窗口未到或已过，可延后到赛后 maintain |
+| `P-MEND` 在 recover | amber | 恢复期不排训练课，可延后 |
 
 判定顺序：先看是否 `legality=illegal`；再看“是否要求当前窗口立即改变能量方向”——是则 red，否则 amber。red/amber 只影响告警级别与是否阻断当天执行，**都不自动改阶段、不自动删目标**。red 进入 `alerts` 并按现有 red 排序；amber 只提示，不阻断当天执行。
+
+**`P-MEND` 四阶段级别汇总（定稿）**：
+
+| 阶段 | legality | GOAL-01 级别 | 说明 |
+|---|---|---|---|
+| maintain | legal | 无（不 emit） | 正常执行，只做定性方向 |
+| cut | conditional | 无（条件满足即可执行） | 仅维持容量；条件由营养师判断，不自动转 amber |
+| peak | illegal | amber | 微调期不做高容量肌耐力课，可延后 |
+| recover | illegal | amber | 恢复期不排训练课，可延后 |
+
+**无 red 情形**：P-MEND 不要求任何阶段改变能量方向，因此四阶段都不产生 red；不得为了“看起来有分级”人为升级为 red。
 
 ### 6.2 GOAL-02 目标执行冲突
 
@@ -435,7 +515,7 @@
 | sources | ACSM 2016（能量与训练前后营养安排）；Meeusen 2013（负荷与恢复不足的累积风险） |
 | kbIds | `rec-load`, `rec-soreness`, `carb-training` |
 | reviewStatus | active |
-| notes | 不判体重速率、蛋白、睡眠、脱水；这些有 owner 规则。 |
+| notes | 不判体重速率、蛋白、睡眠、脱水；这些有 owner 规则。**P-MEND 不参与 GOAL-02 自动判定**：现有字段无法区分高次数/短间歇，`training.content` 只作辅助确认；MEND 与 HYP/END/POW/SPD 的冲突只用 `concessions` 的 `cap` / `sequence` 表达，不得由文本 emit GOAL-02。 |
 
 ### 6.3 不新增 GOAL-03 护栏否决
 
@@ -517,7 +597,7 @@
 |---|---|---|---|
 | `goals` | array | 是 | 每项 `{ id, name, dimension, role, source, countsTowardQuota }`；`role` = `lead / concede / monitor`；`source` 当前固定 `'nutritionist'`（不预留其他枚举）；最多 4 项（≤3 个计入名额 + ≤1 个 `G-IMM` 监测） |
 | `atoms` | string[] | 是 | 去重后的目标原子 ID：最多 3 个计入名额 + 至多 1 个 `G-IMM` 监测（总长度 ≤4） |
-| `composites` | string[] | 是 | 命中的 C01–C27 编号 |
+| `composites` | string[] | 是 | 命中的 C01–C29 编号 |
 | `phase` | string | 是 | 当前生效阶段（`profile.phase` 或 `ctx.phase`），不是目标自己推导的阶段 |
 | `legality` | string | 是 | `legal / partial / illegal`；`partial` 只在“阶段被改后”的复审场景出现（见下）；`illegal` 表示当前阶段有目标 N/A，`resolveGoalPlan` 直接拒绝、`goalPlan=null` |
 | `lead` | string|null | 是 | 主导目标原子 ID，必须是 `atoms` 中 `occupiesSlot=true` 的主目标；`G-IMM`（monitor）与 `G-MED`（不可选标记）不能做 lead；无主目标时为 `null` |
@@ -575,6 +655,8 @@
 | `sessionQuality` | `training.quality` | POW / SPD / SKL | `quality × 20`，取值 20–100；缺失或超出 1–5 → 跳过 |
 | `refeedCadence` | `ctx.refeed`（周报/复核派生） | B-CUT | `rate×100` 或 `okDays/totalDays×100` 或 `ok?100:0`，取值 0–100；缺失 → 跳过 |
 
+**P-MEND 是弱证据原子，不产生任何 `goalAdherence` 组件**：它既不进 `fuelTiming` / `sessionQuality` 的适用目标集合，也不新增组件；计划里只有 `P-MEND` 时按第 4 条弱证据整项处理（`score=null / unavailableReason='weak_evidence'`）。
+
 `ctx.refeed` 的完整输出为 `{ rate, okDays, totalDays, ok, plannedDays, actualDays, successRate, targetCarbsGPerKg, targetCarbsG }`；其中 `plannedDays / actualDays / successRate` 只作展示别名，`refeedCadence` 评分只消费 `rate / okDays / totalDays`（或 `ok`）；`targetCarbsGPerKg / targetCarbsG` 只用于展示目标碳水。
 
 **权重与总分（定稿）**：
@@ -613,8 +695,8 @@
 
 ### 7.4 `goalMatrixVersion`
 
-- 类型：string，当前 `v1.0`。
-- 变更范围：15 个原子、27 个配方、60 格矩阵、冲突边、优先级、证据状态任一变化都要升版。
+- 类型：string，当前 `v1.1`。
+- 变更范围：16 个原子、29 个配方、64 格矩阵、冲突边、优先级、证据状态任一变化都要升版。
 - 与 `RULES_VERSION` 分开：`RULES_VERSION` 管引擎/规则集，`goalMatrixVersion` 管目标数据。
 - `advice` 快照必须同时存两个版本号。
 
@@ -622,7 +704,7 @@
 
 ```json
 {
-  "goalMatrixVersion": "v1.0",
+  "goalMatrixVersion": "v1.1",
   "goalPlan": {
     "goals": [
       { "id": "B-CUT", "name": "减脂", "dimension": "body", "role": "lead", "source": "nutritionist", "countsTowardQuota": true },
@@ -711,6 +793,7 @@
 |---|---|---|
 | HOLD+SLE（控重+精力） | “精力”没有独立一级来源，按 `G-SLE` 的睡眠/恢复下游处理；若由低能量可用性导致，转 `G-EA` | 组合级弱；只监测，不改主食/热量，不给独立数值处方 |
 | P-SKL / SKL+SLE / CUT+SKL（技术/战术、技术+精力、减脂+技术） | 没有“营养直接提升技术质量”的一级来源 | 弱；`macros=null`，时机与克数由营养师确认；只给“不空腹、补水、别在技术日加深缺口” |
+| P-MEND / HYP+MEND / MEND+CUT（肌肉耐力、增肌+肌耐力、减脂+肌耐力） | 没有“营养直接提升肌耐力”的一级来源；现有 KB `TN-04` 只写“矩阵无独立原子，只给方向”，来源是一般性论述而非 RCT | 弱；四格 `macros=null`，只给“不空腹、训练前后吃到碳水、训练后常规补蛋白与碳水、不追力竭”；不承诺克数 |
 | END+IMM（大负荷+免疫） | 当前 KB 没有免疫专项锚点 | 弱；只监测 `health.illness`，不承诺“吃某物防感冒” |
 | 三目标组合 C20/C21/C22 | 单项目标有证据，组合级没有 | 标“组合证据偏弱”，只给策略与监测 |
 | GAIN+HOLD（青少年/级别迁移） | 增肌与控重在青少年身上高度个体化 | 健康护栏强、增肌弱；必须营养师/医生共同确认 |
@@ -743,7 +826,7 @@
 
 | 错误码 | 触发条件 | 提示 |
 |---|---|---|
-| `E_GOAL_UNKNOWN` | 原子 ID 不在 15 个定义内 | “未知目标 ID：{id}” |
+| `E_GOAL_UNKNOWN` | 原子 ID 不在 16 个定义内 | “未知目标 ID：{id}” |
 | `E_GOAL_DUPLICATE` | 同一原子重复 | “目标重复：{id}” |
 | `E_GOAL_QUOTA` | 计入名额的原子 >3，或 `G-IMM` >1 | “最多 3 个主目标 + 1 个 IMM 监测” |
 | `E_GOAL_PHASE_ILLEGAL` | 目标在 `profile.phase` 下为 N/A，或未满足矩阵附加条件（如 GAIN 距称重<84 天、HOLD 在 cut 但 gap>1.5） | “{goal} 在{阶段}不合法或未满足附加条件” |
@@ -768,6 +851,8 @@
 
 全部可选；`normalizeLog()` 缺失时返回 `null`；`schemaVersion` 仍为 2（加法字段，不升版）。
 
+**P-MEND 不新增任何 `logs` 字段**：识别只用已有的 `training.sessionType / durationMin / rpe / rounds / content`；`content` 是自由文本，仅辅助确认，不参与自动判定。若后续要结构化识别（组数、次数、组间休息），需另开 schema 变更，本轮不做。
+
 ### 9.3 两端界面
 
 - 拳王端：首页“今日目标”卡，主导 + 让步 + 2 个关键数字；目标为空时隐藏；仅有 `G-IMM` 监测时只显示监测条，不显示目标卡；填写页“目标补充（选填）”最多 2 项；趋势页加目标参考线；不新建 tab。弱证据目标即使被营养师人工调整，仍保留“证据偏弱”徽标；maintain/cut 期 GI 目标只在目标横幅提示。
@@ -776,7 +861,7 @@
 
 > 实现落点（G6）：营养师看板 `pages/coach/*` 用 `goals.goalChips` 渲染目标 chips（主导/让步/监测/证据等级，无目标整块不渲染）与独立 `goalAdherence`、冲突标记；跟进队列 `pages/queue/*` 的目标 chips 由 `coachApi` 按 `users.profile` 附到 group。复核页 `pages/review/*` 读 `advice` 快照的 `goal` 块（`matrixVersion / plan / adherence / blockers / requested / effectiveDate / source`）渲染矩阵卡，并提供“带入建议开头”（只前置，不覆盖已写正文）；同时提供当周 `refeedDays` 输入，提交走 `coachApi.setRefeedPlan`，不回写目标。云端不可用时页面明确提示，不留本地假数据。
 
-> 实现落点（G8）：营养师看板每位拳王的卡片内提供“设置目标 / 调整目标 ›”入口，进入 `pages/goals/*`。页面从 `getFeed` 读当前 `profile.phase/goals/goalEffectiveDate/bodyFatPct/weighInDate/weightKg/targetWeightKg`，用 `utils/goalDraft.js`（纯函数，依赖 `goals.atomLegality`）渲染 15 个原子的实时状态：阶段 N/A 格与 `G-MED` 置灰并给出原因，条件类目标显示“需满足：…”（如 `B-HOLD` 的 `gapPct≤1.5%`、`B-GAIN` 的距称重 >84 天）；名额实时显示“主目标 x/3 · 监测 y/1”，主目标满 3 个后其余主目标置灰、`G-IMM` 仍可单独选。已选目标支持增删与上移/下移，回填保留原顺序并剔除不可选项。提交只走 `coachApi.setGoals` → 云函数 `setGoals`；失败按 `ERROR_LABELS` 显示错误码中文含义，离线明确提示且不落本地。
+> 实现落点（G8）：营养师看板每位拳王的卡片内提供“设置目标 / 调整目标 ›”入口，进入 `pages/goals/*`。页面从 `getFeed` 读当前 `profile.phase/goals/goalEffectiveDate/bodyFatPct/weighInDate/weightKg/targetWeightKg`，用 `utils/goalDraft.js`（纯函数，依赖 `goals.atomLegality`）渲染 16 个原子的实时状态：阶段 N/A 格与 `G-MED` 置灰并给出原因，条件类目标显示“需满足：…”（如 `B-HOLD` 的 `gapPct≤1.5%`、`B-GAIN` 的距称重 >84 天）；名额实时显示“主目标 x/3 · 监测 y/1”，主目标满 3 个后其余主目标置灰、`G-IMM` 仍可单独选。已选目标支持增删与上移/下移，回填保留原顺序并剔除不可选项。提交只走 `coachApi.setGoals` → 云函数 `setGoals`；失败按 `ERROR_LABELS` 显示错误码中文含义，离线明确提示且不落本地。
 
 ### 9.4 避免一次问太多
 
@@ -822,11 +907,11 @@
 
 ## 11. 验收清单
 
-1. 15 个目标原子 ID、名称、维度、合法阶段与本文一致；60 格矩阵齐全，N/A 格有原因。
-   - 实际状态：**通过**（60/60 格合法性与 N/A 原因一致）
+1. 16 个目标原子 ID、名称、维度、合法阶段与本文一致；64 格矩阵齐全，N/A 格有原因。
+   - 实际状态：**待实施**（本规格新增 `P-MEND`，代码仍为 15 原子 / 60 格；G1 落地后复跑）
    - 验证命令：`node scripts/preflight.js`、`node scripts/check-goal-matrix-doc.js`
-2. 27 个配方 C01–C27 齐全，主导/让步模式/证据/触发阶段可查。
-   - 实际状态：**通过**
+2. 29 个配方 C01–C29 齐全，主导/让步模式/证据/触发阶段可查。
+   - 实际状态：**待实施**（代码仍为 27 条；G1 落地后复跑）
    - 验证命令：`node scripts/preflight.js`
 3. 18 条现有规则阈值、适用阶段、`requiresHumanFollowUp` 未变；只新增 `GOAL-01/02`。
    - 实际状态：**通过**（test-rules 124、test-phases 47、preflight 0 阻塞；EA/FFM 与 `ctx.goals` 优先级、`ctx.refeed` 均已覆盖）
@@ -847,7 +932,7 @@
    - 实际状态：**通过（代码/测试）**；`setGoals` 保留可选 `bodyFatPct`，另提供 `coachApi.setBodyComp` 单独更新体脂；`coachApi.setRefeedPlan` 是 `refeedDays` 唯一写入方；云端部署后需再核验 `saveProfile` 实际拦截
    - 验证命令：`node scripts/test-goals.js`、`node scripts/preflight.js`
 9. 拳王端目标卡在无目标时隐藏；每日目标字段≤2 且可选；营养师端可调整目标并看到冲突/证据徽标；名额 ≤3 + `G-IMM` 不占名额；maintain/cut 期 GI 目标只在横幅、不进 `alerts`；`setGoals` 对阶段不合法目标返回错误码并整次拒绝。
-   - 实际状态：**通过（代码/测试）**。隐藏/名额/GI 横幅/`setGoals` 拒绝均有代码与断言；营养师端“调整目标”页（`pages/goals/*`）已实现：15 原子可选、阶段 N/A 与 `G-MED` 当场置灰并给出原因、条件类目标显示“需满足”、名额实时显示、增删与调序、错误码中文映射；真机与云端写入未验
+   - 实际状态：**部分通过 + 待实施**。隐藏/名额/GI 横幅/`setGoals` 拒绝均有代码与断言；营养师端“调整目标”页（`pages/goals/*`）当前为 15 原子可选，`P-MEND` 待 G1 落地后补入（16 原子、`peak`/`recover` 置灰并显示原因、弱证据徽标常驻）
    - 验证命令：`node scripts/test-goals.js`（含第 14 节 28 项 UI 纯函数断言）、`node scripts/lint-pages.js`、`node scripts/preflight.js`；真机手测待部署
 10. `advice` 快照存 `rulesVersion`（v4.0）+ `goalMatrixVersion` + `goalPlan/goalAdherence/goalBlockers` + `goalEffectiveDate/goalSource`；旧快照显示“未设目标”；云函数/真机状态标“未验证”。
     - 实际状态：**依赖云端/真机**。快照写入代码已落地，复核页已对无目标快照显示“未设目标”；需部署 `advice` 后发布一条建议并在控制台核对快照字段
@@ -857,7 +942,7 @@
 
 ## 12. 已定稿结论（G1 直接执行）
 
-以下 10 条已定稿，G1–G7 按此实现。
+以下 11 条已定稿，G1–G7 按此实现。
 
 | 编号 | 结论 | 落点 |
 |---|---|---|
@@ -871,8 +956,42 @@
 | 8 | GOAL-01 分级：要求当前窗口立即改变能量方向 → red；窗口未到、可延后 → amber；全部 N/A 情形按 §6.1 判定表穷举 | §6.1 |
 | 9 | maintain/cut 期 GI 目标只进目标横幅（`phase_suppressed` + `monitor`），不进 `alerts` | §2.7、§6.3、§9.3、§11 |
 | 10 | `setGoals` 对当前阶段不合法目标直接拒绝写入，返回错误码与提示，整次请求不落库；不做“写入后警告” | §6.1、§9.1、`schema.md` |
+| 11 | `P-MEND` 为结构补全：证据 weak、四格 `macros=null`、不新增 `logs` 字段、不产出 `goalAdherence` 组件、不参与 GOAL-02 自动判定；`peak` / `recover` 判 N/A + amber | §1.1、§1.4、§2.2–§2.5、§6.1、§7.2、§8.3 |
 
 **定稿后的两条联动规则：**
 
 1. 由于 `setGoals` 已拒绝写入阶段不合法目标，`GOAL-01` 的实际触发场景是“目标设定后阶段被 `setPhase` 改掉”；`setPhase` 不自动清理目标，GOAL-01 提示营养师二选一。
 2. 名额统计口径统一为：`countsTowardQuota=true` 的原子 ≤3，`countsTowardQuota=false` 仅允许 `G-IMM` 且 ≤1；`profile.goals` 总长度 ≤4，顺序即优先级（`G-IMM` 固定排最后）。
+
+---
+
+## 13. P-MEND 扩容影响面清单（实施端照单修改）
+
+> 本轮只改文档；以下写死项是 G1 落地时必须同步的代码/数据位置。
+
+**先纠两处口径**：
+
+- 矩阵格数不是 60→75。4 阶段 × 16 原子 = **64 格**（15×4=60 → 16×4=64）；75 与 4×N 结构不符。
+- 共享库副本是 **4 份**，不是 5 份：`saveLog / getFeed / coachApi / advice` 各有一份 `lib/`；`saveProfile` 没有 `lib/`，也不消费 `goalMatrix`。若实施端认为还有第 5 个，先列文件名再同步，不要凭空加。`sync-shared.sh` 的范围是 `{rules,goals,goalMatrix}.js` 三个共享文件。
+
+| # | 位置 | 现值 | 目标值 / 动作 |
+|---|---|---|---|
+| 1 | `miniprogram/data/goalMatrix.js` `ATOMS` | 15 个 | 16 个；追加 `P-MEND`，字段照 §1.1（`dimension='performance'`、`occupiesSlot=true`、`selectable=true`、`evidenceDefault='weak'`、`legalPhases=['maintain','cut']`、`conditionalPhases={cut:'仅维持现有容量'}`） |
+| 2 | 同文件 `MATRIX` | 60 格 | 64 格；新增 4 格，策略/宏量/时机/监测照 §2.2–§2.5；`peak` / `recover` 为 `legality='illegal'` + `goal01Level='amber'` + `illegalReason` |
+| 3 | 同文件 `COMPOSITES` | 27 条 | 29 条；追加 C28、C29（§4） |
+| 4 | 同文件 `CONFLICT_EDGES` | 现有边 | 追加 5 条：HYP↔MEND、END↔MEND、POW/SPD↔MEND、CUT↔MEND、PEAK↔MEND（§5.1）；`mode` 只用六种，`PEAK↔MEND` 为 `forbid` |
+| 5 | 同文件 `PRIORITY_STACK` L4 | `members: ['P-HYP','P-END']` | `members: ['P-HYP','P-END','P-MEND']`（MEND 排末位，不抢 lead；`order` 仍留空） |
+| 6 | 同文件 `GOAL_MATRIX_VERSION` | `v1.0` | `v1.1` |
+| 7 | `scripts/preflight.js` §12（L292/358/385） | `15` / `60` / `27` | `16` / `64` / `29` |
+| 8 | `scripts/check-goal-matrix-doc.js` | L36 断言 60 格；`weakAtoms=['P-SKL','G-IMM']`；§6.1 原子正则不含 `MEND` | 64 格；`weakAtoms` 追加 `P-MEND`；正则加 `MEND`（否则 §6.1 的 P-MEND 行解析不到，非法格校验会误报） |
+| 9 | `scripts/test-goals.js` §1（L23/42/55） | `ATOMS.length===15`、`cellCount===60`、`COMPOSITES.length===27` | `16` / `64` / `29` |
+| 10 | `miniprogram/utils/goals.js` | 无 P-MEND 特判 | 不需要新增函数：`compareRank` 由 `PRIORITY_STACK` 自动生效；`atomLegality` / `buildGoalPlan` / `goalAdherence` 全读矩阵格。只需确认 `weak_evidence` 分支覆盖“仅 P-MEND”计划 |
+| 11 | `miniprogram/utils/rules.js` `GOAL_FIELD_MAP` / `fieldsFor()` / `goal01LevelFor()` | 无 P-MEND | **不追加字段**；`GOAL-01` 分级表不在 `rules.js`（`goal01LevelFor` 直接读 `cell.goal01Level`），所以分级表只改 `goalMatrix.js` 的格数据即可 |
+| 12 | `cloudfunctions/{saveLog,getFeed,coachApi,advice}/lib/{rules,goals,goalMatrix}.js` | 4 份副本 | 全部重新同步；`sync-shared.sh` 后跑 `preflight` 第 12 节确认无 diff |
+| 13 | `miniprogram/data/knowledge.js` `TN-04` | 标题/正文写“矩阵无独立原子，只给方向” | 改为“肌肉耐力课：矩阵已有独立原子 `P-MEND`，证据仍弱”；引用 `MX-*-P-MEND`，`sources` 不变；`knowledge.md` 的 33 条计数不变 |
+| 14 | `docs/schema.md` | `goals` 行写“15 个原子 ID” | 改为 16 个；`logs` 不新增字段，`profile` 不新增字段 |
+| 15 | `docs/goal-matrix.md` §0 / §1 / §2 / §4 / §5 / §6 / §7 / §8 / §9 / §11 / §12 | 15 / 27 / 60 / `v1.0` | 16 / 29 / 64 / `v1.1`，本轮已改完 |
+| 16 | UI 纯函数测试（`scripts/test-goals.js` 第 14 节 UI 断言、`pages/goals/*`） | 15 原子列表 | 16 原子；`P-MEND` 在 `peak` / `recover` 置灰并显示原因；弱证据徽标常驻 |
+| 17 | `docs/NEXT-STEPS.md` L11 / L133 / L153 / L161 | “15 原子 / 60 格 / 27 配方”、`60 格`、“15 原子可选” | 代码落地后同步改 16 / 64 / 29；当前描述的是实施前状态，本轮不改 |
+
+

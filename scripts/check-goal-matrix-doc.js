@@ -16,7 +16,7 @@ function ok(msg) { console.log('  ✓ ' + msg); }
 function info(msg) { infos.push(msg); console.log('  · ' + msg); }
 
 // ---------------------------------------------------------------------------
-// 1. 解析 §2.2–2.5 的 60 格表：合法性标记
+// 1. 解析 §2.2–2.5 的 64 格表：合法性标记
 // ---------------------------------------------------------------------------
 const lines = fs.readFileSync(DOC, 'utf8').split(/\r?\n/);
 const docCells = {};
@@ -32,9 +32,9 @@ lines.forEach(function (line) {
   docCells[phase + '/' + atomId] = cols[2];
 });
 
-console.log('\n1) 60 格合法性');
-if (Object.keys(docCells).length !== 60) bad('文档解析到 ' + Object.keys(docCells).length + ' 格，应为 60');
-else ok('文档解析到 60 格');
+console.log('\n1) 64 格合法性');
+if (Object.keys(docCells).length !== 64) bad('文档解析到 ' + Object.keys(docCells).length + ' 格，应为 64');
+else ok('文档解析到 64 格');
 let legalCount = 0;
 PHASES.forEach(function (p) {
   GM.ATOMS.forEach(function (a) {
@@ -58,7 +58,7 @@ PHASES.forEach(function (p) {
     }
   });
 });
-ok('legal 逐格一致 ' + legalCount + '/60');
+ok('legal 逐格一致 ' + legalCount + '/64');
 
 // ---------------------------------------------------------------------------
 // 2. 解析 §6.1 分级判定表：goal01Level
@@ -73,7 +73,7 @@ lines.forEach(function (line) {
   const first = cols[1] || '';
   const level = cols[2] || '';
   if (!/^(red|amber)$/.test(level)) return;
-  const atomIds = (first.match(/\b(?:P|B|G)-(?:POW|SPD|HYP|END|SKL|CUT|HOLD|GAIN|PEAK|REFUEL|SLE|GI|EA|IMM|MED)\b/g) || []);
+  const atomIds = (first.match(/\b(?:P|B|G)-(?:POW|SPD|HYP|END|MEND|SKL|CUT|HOLD|GAIN|PEAK|REFUEL|SLE|GI|EA|IMM|MED)\b/g) || []);
   if (!atomIds.length) return;
   let phases = PHASES.filter(function (p) { return first.indexOf(p) >= 0; });
   const notPhase = first.match(/不在\s+(maintain|cut|peak|recover)/);
@@ -86,7 +86,7 @@ lines.forEach(function (line) {
   });
 });
 
-console.log('\n2) 60 格 goal01Level');
+console.log('\n2) 64 格 goal01Level');
 let levelChecked = 0;
 function ruleOf(atomId, phase, conditional) {
   return levelRules.filter(function (r) {
@@ -115,13 +115,13 @@ PHASES.forEach(function (p) {
     else levelChecked++;
   });
 });
-ok('goal01Level 逐格一致 ' + levelChecked + '/60');
+ok('goal01Level 逐格一致 ' + levelChecked + '/64');
 
 // ---------------------------------------------------------------------------
 // 3. 证据：文档明确标弱的原子（§8.3、§2 表内 weak 标记）
 // ---------------------------------------------------------------------------
-console.log('\n3) 60 格 evidenceStatus');
-const weakAtoms = ['P-SKL', 'G-IMM']; // §8.3：技术/战术、大负荷+免疫（仅监测）
+console.log('\n3) 64 格 evidenceStatus');
+const weakAtoms = ['P-SKL', 'G-IMM', 'P-MEND']; // §8.3：技术/战术、大负荷+免疫、肌肉耐力（仅监测）
 let weakChecked = 0;
 PHASES.forEach(function (p) {
   GM.ATOMS.forEach(function (a) {
@@ -132,7 +132,7 @@ PHASES.forEach(function (p) {
     else weakChecked++;
   });
 });
-ok('weak 证据逐格一致 ' + weakChecked + '/60');
+ok('weak 证据逐格一致 ' + weakChecked + '/64');
 let drift = [];
 PHASES.forEach(function (p) {
   GM.ATOMS.forEach(function (a) {

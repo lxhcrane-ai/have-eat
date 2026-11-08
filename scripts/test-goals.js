@@ -16,11 +16,11 @@ function goalOf(plan, id) { return plan.goals.filter(function (g) { return g.id 
 const SIX_MODES = ['forbid', 'cap', 'sequence', 'block', 'substitute', 'monitor'];
 
 // ---------------------------------------------------------------------------
-// 1) 数据层：15 原子 × 4 阶段 = 60 格，27 配方，EN 不进入数据
+// 1) 数据层：16 原子 × 4 阶段 = 64 格，29 配方，EN 不进入数据
 // ---------------------------------------------------------------------------
-console.log('\n1) 数据层：60 格与 27 配方');
+console.log('\n1) 数据层：64 格与 29 配方');
 ok(GM.PHASES.length === 4, '阶段数 4', GM.PHASES.length);
-ok(GM.ATOMS.length === 15, '目标原子 15 个', GM.ATOMS.length);
+ok(GM.ATOMS.length === 16, '目标原子 16 个', GM.ATOMS.length);
 ok(GM.ATOMS.every(function (a) { return a.id !== 'EN'; }), '原子清单里没有 EN');
 
 let cellCount = 0, illegalCount = 0, badCell = [];
@@ -39,8 +39,8 @@ GM.PHASES.forEach(function (phase) {
     }
   });
 });
-ok(cellCount === 60, '矩阵 60 格齐全', cellCount);
-ok(illegalCount === 20, 'N/A 格 20 个', illegalCount);
+ok(cellCount === 64, '矩阵 64 格齐全', cellCount);
+ok(illegalCount === 22, 'N/A 格 22 个', illegalCount);
 ok(badCell.length === 0, '每格 cellId / legal / evidence / 原因齐全', badCell);
 
 let weakBad = [];
@@ -52,7 +52,7 @@ GM.PHASES.forEach(function (phase) {
 });
 ok(weakBad.length === 0, '合法弱证据格不携带数值 targets', weakBad);
 
-ok(GM.COMPOSITES.length === 27, '配方 27 个', GM.COMPOSITES.length);
+ok(GM.COMPOSITES.length === 29, '配方 29 个', GM.COMPOSITES.length);
 let badRecipe = [];
 const atomIds = GM.ATOMS.map(function (a) { return a.id; });
 GM.COMPOSITES.forEach(function (c, i) {
@@ -562,6 +562,68 @@ ok(!rr(8).ok && rr(8).code === 'E_GOAL_REFEED', 'refeedDays 超上限报 E_GOAL_
 ok(GM.PRIORITY_STACK.every(function (l) {
   return !Object.prototype.hasOwnProperty.call(l, 'action') && typeof l.note === 'string' && l.note.length > 0;
 }), 'PRIORITY_STACK L0–L6 全部无 action、保留 note', GM.PRIORITY_STACK.map(function (l) { return l.level + (l.action ? '(action)' : ''); }));
+
+// ---------------------------------------------------------------------------
+// 16) P-MEND 肌肉耐力：四格合法性、弱证据、优先级与 C28/C29
+// ---------------------------------------------------------------------------
+console.log('\n16) P-MEND 肌肉耐力');
+
+const mendAtom = GM.ATOMS.filter(function (a) { return a.id === 'P-MEND'; })[0];
+ok(!!mendAtom && mendAtom.dimension === 'performance' && mendAtom.occupiesSlot === true &&
+  mendAtom.selectable === true && mendAtom.evidenceDefault === 'weak',
+  'P-MEND 原子：performance / 占名额 / 可选 / 弱证据', mendAtom);
+
+const mendCells = {
+  maintain: GM.MATRIX.maintain['P-MEND'],
+  cut: GM.MATRIX.cut['P-MEND'],
+  peak: GM.MATRIX.peak['P-MEND'],
+  recover: GM.MATRIX.recover['P-MEND']
+};
+ok(mendCells.maintain.legal && mendCells.maintain.legality === 'legal', 'maintain 合法');
+ok(mendCells.cut.legal && mendCells.cut.legality === 'conditional', 'cut 条件合法', mendCells.cut.legality);
+ok(!mendCells.peak.legal && mendCells.peak.goal01Level === 'amber', 'peak 非法且 amber');
+ok(!mendCells.recover.legal && mendCells.recover.goal01Level === 'amber', 'recover 非法且 amber');
+ok(['maintain', 'cut', 'peak', 'recover'].every(function (p) { return mendCells[p].macros === null; }), '四格 macros=null');
+ok(['maintain', 'cut', 'peak', 'recover'].every(function (p) { return mendCells[p].evidenceStatus === 'weak'; }), '四格证据 weak');
+
+const mendAlone = goals.resolveGoalPlan('maintain', ['P-MEND'], {});
+ok(mendAlone.ok && mendAlone.goalPlan.lead === 'P-MEND' && mendAlone.goalPlan.targets === null,
+  'maintain 单目标：lead=P-MEND、targets=null');
+const mendCut = goals.resolveGoalPlan('cut', ['P-MEND'], {});
+ok(mendCut.ok, 'cut 单目标：条件默认满足', mendCut.error);
+const mendPeak = goals.resolveGoalPlan('peak', ['P-MEND'], {});
+ok(!mendPeak.ok && mendPeak.error.code === goals.ERROR_CODES.PHASE_ILLEGAL && mendPeak.error.level === 'amber', 'peak 拒绝且 amber', mendPeak.error);
+const mendRecover = goals.resolveGoalPlan('recover', ['P-MEND'], {});
+ok(!mendRecover.ok && mendRecover.error.code === goals.ERROR_CODES.PHASE_ILLEGAL && mendRecover.error.level === 'amber', 'recover 拒绝且 amber', mendRecover.error);
+
+const c28 = goals.resolveGoalPlan('maintain', ['P-MEND', 'P-HYP'], {}).goalPlan;
+ok(c28.lead === 'P-HYP' && c28.composites[0] === 'C28', 'HYP+MEND 命中 C28 且 HYP 主导', [c28.lead, c28.composites]);
+const c28mend = c28.concessions.filter(function (c) { return c.goalId === 'P-MEND'; })[0];
+ok(c28mend && c28mend.mode === 'cap', 'C28 中 MEND 让步 cap', c28mend);
+const c29 = goals.resolveGoalPlan('cut', ['P-MEND', 'B-CUT'], {}).goalPlan;
+ok(c29.lead === 'B-CUT' && c29.composites[0] === 'C29', 'MEND+CUT 命中 C29 且 B-CUT 主导', [c29.lead, c29.composites]);
+const c29mend = c29.concessions.filter(function (c) { return c.goalId === 'P-MEND'; })[0];
+ok(c29mend && c29mend.mode === 'cap', 'C29 中 MEND 让步 cap', c29mend);
+
+const endMend = goals.resolveGoalPlan('maintain', ['P-END', 'P-MEND'], {}).goalPlan;
+ok(endMend.lead === 'P-END' && endMend.composites.length === 0, '无配方时 END > MEND', endMend.lead);
+const endMendMend = endMend.concessions.filter(function (c) { return c.goalId === 'P-MEND'; })[0];
+ok(endMendMend && endMendMend.mode === 'sequence', 'END+MEND 冲突边 sequence', endMendMend);
+const powMend = goals.resolveGoalPlan('maintain', ['P-POW', 'P-MEND'], {}).goalPlan;
+ok(powMend.lead === 'P-POW' && powMend.concessions.filter(function (c) { return c.goalId === 'P-MEND'; })[0].mode === 'sequence', 'POW > MEND 且 sequence');
+const spdMend = goals.resolveGoalPlan('maintain', ['P-SPD', 'P-MEND'], {}).goalPlan;
+ok(spdMend.lead === 'P-SPD' && spdMend.concessions.filter(function (c) { return c.goalId === 'P-MEND'; })[0].mode === 'sequence', 'SPD > MEND 且 sequence');
+
+const tripleMend = goals.resolveGoalPlan('maintain', ['P-MEND', 'P-END', 'P-HYP'], {}).goalPlan;
+ok(tripleMend.composites.length === 0 && tripleMend.lead === 'P-HYP', '三目标无配方：composites=[] 且 lead=P-HYP', [tripleMend.lead, tripleMend.composites]);
+
+const l4 = GM.PRIORITY_STACK.filter(function (l) { return l.level === 'L4'; })[0];
+ok(l4 && l4.order.join('>') === 'P-HYP>P-END>P-MEND', 'L4 排序 P-HYP > P-END > P-MEND', l4 && l4.order);
+
+const mendEdges = GM.CONFLICT_EDGES.filter(function (e) { return e.a === 'P-MEND' || e.b === 'P-MEND'; });
+ok(mendEdges.length >= 6 && ['P-HYP', 'P-END', 'P-POW', 'P-SPD', 'B-CUT', 'B-PEAK'].every(function (id) {
+  return mendEdges.some(function (e) { return e.a === id || e.b === id; });
+}), 'P-MEND 冲突边覆盖 HYP/END/POW/SPD/CUT/PEAK', mendEdges.map(function (e) { return e.a + '↔' + e.b + ':' + e.mode; }));
 
 console.log('\n---------------------------------------');
 console.log(fail === 0 ? '全部通过：' + pass + ' 项' : '失败 ' + fail + ' / 通过 ' + pass);

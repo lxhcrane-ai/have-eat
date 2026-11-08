@@ -2,7 +2,7 @@
 // 唯一口径：docs/goal-matrix.md（G0 契约冻结）、docs/schema.md
 // 本文件只放数据，不放判定逻辑；合法性裁决、冲突消解、目标计划构建由 utils/goals.js 等纯函数层完成。
 
-const GOAL_MATRIX_VERSION = 'v1.0';
+const GOAL_MATRIX_VERSION = 'v1.1';
 const PHASES = ['maintain', 'cut', 'peak', 'recover'];
 
 // ---------- 宏量区间构造（仅数据整形） ----------
@@ -46,7 +46,7 @@ function cell(phase, atomId, data) {
   return base;
 }
 
-// ---------- 1. 目标原子（15 个） ----------
+// ---------- 1. 目标原子（16 个） ----------
 const ATOMS = [
   {
     id: 'P-POW',
@@ -115,6 +115,24 @@ const ATOMS = [
     selectable: true,
     occupiesSlot: true,
     evidenceDefault: 'strong'
+  },
+  {
+    id: 'P-MEND',
+    name: '肌肉耐力（力量耐力）',
+    dimension: 'performance',
+    dimensionLabel: '表现',
+    confirmSignals: [
+      'sessionType=strength 且 durationMin≥45、rpe 6–8',
+      'training.content 含“循环 / 间歇 / 高次数 / 短间歇 / 沙袋连续输出 / EMOM”',
+      'nextPlan.type=conditioning 且为力量循环'
+    ],
+    counterSignals: ['酸痛≥7', '睡眠<6.5h', '脱水≥3%', '周降>1%', '晨脉+5'],
+    legalPhases: ['maintain', 'cut'],
+    conditionalPhases: { cut: '仅维持现有容量，不新增循环/间歇课；缺口≤400' },
+    guardrail: false,
+    selectable: true,
+    occupiesSlot: true,
+    evidenceDefault: 'weak'
   },
   {
     id: 'P-SKL',
@@ -316,6 +334,16 @@ const MATRIX = {
       evidenceStatus: 'strong',
       anchors: ['SLE-01', 'REC-03', 'REC-02']
     }),
+    'P-MEND': cell('maintain', 'P-MEND', {
+      strategy: '维持容量；不追高次数到力竭；能量按维持期方向',
+      macros: null,
+      timing: ['训练前 2–3h 少量易消化碳水（具体量由营养师确认）', '训练后按常规进食'],
+      monitorRules: ['SLE-01', 'REC-02'],
+      monitorKbIds: ['TN-04'],
+      evidenceStatus: 'weak',
+      anchors: ['SLE-01', 'REC-02', 'TN-04'],
+      reviewStatus: 'needs_review'
+    }),
     'P-SKL': cell('maintain', 'P-SKL', {
       strategy: '不空腹；技术课为主',
       macros: null,
@@ -468,6 +496,18 @@ const MATRIX = {
       evidenceStatus: 'strong',
       anchors: ['PHASE-01', 'ENE-01', 'SLE-01', 'REC-03']
     }),
+    'P-MEND': cell('cut', 'P-MEND', {
+      legality: 'conditional',
+      condition: '仅维持现有容量，不新增循环/间歇课；缺口沿用 B-CUT（≤400）',
+      strategy: '仅维持现有容量，不新增循环/间歇课；缺口沿用 B-CUT 口径（≤400）',
+      macros: null,
+      timing: ['训练前 2–3h 少量易消化碳水（具体量由营养师确认）', '训练后常规补蛋白与碳水'],
+      monitorRules: ['PHASE-01', 'SLE-01', 'REC-02'],
+      monitorKbIds: ['TN-04'],
+      evidenceStatus: 'weak',
+      anchors: ['PHASE-01', 'SLE-01', 'REC-02', 'TN-04'],
+      reviewStatus: 'needs_review'
+    }),
     'P-SKL': cell('cut', 'P-SKL', {
       strategy: '技术日不加深缺口',
       macros: null,
@@ -618,6 +658,19 @@ const MATRIX = {
       evidenceStatus: 'moderate',
       anchors: ['HYD-05', 'GI-01', 'SLE-01']
     }),
+    'P-MEND': cell('peak', 'P-MEND', {
+      legal: false,
+      legality: 'illegal',
+      illegalReason: '微调期不做高容量肌耐力课：额外肌损伤与疲劳会拖累神经表现与水盐微调；窗口未到或已过，可延后',
+      goalRule: 'GOAL-01',
+      goal01Level: 'amber',
+      strategy: '阶段不符：微调期不做高容量肌耐力课；窗口未到或已过，可延后到赛后 maintain',
+      monitorRules: ['GOAL-01'],
+      monitorKbIds: ['TN-04'],
+      evidenceStatus: 'weak',
+      anchors: ['TN-04'],
+      reviewStatus: 'active'
+    }),
     'P-SKL': cell('peak', 'P-SKL', {
       strategy: '低纤维低体积；技术课为主',
       macros: null,
@@ -764,6 +817,19 @@ const MATRIX = {
       monitorRules: ['GOAL-01'],
       evidenceStatus: 'strong',
       anchors: ['GOAL-01']
+    }),
+    'P-MEND': cell('recover', 'P-MEND', {
+      legal: false,
+      legality: 'illegal',
+      illegalReason: '阶段不符：恢复期不排训练课，先补液补糖',
+      goalRule: 'GOAL-01',
+      goal01Level: 'amber',
+      strategy: '阶段不符：恢复期不排训练课，可延后',
+      monitorRules: ['GOAL-01'],
+      monitorKbIds: ['TN-04'],
+      evidenceStatus: 'weak',
+      anchors: ['TN-04'],
+      reviewStatus: 'active'
     }),
     'P-SKL': cell('recover', 'P-SKL', {
       legal: false,
@@ -1094,6 +1160,22 @@ const COMPOSITES = [
     keyStrategy: '仅非赛季；碳水优先；盈余≤400',
     evidence: 'moderate', evidenceNote: '中',
     phases: ['maintain'], weak: false, aliasNote: null
+  },
+  {
+    id: 'C28', name: '增肌+肌耐力', atoms: ['P-HYP', 'P-MEND'],
+    lead: 'P-HYP', leadByPhase: null, leadNote: null,
+    mode: 'cap', modes: ['cap'],
+    keyStrategy: '非赛季小幅盈余；P-MEND 只维持容量，不加循环训练量；不承诺数值',
+    evidence: 'weak', evidenceNote: '弱（组合间接）',
+    phases: ['maintain'], weak: true, aliasNote: null
+  },
+  {
+    id: 'C29', name: '减脂+肌耐力', atoms: ['P-MEND', 'B-CUT'],
+    lead: 'B-CUT', leadByPhase: null, leadNote: null,
+    mode: 'cap', modes: ['cap'],
+    keyStrategy: '缺口≤400；P-MEND 只维持，不新增容量；训练前后碳水优先',
+    evidence: 'weak', evidenceNote: '弱',
+    phases: ['cut'], weak: true, aliasNote: null
   }
 ];
 
@@ -1119,6 +1201,12 @@ const CONFLICT_EDGES = [
   { a: 'G-EA', b: 'B-CUT', mode: 'cap', modeAlt: null, note: 'EA 红灯由 goalBlockers 叠加 veto，否决加深缺口' },
   { a: 'G-IMM', b: 'P-END', mode: 'monitor', modeAlt: null, note: '感染期只监测，不加大负荷' },
   { a: 'G-IMM', b: 'B-CUT', mode: 'monitor', modeAlt: null, note: '感染期只监测，不加深缺口' },
+  { a: 'P-HYP', b: 'P-MEND', mode: 'cap', modeAlt: null, note: 'HYP 主导，MEND 只维持，不加循环训练量' },
+  { a: 'P-END', b: 'P-MEND', mode: 'sequence', modeAlt: 'cap', note: 'END 优先；同日不叠，两课间隔≥6 h' },
+  { a: 'P-POW', b: 'P-MEND', mode: 'sequence', modeAlt: null, note: '大强度课排前，MEND 不排在同日速度课前' },
+  { a: 'P-SPD', b: 'P-MEND', mode: 'sequence', modeAlt: null, note: '大强度课排前，MEND 不排在同日速度课前' },
+  { a: 'B-CUT', b: 'P-MEND', mode: 'cap', modeAlt: null, note: '缺口≤400，不新增容量' },
+  { a: 'B-PEAK', b: 'P-MEND', mode: 'forbid', modeAlt: null, note: '微调期不做高容量肌耐力' },
   { a: 'G-MED', b: '*', mode: 'forbid', modeAlt: null, producesConcession: false, note: '医疗安全护栏动作 veto，不产生 concessions' }
 ];
 
@@ -1128,7 +1216,7 @@ const PRIORITY_STACK = [
   { level: 'L1', key: 'PHASE_WINDOW', label: '比赛时间窗与资格', members: ['B-PEAK', 'B-REFUEL', 'B-HOLD'], order: [], note: '阶段合法性优先' },
   { level: 'L2', key: 'GUARDRAIL', label: '健康护栏', members: ['G-EA', 'G-GI', 'G-SLE'], order: ['G-EA', 'G-GI', 'G-SLE'], note: '红灯时否决“加练/加深缺口换比赛”的手段，不否决比赛本身' },
   { level: 'L3', key: 'NEURO', label: '神经表现', members: ['P-SPD', 'P-POW'], order: ['P-SPD', 'P-POW'], note: '赛前 2 周内优先保神经新鲜' },
-  { level: 'L4', key: 'STRUCTURE', label: '结构/体能', members: ['P-HYP', 'P-END'], order: [], note: '非赛季 HYP 优先，赛前 END 维持优先' },
+  { level: 'L4', key: 'STRUCTURE', label: '结构/体能', members: ['P-HYP', 'P-END', 'P-MEND'], order: ['P-HYP', 'P-END', 'P-MEND'], note: '非赛季 HYP 优先，赛前 END 维持优先；MEND 排末位，只作维持性目标' },
   { level: 'L5', key: 'BODY', label: '体型', members: ['B-CUT', 'B-GAIN'], order: ['B-CUT', 'B-GAIN'], note: '赛前 12 周内 CUT；GAIN 只允许非赛季' },
   { level: 'L6', key: 'AUX', label: '辅助', members: ['P-SKL', 'G-IMM'], order: [], note: '只做监测，不让步主目标；G-IMM 不占 3 个名额' }
 ];

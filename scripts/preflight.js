@@ -289,7 +289,7 @@ console.log('\n12) 复合目标矩阵');
   // 原子
   const atoms = gm.ATOMS || [];
   const atomIds = atoms.map(function (a) { return a.id; });
-  if (atoms.length !== 15) err('目标原子应为 15 个，实际 ' + atoms.length);
+  if (atoms.length !== 16) err('目标原子应为 16 个，实际 ' + atoms.length);
   if (new Set(atomIds).size !== atomIds.length) err('目标原子 ID 有重复');
   if (atomIds.indexOf('EN') >= 0) err('atoms 不得出现 EN（EN 只允许在入口归一化映射里）');
   atoms.forEach(function (a) {
@@ -307,7 +307,7 @@ console.log('\n12) 复合目标矩阵');
     if (a.id === 'G-MED' && a.selectable !== false) err('G-MED 不应是可选择目标');
   });
 
-  // 60 格：每个原子在每个阶段都有格
+  // 64 格：每个原子在每个阶段都有格
   const matrix = gm.MATRIX || {};
   let cellCount = 0;
   PHASES.forEach(function (phase) {
@@ -355,7 +355,7 @@ console.log('\n12) 复合目标矩阵');
       }
     });
   });
-  if (cellCount !== 60) err('矩阵应为 60 格，实际 ' + cellCount);
+  if (cellCount !== 64) err('矩阵应为 64 格，实际 ' + cellCount);
 
   // B-REFUEL 的碳水必须是两个不连续区间：[[4,7],[8,12]]，不得写成 {min:4,max:12}
   const bRefuel = MATRIX_RECOVER_BREFUEL();
@@ -382,7 +382,7 @@ console.log('\n12) 复合目标矩阵');
 
   // 配方
   const comps = gm.COMPOSITES || [];
-  if (comps.length !== 27) err('复合配方应为 27 条，实际 ' + comps.length);
+  if (comps.length !== 29) err('复合配方应为 29 条，实际 ' + comps.length);
   const compIds = comps.map(function (c) { return c.id; });
   if (new Set(compIds).size !== compIds.length) err('配方编号有重复');
   const concessionModes = gm.CONCESSION_MODES || [];

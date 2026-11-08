@@ -31,7 +31,7 @@
 
 | 字段 | 类型 | 取值域 | 必填 | 写入方 | 说明 |
 |---|---|---|---|---|---|
-| `goals` | string[] | `goal-matrix.md` 的 15 个原子 ID；长度 0–4：≤3 个计入目标名额 + ≤1 个 `G-IMM` 监测；顺序即优先级（同层冲突时第一个优先，L0–L2 护栏可临时越级），不设 `goalPriority`；`G-MED` 不在可选集，不写入该数组 | 否，默认 `[]` | 营养师（`coachApi.setGoals`） | 拳王端只读；`saveProfile` 必须 LOCKED；`G-IMM` 不占 3 个名额、不任 lead |
+| `goals` | string[] | `goal-matrix.md` 的 16 个原子 ID；长度 0–4：≤3 个计入目标名额 + ≤1 个 `G-IMM` 监测；顺序即优先级（同层冲突时第一个优先，L0–L2 护栏可临时越级），不设 `goalPriority`；`G-MED` 不在可选集，不写入该数组 | 否，默认 `[]` | 营养师（`coachApi.setGoals`） | 拳王端只读；`saveProfile` 必须 LOCKED；`G-IMM` 不占 3 个名额、不任 lead |
 | `goalEffectiveDate` | string | `YYYY-MM-DD` | `goals` 非空时必填 | 营养师 | 历史日志按此日期解释目标 |
 | `goalSource` | string | 当前只允许 `'nutritionist'`；不预留 `'import'`/`'system'` | `goals` 非空时必填 | 营养师 | 审计用；与 `phaseSetBy` 同构 |
 | `bodyFatPct` | number | 3–50（%） | 否，默认 `null` | 营养师（`coachApi.setGoals` 可选携带，或 `coachApi.setBodyComp` 单独更新） | 只存百分比；测量方法（DXA/BIA/皮褶）写 `profile.note`，不设 `bodyFatMethod`/`bodyFatMeasuredAt`；仅用于 EA/FFM 粗估；缺省时 EA 标“数据不足”，不判红。三态：**省略字段 = 保留原值；显式 `null` = 清除；非 number 或不在 3–50 = `E_GOAL_BODYFAT`** |
