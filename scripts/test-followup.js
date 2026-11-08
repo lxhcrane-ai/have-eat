@@ -14,6 +14,7 @@ function get(items, ruleId) { return items.filter(function (i) { return i.ruleId
 
 const fixture = require('./fixtures/followup-demo.js');
 const D1 = fixture.D1, D2 = fixture.D2, D3 = fixture.D3;
+const D4 = fu.shiftDate(D3, 1);   // 仅测试用：再往后一天，构造未到期的稍后项
 const A = fixture.A, B = fixture.B, C = fixture.C;
 const athletes = fixture.athletes;
 
@@ -64,7 +65,7 @@ ok(!aHyd.escalated, '重置后不再升级');
 
 console.log('\n4) 营养师后台：分组只显示待处理');
 const oneConfirmed = q2.items.map(function (i, idx) { return idx === 0 ? Object.assign({}, i, { status: 'confirmed' }) : i; });
-const groups = fu.groupForNutritionist(oneConfirmed);
+const groups = fu.groupForNutritionist(oneConfirmed, D2).groups;
 const shown = groups.reduce(function (n, g) { return n + g.items.length; }, 0);
 ok(shown === oneConfirmed.length - 1, '已确认项从待处理列表消失', { shown: shown, total: oneConfirmed.length });
 ok(groups.every(function (g) { return g.items.every(function (i) { return i.status !== 'dismissed' && i.status !== 'confirmed'; }); }), '分组里没有已处理项');
@@ -86,6 +87,65 @@ console.log('\n6) 队列统计（给"今天需要我处理 N 件事"）');
 ok(q2.stats.total === q2.items.length, 'total 与条目数一致');
 ok(q2.stats.red === q2.items.filter(function (i) { return i.level === 'red'; }).length, 'red 计数一致');
 console.log('     第二天队列：' + q2.stats.total + ' 项，其中升级 ' + q2.stats.escalated + ' 项，红灯 ' + q2.stats.red + ' 项，涉及 ' + q2.stats.athletes + ' 名拳手');
+
+console.log('\n7) 已稍后：单独分组、到期回落、统计口径');
+const mix = q2.items.map(function (i) { return Object.assign({}, i); });
+const liMix = mix.filter(function (i) { return i.athleteId === 'a-li'; });
+liMix[0].status = 'snoozed'; liMix[0].nextReminderDate = D3;   // 未到期
+liMix[1].status = 'snoozed'; liMix[1].nextReminderDate = D2;   // 今天到期
+const maMix = mix.filter(function (i) { return i.athleteId === 'xiao-ma'; })[0];
+maMix.status = 'snoozed'; maMix.nextReminderDate = D4;
+
+const view7 = fu.groupForNutritionist(mix, D2);
+const todoItems7 = view7.groups.reduce(function (n, g) { return n + g.items.length; }, 0);
+const snoozedItems7 = view7.snoozedGroups.reduce(function (n, g) { return n + g.items.length; }, 0);
+ok(view7.stats.total === todoItems7, 'stats.total 与待办分组项数一致', { total: view7.stats.total, todo: todoItems7 });
+ok(view7.stats.snoozed === snoozedItems7, 'stats.snoozed 与已稍后分组项数一致', { stats: view7.stats.snoozed, snoozed: snoozedItems7 });
+ok(todoItems7 === mix.length - 2, '未到期的稍后项离开待办，其余仍在待办', { todo: todoItems7, all: mix.length });
+const dueItem = view7.groups.reduce(function (arr, g) { return arr.concat(g.items); }, [])
+  .filter(function (i) { return i.snoozedDue; })[0];
+ok(!!dueItem && dueItem.originalDate === D2, '到期项回落待办并保留原定日期', dueItem && { due: dueItem.snoozedDue, original: dueItem.originalDate });
+ok(view7.snoozedGroups.length === 2, '未到期项进入独立的已稍后分组', view7.snoozedGroups.length);
+
+function fakeSnoozed(id, athleteId, name, nextDate, ruleId) {
+  return {
+    id: id, athleteId: athleteId, athleteName: name, date: D2,
+    ruleId: ruleId || 'HYD-01', level: 'amber', status: 'snoozed',
+    nextReminderDate: nextDate, consecutiveDays: 1, escalated: false
+  };
+}
+const viewOrder = fu.groupForNutritionist([
+  fakeSnoozed('c', 'c-ath', 'C', D4),
+  fakeSnoozed('a', 'a-ath', 'A', D3),
+  fakeSnoozed('b', 'b-ath', 'B', D3)
+], D2);
+ok(viewOrder.snoozedGroups[0].athleteId === 'a-ath' &&
+   viewOrder.snoozedGroups[1].athleteId === 'b-ath' &&
+   viewOrder.snoozedGroups[2].athleteId === 'c-ath',
+   '已稍后分组按最早 nextReminderDate 升序', viewOrder.snoozedGroups.map(function (g) { return g.athleteId + '@' + g.nextReminderDate; }));
+const viewItemOrder = fu.groupForNutritionist([
+  fakeSnoozed('x1', 'x-ath', 'X', D4),
+  fakeSnoozed('x2', 'x-ath', 'X', D3, 'PRO-01')
+], D2);
+ok(viewItemOrder.snoozedGroups[0].items[0].id === 'x2', '同一拳王组内按稍后日期升序', viewItemOrder.snoozedGroups[0].items.map(function (i) { return i.id; }));
+
+console.log('\n8) requiresFollowUp 缺省时回落到规则登记表');
+const noFlag = fu.candidatesFromFeedback(
+  { athleteId: 'a-li', name: '阿力' },
+  { alerts: [
+    { ruleId: 'HYD-01', level: 'amber', title: '训练脱水', evidence: 'pct 2.4%' },
+    { ruleId: 'HYD-03', level: 'amber', title: '晨尿颜色偏深', evidence: '6/8' }
+  ] },
+  D2
+);
+ok(noFlag.length === 1 && noFlag[0].ruleId === 'HYD-01',
+  '告警未带 requiresFollowUp 时按登记表判定（HYD-01 保留 / HYD-03 剔除）', noFlag.map(function (i) { return i.ruleId; }));
+const explicitFalse = fu.candidatesFromFeedback(
+  { athleteId: 'a-li', name: '阿力' },
+  { alerts: [{ ruleId: 'HYD-01', level: 'amber', title: '训练脱水', requiresFollowUp: false }] },
+  D2
+);
+ok(explicitFalse.length === 0, '告警显式 requiresFollowUp=false 仍然剔除', explicitFalse.length);
 
 console.log('\n--- 队列预览（阿力，按展示顺序） ---');
 a2.forEach(function (i) {

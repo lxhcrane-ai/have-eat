@@ -45,12 +45,26 @@
     </view>
     <button class="btn ghost" wx:if="{{role === 'coach'}}" bindtap="goCoachHome" style="margin-top:14rpx">进入教练看板</button>
     <button class="btn ghost" wx:if="{{coachOpenid}}" bindtap="goChat" style="margin-top:14rpx">和教练沟通</button>
+    <button class="btn ghost" wx:if="{{coachOpenid}}" bindtap="unbindCoach" style="margin-top:14rpx">解除与教练的绑定</button>
+  </view>
+
+  <view class="card">
+    <view class="card-title">营养师建议</view>
+    <view class="row" bindtap="goAdvice">
+      <text class="label">我的建议</text>
+      <text class="val">查看历史 ›</text>
+    </view>
+    <view class="tiny">营养师审阅发布后，会按日期保留在历史里。</view>
   </view>
 
   <view class="card">
     <view class="card-title">数据</view>
     <view class="row"><text class="label">本机记录</text><text class="val">{{logCount}} 天</text></view>
+    <view class="row" wx:if="{{demoCount}}"><text class="label">其中演示</text><text class="val warn">{{demoCount}} 天（非真实）</text></view>
     <view class="row" bindtap="syncPending"><text class="label">待同步</text><text class="val {{pending ? 'warn' : ''}}">{{pending}} 条{{pending ? '（点击重试）' : ''}}</text></view>
+    <view class="tiny" wx:if="{{demoCount}}">演示数据不会同步到云端，也不会覆盖真实记录；在记录页保存任意一天即转为真实，并清除其余演示。</view>
+    <view class="tiny" wx:if="{{!logCount && !demoCount}}">当前没有记录，也没有演示数据。清空过本机后，演示不会自动回来。</view>
+    <button class="btn ghost" wx:if="{{!logCount && !demoCount}}" bindtap="restoreDemo" style="margin-top:14rpx">恢复演示数据</button>
     <view class="btn-row">
       <button class="btn ghost half" bindtap="exportData">导出 JSON</button>
       <button class="btn ghost half" bindtap="clearLocal">清空本机</button>

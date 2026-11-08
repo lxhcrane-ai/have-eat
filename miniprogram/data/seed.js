@@ -1,11 +1,15 @@
-// 演示数据：由 scripts/gen-seed.js 生成（14 天，截至 2026-10-25）。
-// 仅在本机无记录时导入一次；真实使用前把它改回 [] 或清空本机数据。
-// 重新生成：node scripts/gen-seed.js 2026-10-25
+// 演示数据（demoVersion v1）：由 scripts/gen-seed.js 生成，14 天，基准结束日 2026-11-08。
+// 日期只是基准：小程序启动时会整批平移到"今天"，所以这个文件不用每天重新生成。
+// 每条记录都带 demo:true，页面会显示"演示数据"提示；只有在本机没有任何真实记录、
+// 且用户没有点过"清空本机"时才会导入。真实记录存在时演示数据会被自动移除。
+// 重新生成（可用指定结束日造测试数据）：node scripts/gen-seed.js 2026-11-08
 module.exports = [
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-12",
-    "date": "2026-10-12",
+    "id": "seed-2026-10-26",
+    "date": "2026-10-26",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -156,14 +160,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-12T12:00:00.000Z"
+    "createdAt": "2026-10-26T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-13",
-    "date": "2026-10-13",
+    "id": "seed-2026-10-27",
+    "date": "2026-10-27",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -314,14 +320,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-13T12:00:00.000Z"
+    "createdAt": "2026-10-27T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-14",
-    "date": "2026-10-14",
+    "id": "seed-2026-10-28",
+    "date": "2026-10-28",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -472,14 +480,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-14T12:00:00.000Z"
+    "createdAt": "2026-10-28T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-15",
-    "date": "2026-10-15",
+    "id": "seed-2026-10-29",
+    "date": "2026-10-29",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -630,14 +640,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-15T12:00:00.000Z"
+    "createdAt": "2026-10-29T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-16",
-    "date": "2026-10-16",
+    "id": "seed-2026-10-30",
+    "date": "2026-10-30",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -788,14 +800,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-16T12:00:00.000Z"
+    "createdAt": "2026-10-30T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-17",
-    "date": "2026-10-17",
+    "id": "seed-2026-10-31",
+    "date": "2026-10-31",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -914,14 +928,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-17T12:00:00.000Z"
+    "createdAt": "2026-10-31T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-18",
-    "date": "2026-10-18",
+    "id": "seed-2026-11-01",
+    "date": "2026-11-01",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1072,14 +1088,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-18T12:00:00.000Z"
+    "createdAt": "2026-11-01T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-19",
-    "date": "2026-10-19",
+    "id": "seed-2026-11-02",
+    "date": "2026-11-02",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1230,14 +1248,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-19T12:00:00.000Z"
+    "createdAt": "2026-11-02T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-20",
-    "date": "2026-10-20",
+    "id": "seed-2026-11-03",
+    "date": "2026-11-03",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1388,14 +1408,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-20T12:00:00.000Z"
+    "createdAt": "2026-11-03T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-21",
-    "date": "2026-10-21",
+    "id": "seed-2026-11-04",
+    "date": "2026-11-04",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1514,14 +1536,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-21T12:00:00.000Z"
+    "createdAt": "2026-11-04T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-22",
-    "date": "2026-10-22",
+    "id": "seed-2026-11-05",
+    "date": "2026-11-05",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1672,14 +1696,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-22T12:00:00.000Z"
+    "createdAt": "2026-11-05T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-23",
-    "date": "2026-10-23",
+    "id": "seed-2026-11-06",
+    "date": "2026-11-06",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1830,14 +1856,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-23T12:00:00.000Z"
+    "createdAt": "2026-11-06T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-24",
-    "date": "2026-10-24",
+    "id": "seed-2026-11-07",
+    "date": "2026-11-07",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -1988,14 +2016,16 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-24T12:00:00.000Z"
+    "createdAt": "2026-11-07T12:00:00.000Z"
   },
   {
     "schemaVersion": 2,
-    "id": "seed-2026-10-25",
-    "date": "2026-10-25",
+    "id": "seed-2026-11-08",
+    "date": "2026-11-08",
+    "demo": true,
+    "demoVersion": "v1",
     "tzOffset": 480,
     "weights": {
       "morning": {
@@ -2146,8 +2176,8 @@ module.exports = [
     "goal": {
       "phase": "cut",
       "targetWeightKg": 57,
-      "weighInDate": "2026-11-29"
+      "weighInDate": "2026-12-13"
     },
-    "createdAt": "2026-10-25T12:00:00.000Z"
+    "createdAt": "2026-11-08T12:00:00.000Z"
   }
 ];

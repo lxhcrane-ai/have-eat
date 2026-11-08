@@ -10,6 +10,8 @@
         <view class="tiny">{{date}}</view>
         <view class="tiny" wx:if="{{stats.escalated}}"><text class="badge red">{{stats.escalated}} 项升级</text></view>
         <view class="tiny" wx:if="{{!stats.escalated}}">无升级项</view>
+        <view class="tiny" wx:if="{{stats.snoozed}}">{{stats.snoozed}} 项已稍后</view>
+        <view class="tiny warn" wx:if="{{unsynced}}">{{unsynced}} 项本机操作未同步云端</view>
       </view>
     </view>
     <view class="hero-ops">
@@ -25,7 +27,7 @@
   </view>
 
   <block wx:if="{{tab === 'todo'}}">
-    <view class="empty" wx:if="{{!loading && !groups.length}}">
+    <view class="empty" wx:if="{{!loading && !groups.length && !snoozedGroups.length}}">
       <view>今天没有需要人跟进的项</view>
       <view class="tiny" style="margin-top:12rpx">规则引擎只在指标真的越界时才推给你；拳王还没填的话，等他填完再刷新</view>
     </view>
@@ -37,7 +39,16 @@
           <text class="tiny"> · {{g.count}} 项</text>
           <view class="tiny">{{g.date}}<text wx:if="{{g.escalated}}"> · {{g.escalated}} 项需人工介入</text></view>
         </view>
-        <view class="badge {{g.maxLevel === 'red' ? 'red' : 'amber'}}">{{g.maxLevel === 'red' ? '有红灯' : '关注'}}</view>
+        <view class="group-right">
+          <view class="badge {{g.maxLevel === 'red' ? 'red' : 'amber'}}">{{g.maxLevel === 'red' ? '有红灯' : '关注'}}</view>
+          <text class="op review-link" data-id="{{g.athleteId}}" data-date="{{g.date}}" data-name="{{g.name}}" bindtap="goAdvice">写成建议 ›</text>
+        </view>
+      </view>
+
+      <view class="goal-row" wx:if="{{g.goalChips && g.goalChips.hasGoals}}">
+        <view class="chip sm" wx:for="{{g.goalChips.chips}}" wx:key="id">{{item.name}}·{{item.roleLabel}}</view>
+        <view class="chip sm goal-ev {{g.goalChips.evidence.weak ? 'weak' : ''}}">{{g.goalChips.evidence.label}}</view>
+        <view class="chip sm goal-conflict" wx:if="{{g.goalChips.conflict}}">阶段冲突</view>
       </view>
 
       <view class="item" wx:for="{{g.items}}" wx:key="id" wx:for-index="ii" wx:for-item="it">
@@ -47,6 +58,7 @@
           <text class="badge red" wx:if="{{it.escalated}}">升级</text>
           <text class="badge amber" wx:if="{{it.reviewStatus === 'needs_review'}}">规则待复核</text>
         </view>
+        <view class="tiny due" wx:if="{{it.snoozedDue}}">原定 {{it.originalDate}} · 已到期，已回到待办</view>
         <view class="item-title">{{it.title}}</view>
         <view class="item-evidence">证据：{{it.evidence}}</view>
         <view class="item-action">建议：{{it.suggestedAction}}</view>
@@ -60,6 +72,38 @@
           <button class="btn mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="confirm">确认发送次日提醒</button>
           <button class="btn ghost mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="snooze">稍后</button>
           <button class="btn ghost mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="dismiss">忽略</button>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <block wx:if="{{tab === 'todo' && snoozedGroups.length}}">
+    <view class="snoozed-head">
+      <text class="group-name">已稍后</text>
+      <text class="tiny"> · 按稍后日期升序，到期自动回到待办</text>
+    </view>
+    <view class="card group" wx:for="{{snoozedGroups}}" wx:key="athleteId" wx:for-index="gi" wx:for-item="g">
+      <view class="group-head">
+        <view>
+          <text class="group-name">{{g.name}}</text>
+          <text class="tiny"> · {{g.count}} 项</text>
+          <view class="tiny">最早稍后至 {{g.nextReminderDate || '未设置'}}</view>
+        </view>
+      </view>
+      <view class="goal-row" wx:if="{{g.goalChips && g.goalChips.hasGoals}}">
+        <view class="chip sm" wx:for="{{g.goalChips.chips}}" wx:key="id">{{item.name}}·{{item.roleLabel}}</view>
+        <view class="chip sm goal-ev {{g.goalChips.evidence.weak ? 'weak' : ''}}">{{g.goalChips.evidence.label}}</view>
+        <view class="chip sm goal-conflict" wx:if="{{g.goalChips.conflict}}">阶段冲突</view>
+      </view>
+      <view class="item" wx:for="{{g.items}}" wx:key="id" wx:for-index="ii" wx:for-item="it">
+        <view class="item-head">
+          <text class="rid">{{it.ruleId}}</text>
+          <text class="badge {{it.level === 'red' ? 'red' : 'amber'}}">{{it.level === 'red' ? '必须' : '注意'}}</text>
+        </view>
+        <view class="item-title">{{it.title}}</view>
+        <view class="tiny">原定 {{it.date}} → 稍后至 {{it.nextReminderDate}}</view>
+        <view class="item-ops">
+          <button class="btn ghost mini" data-gi="{{gi}}" data-ii="{{ii}}" bindtap="revokeSnooze">撤销稍后</button>
         </view>
       </view>
     </view>

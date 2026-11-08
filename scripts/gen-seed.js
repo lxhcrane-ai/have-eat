@@ -1,6 +1,10 @@
 // 生成 14 天演示数据到 miniprogram/data/seed.js。
 // 目的：开发者工具里一打开就能看到趋势图、周报、阶段建议的真实样子，不用等两周积累。
 // 用法：node scripts/gen-seed.js [结束日期 YYYY-MM-DD]   默认今天
+//
+// 日期不需要每天重新生成：seed.js 里的日期只是"基准"，小程序启动时会把整批记录
+// 按「基准结束日 → 今天」平移（见 miniprogram/app.js importSeed）。
+// 本脚本只写 miniprogram/data/seed.js，不会碰本机 logs_v2、pending_sync 或云端集合。
 const fs = require('fs');
 const path = require('path');
 
@@ -11,8 +15,21 @@ function shift(date, days) {
   d.setDate(d.getDate() + days);
   return dateStr(d);
 }
+function validDate(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(s + 'T00:00:00');
+  return !isNaN(d.getTime()) && dateStr(d) === s;
+}
 
-const end = process.argv[2] || dateStr(new Date());
+const arg = process.argv[2];
+if (arg && !validDate(arg)) {
+  console.error('结束日期格式不合法：' + arg + '（应为 YYYY-MM-DD，例如 2026-11-08）');
+  process.exit(1);
+}
+
+const end = arg || dateStr(new Date());
+// 演示内容变化时改这个版本号，旧设备才会整批重导（只改日期不会触发重导）
+const DEMO_VERSION = 'v1';
 const DAYS = 14;
 const START_KG = 60.6;
 const DROP_PER_DAY = 0.07;         // 约 -0.49kg/周 ≈ 0.83% 体重/周，落在 0.5–1% 安全区中间
@@ -77,6 +94,8 @@ for (let i = 0; i < DAYS; i++) {
     schemaVersion: 2,
     id: 'seed-' + date,
     date: date,
+    demo: true,
+    demoVersion: DEMO_VERSION,
     tzOffset: 480,
     weights: {
       morning: { kg: kg, context: 'morning_fasted' },
@@ -96,11 +115,15 @@ for (let i = 0; i < DAYS; i++) {
   });
 }
 
-const header = '// 演示数据：由 scripts/gen-seed.js 生成（' + DAYS + ' 天，截至 ' + end + '）。\n' +
-  '// 仅在本机无记录时导入一次；真实使用前把它改回 [] 或清空本机数据。\n' +
-  '// 重新生成：node scripts/gen-seed.js 2026-10-25\n';
+const header = '// 演示数据（demoVersion ' + DEMO_VERSION + '）：由 scripts/gen-seed.js 生成，' + DAYS + ' 天，基准结束日 ' + end + '。\n' +
+  '// 日期只是基准：小程序启动时会整批平移到"今天"，所以这个文件不用每天重新生成。\n' +
+  '// 每条记录都带 demo:true，页面会显示"演示数据"提示；只有在本机没有任何真实记录、\n' +
+  '// 且用户没有点过"清空本机"时才会导入。真实记录存在时演示数据会被自动移除。\n' +
+  '// 重新生成（可用指定结束日造测试数据）：node scripts/gen-seed.js ' + end + '\n';
 const body = 'module.exports = ' + JSON.stringify(list, null, 2) + ';\n';
 fs.writeFileSync(path.join(__dirname, '../miniprogram/data/seed.js'), header + body);
-console.log('已生成 ' + DAYS + ' 天演示数据：' + list[0].date + ' ~ ' + list[list.length - 1].date);
+console.log('已生成 ' + DAYS + ' 天演示数据：' + list[0].date + ' ~ ' + list[list.length - 1].date +
+  '（运行时按今天重锚，版本 ' + DEMO_VERSION + '）');
 console.log('体重 ' + list[0].weights.morning.kg + ' → ' + list[list.length - 1].weights.morning.kg + 'kg；' +
   '蛋白不足 ' + Object.keys(BAD).length + ' 天；酸痛峰值 ' + Math.max.apply(null, list.map(function (l) { return l.sorenessByArea.shoulder; })));
+console.log('只写入 miniprogram/data/seed.js，未改动本机记录或云端数据。');

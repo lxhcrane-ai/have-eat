@@ -10,7 +10,7 @@ function line() { console.log('─'.repeat(72)); }
 
 console.log('\n===== 第 1 天（' + D1 + '）生成队列 =====');
 const q1 = fu.generateQueue({ date: D1, athletes: fixture.athletes, history: [], now: D1 + 'T20:00:00Z' });
-fu.groupForNutritionist(q1.items).forEach(function (g) {
+fu.groupForNutritionist(q1.items, D1).groups.forEach(function (g) {
   console.log(g.name + '（' + g.items.length + ' 项）');
   g.items.forEach(function (i) {
     console.log('  [' + i.level + '] ' + i.ruleId + ' ' + i.title);
@@ -27,7 +27,7 @@ console.log('\n===== 第 2 天（' + D2 + '）队列：连续天数合并 + 升�
 const q2 = fu.generateQueue({ date: D2, athletes: fixture.athletesDay2, history: history, now: D2 + 'T20:00:00Z' });
 console.log('顶部数字：' + q2.stats.total + ' 件事待处理，其中 ' + q2.stats.escalated + ' 项升级为人工介入');
 line();
-fu.groupForNutritionist(q2.items).forEach(function (g) {
+fu.groupForNutritionist(q2.items, D2).groups.forEach(function (g) {
   console.log('\n【' + g.name + '】' + g.count + ' 项，升级 ' + g.escalated + ' 项，最高级别 ' + g.maxLevel);
   g.items.forEach(function (i) {
     const tag = i.escalated ? '升级' : i.level;
@@ -61,7 +61,7 @@ console.log('阿力 HYD-01：连续 ' + hyd.consecutiveDays + ' 天，升级=' +
 console.log('\n===== 后台分组视图（只含待处理） =====');
 const groups = fu.groupForNutritionist(q2.items.map(function (i, idx) {
   return idx === 0 ? Object.assign({}, i, { status: 'confirmed' }) : i;   // 假设第一项已被确认
-}));
+}), D2).groups;
 groups.forEach(function (g) {
   console.log('  ' + g.name + '：' + g.count + ' 项' + (g.escalated ? '（' + g.escalated + ' 项升级）' : ''));
 });

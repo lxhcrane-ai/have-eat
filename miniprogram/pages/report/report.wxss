@@ -20,3 +20,17 @@
 .hit-fill.amber { background: #ffc46b; }
 .next { font-size: 26rpx; line-height: 1.7; color: #d6e0da; margin-top: 10rpx; }
 .center { text-align: center; }
+.source-badge { display: inline-block; margin-top: 10rpx; padding: 4rpx 14rpx; border-radius: 999rpx; font-size: 20rpx; }
+.source-badge.cloud { color: #6bc4ff; background: #13212b; border: 1rpx solid #1d3a4d; }
+.source-badge.local { color: #ffc46b; background: #2a2213; border: 1rpx solid #4a3a1c; }
+.cmp-row { margin-top: 16rpx; padding-top: 14rpx; border-top: 1rpx solid #1f2523; }
+.cmp-top { display: flex; align-items: baseline; justify-content: space-between; }
+.cmp-label { font-size: 26rpx; color: #d6e0da; }
+.cmp-delta { font-size: 24rpx; color: #8a968f; }
+.cmp-delta.good { color: #5ce39a; }
+.cmp-delta.bad { color: #ff7a6b; }
+.cmp-empty { margin-top: 10rpx; }
+.empty-title { font-size: 28rpx; font-weight: 600; margin-bottom: 10rpx; }
+.empty-ops { display: flex; flex-wrap: wrap; gap: 12rpx; justify-content: center; margin-top: 20rpx; }
+/* 画布放在屏幕外，保留实际渲染能力，不占页面空间 */
+.poster-canvas { position: fixed; left: -2000px; top: 0; width: 750px; height: 1600px; pointer-events: none; }

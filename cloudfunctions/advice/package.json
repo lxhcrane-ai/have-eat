@@ -1,0 +1,9 @@
+{
+  "name": "advice",
+  "version": "1.0.0",
+  "description": "营养师审阅建议：上下文、草稿、发布与发布后更新",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

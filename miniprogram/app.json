@@ -10,7 +10,12 @@
     "pages/rules/rules",
     "pages/report/report",
     "pages/chat/chat",
-    "pages/bind/bind"
+    "pages/bind/bind",
+    "pages/review/review",
+    "pages/goals/goals",
+    "pages/advice/advice",
+    "pages/inbox/inbox",
+    "pages/admission/admission"
   ],
   "window": {
     "backgroundTextStyle": "light",

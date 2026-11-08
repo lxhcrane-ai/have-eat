@@ -4,6 +4,9 @@ const fmt = require('../../utils/format.js');
 const api = require('../../utils/api.js');
 const FOOD = require('../../utils/food.js');
 const visionUtil = require('../../utils/vision.js');
+const adviceCache = require('../../utils/adviceCache.js');
+const privacy = require('../../utils/privacy.js');
+const subscribe = require('../../utils/subscribe.js');
 
 const SESSIONS = [
   { id: 'cardio', name: '有氧' }, { id: 'strength', name: '力量' },
@@ -31,7 +34,8 @@ function emptyDraft(date) {
     sleep: { hours: '', quality: 3 },
     hydration: { waterMl: '', urineColor: 2 },
     restingHr: '',
-    training: { sessionType: '', durationMin: '', rpe: 6, rounds: '', content: '' },
+    training: { sessionType: '', durationMin: '', rpe: 6, rounds: '', content: '', startTime: '', quality: '' },
+    health: { illness: '' },
     sorenessByArea: { shoulder: 0, back: 0, arm: 0, leg: 0, core: 0 },
     mood: { fatigue: 3, stress: 3, appetite: 3 },
     meals: [],
@@ -56,13 +60,18 @@ Page({
     preview: '',
     pickerOpen: false, pickerMealIndex: 0, foodQuery: '', foodShown: [], pickFood: null, pickGrams: '100',
     sorenessList: [],
-    saving: false, offline: false, isHistory: false,
+    saving: false, offline: false, isHistory: false, isDemo: false,
     urineTones: [1, 2, 3, 4, 5, 6, 7, 8],
     rpeMarks: { 1: '很轻', 10: '极限' },
     // 阶段驱动的表单：阶段决定哪些字段必填、哪些出现
     phaseId: 'maintain', phaseLabel: '', phaseGoal: '', phaseNote: '',
     phaseRequired: [], phaseOptional: [],
     giList: [], suppList: [],
+    // 目标补充字段折叠块：默认收起，不影响原有填写路径
+    statusOpen: false,
+    illnessOptions: [
+      { v: 0, name: '无' }, { v: 1, name: '轻微上呼吸道' }, { v: 2, name: '发热/就医' }
+    ],
     // 照片识别面板
     visionOpen: false, visionMealIndex: 0, visionLoading: false,
     visionItems: [], visionWarnings: [], visionNote: '', visionError: '',
@@ -77,10 +86,12 @@ Page({
       { id: 'creatine', name: '肌酸' },
       { id: 'caffeine', name: '咖啡因' },
       { id: 'betaAlanine', name: 'β-丙氨酸' }
-    ]
+    ],
+    reviewed: false
   },
 
   onLoad(query) {
+    privacy.lockShare();
     const date = (query && query.date) || fmt.todayStr();
     this.setData({ isHistory: date !== fmt.todayStr() });
     this.applyPhase();
@@ -91,7 +102,7 @@ Page({
   applyPhase() {
     const profile = wx.getStorageSync('profile') || {};
     const prof = rules.getPhaseProfile(profile.phase);
-    const fields = rules.fieldsFor(prof.id);
+    const fields = rules.fieldsFor(prof.id, profile.goals);
     this.setData({
       phaseId: prof.id,
       phaseLabel: prof.label,
@@ -116,7 +127,30 @@ Page({
         this.loadDraft(edit);
       }
     }
+    this.loadAdviceBanner();
   },
+
+  // 轻量横幅：只判断今天有没有已发布建议，不重复正文
+  async loadAdviceBanner() {
+    const date = fmt.todayStr();
+    if (!this.data.draft || this.data.draft.date !== date) {
+      this.setData({ reviewed: false });
+      return;
+    }
+    const res = await api.call('advice', { action: 'get', date: date });
+    if (res.ok) {
+      const a = res.advice;
+      this.setData({ reviewed: !!(a && a.status === 'published') });
+      return;
+    }
+    // 离线：用首页写下的当天缓存判断（readCurrent 已校验日期与 TTL），避免误报
+    const cached = adviceCache.readCurrent(date);
+    this.setData({
+      reviewed: !!(cached && cached.advice && cached.advice.status === 'published')
+    });
+  },
+
+  goHome() { wx.switchTab({ url: '/pages/index/index' }); },
 
   loadDraft(date) {
     const saved = store.get(date);
@@ -139,8 +173,11 @@ Page({
           durationMin: n.training.durationMin === null ? '' : String(n.training.durationMin),
           rpe: n.training.rpe || 6,
           rounds: n.training.rounds === null ? '' : String(n.training.rounds),
-          content: n.training.content || ''
+          content: n.training.content || '',
+          startTime: n.training.startTime || '',
+          quality: n.training.quality === null ? '' : String(n.training.quality)
         },
+        health: { illness: n.health.illness === null ? '' : String(n.health.illness) },
         sorenessByArea: {
           shoulder: n.sorenessByArea.shoulder || (n.sorenessLegacy || 0),
           back: n.sorenessByArea.back || 0, arm: n.sorenessByArea.arm || 0,
@@ -181,7 +218,7 @@ Page({
       d = emptyDraft(date);
       if (profile.phase) d.goal.phase = profile.phase;
     }
-    this.setData({ draft: d });
+    this.setData({ draft: d, isDemo: !!saved && store.isDemo(saved) });
     this.syncSoreness();
     this.syncGi();
     this.syncSupp();
@@ -245,6 +282,15 @@ Page({
     const date = e.detail.value;
     this.setData({ isHistory: date !== fmt.todayStr() });
     this.loadDraft(date);
+  },
+
+  // 目标补充字段折叠块：默认收起
+  toggleStatus() {
+    this.setData({ statusOpen: !this.data.statusOpen });
+  },
+
+  onTime(e) {
+    this.setData({ 'draft.training.startTime': e.detail.value });
   },
 
   // 胃肠症状（0 无 – 4 严重）
@@ -558,6 +604,7 @@ Page({
       hydration: { waterMl: d.hydration.waterMl, urineColor: d.hydration.urineColor },
       restingHr: d.restingHr,
       training: d.training,
+      health: d.health,
       sorenessByArea: d.sorenessByArea,
       mood: d.mood,
       meals: meals,
@@ -577,9 +624,14 @@ Page({
       wx.showToast({ title: '至少填一个体重', icon: 'none' });
       return;
     }
-    this.setData({ saving: true });
+    // 覆盖演示记录 = 用户认领这一天：转为真实记录，并移除其余演示数据
+    const wasDemo = !!this.data.isDemo;
+    if (wasDemo) store.removeDemo();
+    this.setData({ saving: true, isDemo: false });
     log.athleteId = wx.getStorageSync('openid') || '';
     store.upsert(log);
+    // 容量超限时 saveAll 会明确失败；不能当成“已存本机”继续走
+    const localSaved = !store.lastWriteError();
 
     const profile = wx.getStorageSync('profile') || {};
     const fb = rules.evaluate(log, { profile: profile, recentMorningWeights: store.morningWeights(14) });
@@ -589,10 +641,31 @@ Page({
 
     if (res.ok) {
       store.clearPending(log.date);
-      wx.showToast({ title: '已同步 · ' + fb.score + ' 分', icon: 'none', duration: 1500 });
+      const t = !localSaved
+        ? '已同步云端，但本机存储不足未缓存'
+        : (wasDemo ? '已转为真实记录 · ' + fb.score + ' 分' : '已同步 · ' + fb.score + ' 分');
+      wx.showToast({ title: t, icon: 'none', duration: 1800 });
+      // 保存成功：每天最多请求一次订阅授权，补充被一次性订阅消耗掉的发送机会。
+      const subKey = 'save_subscribe_v1_' + log.date;
+      let asked = false;
+      try { asked = !!wx.getStorageSync(subKey); } catch (e) { asked = false; }
+      if (!asked) {
+        // 等用户响应后再跳首页，避免订阅弹窗被 700ms 的跳转截断
+        try {
+          const r = await subscribe.ask('athlete');
+          if (r && Object.keys(r).length) {
+            wx.setStorageSync(subKey, true);
+          }
+        } catch (e) { /* 订阅失败不影响保存 */ }
+      }
+    } else if (!localSaved) {
+      wx.showToast({ title: '本机存储不足，记录未保存', icon: 'none', duration: 1800 });
     } else {
       store.addPending(log.date);
-      wx.showToast({ title: '已存本机，联网后同步', icon: 'none', duration: 1800 });
+      wx.showToast({
+        title: wasDemo ? '已存本机，演示已转为真实' : '已存本机，联网后同步',
+        icon: 'none', duration: 1800
+      });
     }
     setTimeout(function () { wx.switchTab({ url: '/pages/index/index' }); }, 700);
   }

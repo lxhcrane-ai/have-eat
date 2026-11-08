@@ -3,13 +3,13 @@ module.exports = {
   // 云开发环境 ID：云开发控制台 -> 设置 -> 环境ID
   env: 'YOUR-CLOUD-ENV-ID',
 
-  // 拳王 openid。首次用拳王微信打开小程序 -> 我的 -> 复制 openid 填到这里，
-  // 或让拳王在「绑定教练」页输入下方 coachCode，自动建立绑定关系。
+  // 旧邀请码：仅服务端兼容兜底，页面已不再展示或预填。
+  // 新流程由教练在教练看板生成一次性配对码（pair_codes 集合），拳王输入后绑定。
   coachCode: 'COACH-8888',
 
-  // 订阅消息模板 ID（可选）。没有就留空，教练端改用小程序内红点 + 收件箱。
-  tplCoachLog: '',
-  tplCoachMessage: '',
+  // 订阅消息模板 ID 已统一放到云函数环境变量，前端不再保存：
+  //   TPL_COACH_LOG / TPL_ATHLETE_MSG / TPL_ADVICE_PUBLISH / TPL_ADVICE_CHANGE
+  // 未配置时订阅流程静默跳过，站内红点与收件箱仍然可用。
 
   // 照片识别热量：API key 不放小程序里（会被反编译），已改到云函数 visionFood 的环境变量：
   //   VISION_BASE_URL / VISION_MODEL / VISION_API_KEY

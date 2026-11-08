@@ -1,12 +1,23 @@
 const rules = require('../../utils/rules.js');
+const privacy = require('../../utils/privacy.js');
 
 Page({
   data: { cats: [], active: 'all', list: [], query: '', openId: '', total: 0 },
 
   onLoad() {
+    privacy.lockShare();
     const cats = [{ id: 'all', name: '全部', desc: '' }].concat(rules.KB.categories);
     this.setData({ cats: cats, total: rules.KB.items.length });
     this.filter('all', '');
+  },
+
+  // 首页建议卡的知识库 chip 通过 storage 传 id（tabBar 页收不到 query）
+  onShow() {
+    const id = wx.getStorageSync('kb_focus');
+    if (!id) return;
+    wx.removeStorageSync('kb_focus');
+    this.filter('all', '');
+    this.setData({ openId: id });
   },
 
   pickCat(e) {
@@ -34,7 +45,7 @@ Page({
     this.setData({
       active: cat,
       list: list.map(function (i) {
-        return { id: i.id, title: i.title, body: i.body, source: i.source, catName: catName[i.cat] || '' };
+        return { id: i.id, title: i.title, body: i.body, sources: i.sources, catName: catName[i.cat] || '' };
       })
     });
   },

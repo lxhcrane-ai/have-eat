@@ -1,16 +1,19 @@
 const coachApi = require('../../utils/coachApi.js');
 const fmt = require('../../utils/format.js');
+const privacy = require('../../utils/privacy.js');
 
 Page({
   data: {
     date: '', loading: true, offline: false,
     tab: 'todo',
-    stats: { total: 0, escalated: 0, red: 0, athletes: 0 },
-    groups: [], history: [], historyLoading: false,
+    stats: { total: 0, escalated: 0, red: 0, athletes: 0, snoozed: 0 },
+    groups: [], snoozedGroups: [], unsynced: 0,
+    history: [], historyLoading: false,
     error: ''
   },
 
   onLoad(query) {
+    privacy.lockShare();
     const date = (query && query.date) || fmt.todayStr();
     this.setData({ date: date });
   },
@@ -25,7 +28,9 @@ Page({
       loading: false,
       offline: !!res.offline,
       stats: res.stats,
-      groups: res.groups
+      groups: res.groups || [],
+      snoozedGroups: res.snoozedGroups || [],
+      unsynced: res.unsynced || 0
     });
   },
 
@@ -33,7 +38,13 @@ Page({
     wx.showLoading({ title: '重新生成…' });
     const res = await coachApi.generateFollowUpQueue(this.data.date);
     wx.hideLoading();
-    this.setData({ stats: res.stats, groups: res.groups, offline: !!res.offline });
+    this.setData({
+      stats: res.stats,
+      groups: res.groups || [],
+      snoozedGroups: res.snoozedGroups || [],
+      unsynced: res.unsynced || 0,
+      offline: !!res.offline
+    });
     coachApi.cacheQueue(res);
     wx.showToast({ title: res.offline ? '离线：队列未更新' : '已刷新 ' + res.stats.total + ' 项', icon: 'none' });
   },
@@ -96,10 +107,51 @@ Page({
     const { gi, ii } = e.currentTarget.dataset;
     const item = this.data.groups[gi].items[ii];
     const res = await coachApi.snoozeFollowUp(item.id, 1);
-    wx.showToast({ title: res.ok ? '明天再看' : '失败', icon: 'none' });
+    if (!res || !res.ok) {
+      wx.showToast({ title: (res && res.error) || '稍后失败', icon: 'none' });
+      return;
+    }
+    wx.showToast({
+      title: res.pendingSync
+        ? '已本机稍后至 ' + res.nextReminderDate + '，联网后同步'
+        : '已稍后至 ' + res.nextReminderDate,
+      icon: 'none'
+    });
     this.load();
   },
 
+  revokeSnooze(e) {
+    const { gi, ii } = e.currentTarget.dataset;
+    const item = this.data.snoozedGroups[gi].items[ii];
+    if (!item) return;
+    const that = this;
+    wx.showModal({
+      title: '撤销稍后？',
+      content: '该跟进项会回到今日待办，原稍后日期 ' + (item.nextReminderDate || '') + ' 作废。',
+      confirmText: '撤销',
+      success: async function (r) {
+        if (!r.confirm) return;
+        const res = await coachApi.unsnoozeFollowUp(item.id);
+        if (!res || !res.ok) {
+          wx.showToast({ title: (res && res.error) || '撤销失败', icon: 'none' });
+          return;
+        }
+        wx.showToast({ title: res.pendingSync ? '已回待办，待同步云端' : '已回到待办', icon: 'none' });
+        that.load();
+      }
+    });
+  },
+
   goRules() { wx.navigateTo({ url: '/pages/rules/rules' }); },
+  goAdvice(e) {
+    const ds = e.currentTarget.dataset;
+    if (!ds.id) {
+      wx.showToast({ title: '缺少拳王信息', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/review/review?athleteId=' + ds.id + '&date=' + (ds.date || this.data.date || fmt.todayStr()) + '&name=' + encodeURIComponent(ds.name || '')
+    });
+  },
   goCoach() { wx.navigateBack(); }
 });

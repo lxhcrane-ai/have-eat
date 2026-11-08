@@ -1,4 +1,5 @@
 .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18rpx; }
+.status-head { display: flex; justify-content: space-between; align-items: center; }
 .date-pick { font-size: 34rpx; font-weight: 700; }
 .preview { font-size: 22rpx; color: #e8ff47; text-align: right; max-width: 380rpx; }
 .input-wrap { display: flex; align-items: center; gap: 8rpx; }
@@ -37,6 +38,11 @@
 .btn.tiny-btn { padding: 14rpx 30rpx; font-size: 26rpx; }
 .center { text-align: center; }
 
+.review-banner {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #101a14; border: 1rpx solid #2c4a33; border-radius: 14rpx;
+  padding: 18rpx 20rpx; margin-bottom: 18rpx; color: #d9f5e4; font-size: 25rpx;
+}
 .phase-bar { background: #101a14; border: 1rpx solid #2a3a30; border-radius: 14rpx; padding: 16rpx 18rpx; margin-bottom: 20rpx; }
 .phase-name { font-size: 28rpx; font-weight: 700; color: #e8ff47; }
 .phase-bar .req { color: #ffc46b; margin-top: 6rpx; line-height: 1.5; }

@@ -25,6 +25,14 @@ function cfg() {
   };
 }
 
+function admissionOf(user) {
+  if (!user) return 'pending';
+  if (user.admission === 'active' || user.admission === 'pending' || user.admission === 'blocked') return user.admission;
+  if (user.role === 'coach') return 'active';
+  if (user.coachOpenid || user.coachCode) return 'active';
+  return 'pending';
+}
+
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
 function todayStr() {
   const d = new Date(Date.now() + 8 * 3600 * 1000);
@@ -108,12 +116,15 @@ async function quota(openid) {
   try {
     const r = await db.collection('users').where({ _openid: openid }).limit(1).get();
     const u = r.data[0];
-    if (!u) return { ok: false, error: '需要先在小程序里完成档案初始化' };
+    if (admissionOf(u) !== 'active') {
+      return { ok: false, code: 'PENDING_ADMISSION', error: '账号待准入：请输入教练提供的配对码' };
+    }
     const used = (u.visionDate === today) ? (u.visionCalls || 0) : 0;
     if (used >= DAILY_LIMIT) return { ok: false, error: '今天识别次数已用完（' + DAILY_LIMIT + ' 次/天）' };
     return { ok: true, docId: u._id, used: used, today: today };
   } catch (e) {
-    return { ok: true, docId: null, used: 0, today: today };  // 集合异常时不阻塞主流程
+    // 无法验证账号时不放行识别
+    return { ok: false, code: 'PENDING_ADMISSION', error: '无法验证账号准入状态，请联网后重试' };
   }
 }
 
@@ -154,7 +165,7 @@ exports.main = async (event) => {
   }
 
   const q = await quota(OPENID);
-  if (!q.ok) return { ok: false, reason: 'quota', error: q.error };
+  if (!q.ok) return { ok: false, reason: 'quota', code: q.code, error: q.error };
 
   let file;
   try {

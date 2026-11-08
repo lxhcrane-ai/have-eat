@@ -31,11 +31,11 @@
 
 ```js
 env: 'cloud1-xxxxxxxxxxxx',
-coachCode: 'COACH-8888',   // 邀请码，改成你自己的
+coachCode: 'COACH-8888',   // 旧版拳王邀请码（仅授予 athlete），改成你自己的
 ```
 
 ### 3. 建 9 个集合
-云开发控制台 → 数据库 → 新建集合，权限全部选 **仅创建者可读写**：
+云开发控制台 → 数据库 → 新建集合，权限全部选 **所有用户不可读写**（小程序端只调云函数，云函数用管理权限；这样客户端无法直接改 `role`/`coachOpenid` 或读他人记录）：
 
 ```
 users      logs      messages      inbox      settings
@@ -47,8 +47,9 @@ followups  reminders phase_history rule_reviews
 - `phase_history`：阶段变更审计（谁、何时、从什么阶段切到什么阶段）
 - `rule_reviews`：规则复核状态（needs_review 等），没建就按登记表默认值跑
 
-然后在 `settings` 里手动加一条：`{ "key": "coachCode", "value": "COACH-8888" }`
-（不建也能跑，代码里有默认码兜底。）
+然后在 `settings` 里手动加两条：
+`{ "key": "coachCode", "value": "COACH-8888" }`（旧版拳王邀请码，不建也能跑，有默认码兜底）
+`{ "key": "coachActivationCode", "value": "改成你自己的教练激活码" }`（**教练角色唯一入口**，必须配置且与 coachCode 不同）
 
 ### 4. 上传云函数
 云函数目录里 9 个函数，逐个右键 → **上传并部署：云端安装依赖**（不要选"上传"）：
@@ -65,6 +66,29 @@ VISION_BASE_URL   例如 https://dashscope.aliyuncs.com/compatible-mode/v1
 VISION_MODEL      例如 qwen-vl-max / glm-4v / doubao-vision-pro
 VISION_API_KEY    供应商 key（只放云函数，不要写进小程序）
 ```
+
+订阅消息模板 ID 也只放云函数环境变量（前端由 `whoami` 下发，`config.js` 不再保存）。四个模板都按
+`thing1`（主体，20 字内）/ `thing2`（摘要，20 字内）/ `time3`（`YYYY-MM-DD HH:mm`）三个字段创建：
+
+```
+TPL_COACH_LOG       拳王保存记录（红灯）-> 教练
+TPL_ATHLETE_MSG     教练发消息 -> 拳王
+TPL_ADVICE_PUBLISH  营养师发布建议 -> 拳王
+TPL_ADVICE_CHANGE   建议更新/撤回 -> 拳王
+```
+
+**环境变量按函数分别配置**（云开发的环境变量不是全局共享的）：
+
+| 云函数 | 需要配置 |
+|---|---|
+| `whoami` | 四个模板 ID 全部（下发给前端去请求授权） |
+| `saveLog` | `TPL_COACH_LOG` |
+| `chat` | `TPL_ATHLETE_MSG` |
+| `advice` | `TPL_ADVICE_PUBLISH`、`TPL_ADVICE_CHANGE` |
+
+可选 `MINI_STATE`：默认 `formal`，体验版联调时可设为 `trial`。
+
+未配置、用户未授权、发送失败都会静默跳过，站内红点与收件箱始终保留。
 
 `saveLog` / `getFeed` / `coachApi` 都依赖 `lib/` 下的共享代码（规则引擎、知识库、规则登记表、跟进队列），`visionFood` 依赖 `lib/vision.js`。改过
 `miniprogram/utils/rules.js`、`miniprogram/utils/followup.js`、`miniprogram/utils/vision.js`、`miniprogram/data/knowledge.js` 或
@@ -103,13 +127,17 @@ bash scripts/sync-shared.sh
 3. 保存后「今日」立刻出评分、指标和按级别排序的要点，每条要点可展开看依据。
 
 ### 教练
-1. 「我的」→「教练：开启教练端」→ 输入同一个邀请码 → 自动接管所有用该码登记的拳王。
-2. 进入「教练看板」：每个拳王一张卡，显示最近一天的评分、摘要、红灯项、距称重天数，可展开最近 14 天。
-3. 点「发消息」直接留言；拳王端首页会出现"N 条教练消息"红点。
+1. 「我的」→「教练：开启教练端」→ 输入 `settings.coachActivationCode` 里的教练激活码。
+   激活后进入「教练看板」，不会自动接管任何等待中的拳王。
+2. 在教练看板生成一次性配对码，发给对应拳王；拳王输入后只绑定这一对关系。
+3. 进入「教练看板」：每个拳王一张卡，显示最近一天的评分、摘要、红灯项、距称重天数，可展开最近 14 天。
+4. 点「发消息」直接留言；拳王端首页会出现"N 条教练消息"红点。
 
 ### 邀请码机制
-一个码 = 一对人。拳王先输码会进入等待，教练输同一个码时自动回填绑定。
-码存在 `settings.coachCode`，改这里即可换码（README 顶部也写着，不要发给第三个人）。
+- 教练激活码 `settings.coachActivationCode`：只授予 `coach` 角色，必须与拳王邀请码不同。
+- 一次性配对码：教练在教练看板生成，30 分钟有效、仅可使用一次，只授予 `athlete` 角色并绑定到生成它的教练。
+- 旧版邀请码 `settings.coachCode`：兼容历史，只授予 `athlete` 角色；教练已激活时会直接接上。
+- 角色由服务端根据码的类型判定，前端页面不能自行选择身份。码不要发给第三个人。
 
 ---
 
@@ -288,7 +316,7 @@ for f in $(find miniprogram cloudfunctions -name '*.js'); do node --check $f; do
 
 ## 七、已知边界（先说清楚，别踩坑）
 
-1. **没有后台推送。** 小程序切后台就停，做不到"忘记录入自动催"。教练端的通知只在拳王保存记录时产生（红/黄灯或当天首条）。想要微信服务通知，需要配订阅消息模板：在 `config.js` 填 `tplCoachLog`，并把模板 ID 写进 `saveLog` 云函数的环境变量 `TPL_COACH_LOG`；注意订阅消息是**一次性**的，教练每授权一次只能收一条。
+1. **订阅消息是一次性的。** 用户每同意一次只能收一条，服务端发送成功后把 `users.subscribe.<场景>` 置为 `sent`。拳王保存成功、绑定成功、首次聊天时会重新请求授权；用户拒绝后只影响微信服务通知，站内红点与收件箱仍然可用。四个模板 ID 都放云函数环境变量（`TPL_COACH_LOG` / `TPL_ATHLETE_MSG` / `TPL_ADVICE_PUBLISH` / `TPL_ADVICE_CHANGE`），未配置时静默跳过。
 2. **照片识别是估算，不是称重。** 已接多模态模型（`visionFood` 云函数，OpenAI 兼容接口），但结果只作为候选：必须勾选/改克数后才进记录，误差通常 ±20–30%，放参照物（手、勺子、身份证）能压到 ±15%。未配置 key 或离线时不识别，明确提示走手工记录，绝不假装成功。细节见 `docs/vision-food.md`。
 3. **聊天是 4 秒轮询**，不是 WebSocket。对"教练和拳王沟通"够用，但会更耗一点流量。要真实时就按上面第 5 步改成 `watch`。
 4. **一对一。** 一个教练带多个拳王可以，一个拳王只能绑一个教练。多人团队需要给 `users` 加教练数组。

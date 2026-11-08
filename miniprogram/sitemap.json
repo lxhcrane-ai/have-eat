@@ -1,4 +1,4 @@
 {
-  "desc": "关于本文件的更多信息，请参考文档 https://developers.weixin.qq.com/miniprogram/dev/framework/sitemap.html",
-  "rules": [{ "action": "allow", "page": "*" }]
+  "desc": "内部专用小程序：禁止微信索引任何页面。外部不可达还需要在微信公众平台关闭搜索与收录，见 docs/privacy-setup.md。",
+  "rules": [{ "action": "disallow", "page": "*" }]
 }

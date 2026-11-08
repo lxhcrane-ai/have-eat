@@ -72,8 +72,11 @@ function itemId(athleteId, date, ruleId) {
 function candidatesFromFeedback(athlete, feedback, date) {
   const out = [];
   (feedback.alerts || []).forEach(function (a) {
-    if (!a.requiresFollowUp === false) { /* 占位，保持可读 */ }
-    if (!a.requiresFollowUp) return;              // 规则登记表标了 false 的规则不推给人
+    // 告警未携带 requiresFollowUp 时回落到规则登记表；显式 false 一律不推给人
+    const need = a.requiresFollowUp === undefined
+      ? ruleMeta(a.ruleId).requiresFollowUp
+      : !!a.requiresFollowUp;
+    if (!need) return;                            // 规则登记表标了 false 的规则不推给人
     if (a.level !== 'red' && a.level !== 'amber') return;
     const id = itemId(athlete.athleteId, date, a.ruleId);
     out.push({
@@ -257,17 +260,55 @@ function defaultReminderText(item) {
   return '昨天「' + item.title + '」。今天：' + item.suggestedAction;
 }
 
-// 营养师后台分组视图：只显示 pending / 升级项，历史另取
-function groupForNutritionist(items) {
-  const shown = (items || []).filter(function (i) {
-    return i.status === 'pending' || i.status === 'snoozed';
+// 营养师后台分组视图：待办（pending + 已到期的 snoozed）与"已稍后"分开。
+// today 由调用方传入（云端按东八区日期）；缺省用设备本地日期。
+function groupForNutritionist(items, today) {
+  const ref = today || dayStr(new Date());
+  const todo = [];
+  const snoozed = [];
+
+  (items || []).forEach(function (i) {
+    if (!i) return;
+    if (i.status === 'snoozed') {
+      // 到期（nextReminderDate <= 今天）回落进待办，保留原定日期供 UI 标注
+      if (i.nextReminderDate && i.nextReminderDate <= ref) {
+        todo.push(Object.assign({}, i, {
+          snoozedDue: true,
+          originalDate: i.date || i.nextReminderDate
+        }));
+      } else {
+        snoozed.push(i);
+      }
+      return;
+    }
+    if (i.status === 'pending') todo.push(i);
   });
+
+  const groups = buildGroups(todo, false);
+  const snoozedGroups = buildGroups(snoozed, true);
+
+  return {
+    groups: groups,
+    snoozedGroups: snoozedGroups,
+    stats: {
+      total: todo.length,
+      escalated: todo.filter(function (i) { return i.escalated; }).length,
+      red: todo.filter(function (i) { return i.level === 'red'; }).length,
+      athletes: groups.length,
+      snoozed: snoozed.length
+    }
+  };
+}
+
+// 按拳王聚合。bySnoozeDate=true 时按 nextReminderDate 升序（空值排最后）
+function buildGroups(list, bySnoozeDate) {
   const map = {};
-  shown.forEach(function (i) {
+  list.forEach(function (i) {
     if (!map[i.athleteId]) {
       map[i.athleteId] = {
         athleteId: i.athleteId, name: i.athleteName, date: i.date,
-        items: [], count: 0, escalated: 0, maxLevel: 'amber'
+        items: [], count: 0, escalated: 0, maxLevel: 'amber',
+        nextReminderDate: ''
       };
     }
     const g = map[i.athleteId];
@@ -275,8 +316,31 @@ function groupForNutritionist(items) {
     g.count += 1;
     if (i.escalated) g.escalated += 1;
     if (i.level === 'red') g.maxLevel = 'red';
+    if (bySnoozeDate && i.nextReminderDate &&
+        (!g.nextReminderDate || i.nextReminderDate < g.nextReminderDate)) {
+      g.nextReminderDate = i.nextReminderDate;
+    }
   });
+
   const groups = Object.keys(map).map(function (k) { return map[k]; });
+
+  if (bySnoozeDate) {
+    const dateKey = function (i) { return i.nextReminderDate || '9999-12-31'; };
+    groups.forEach(function (g) {
+      g.items.sort(function (a, b) {
+        if (dateKey(a) !== dateKey(b)) return dateKey(a) < dateKey(b) ? -1 : 1;
+        return (a.date || '') < (b.date || '') ? -1 : 1;
+      });
+    });
+    groups.sort(function (a, b) {
+      const x = a.nextReminderDate || '9999-12-31';
+      const y = b.nextReminderDate || '9999-12-31';
+      if (x !== y) return x < y ? -1 : 1;
+      return b.count - a.count;
+    });
+    return groups;
+  }
+
   groups.forEach(function (g) {
     g.items.sort(function (a, b) {
       if (a.escalated !== b.escalated) return a.escalated ? -1 : 1;

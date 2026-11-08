@@ -1,0 +1,20 @@
+.adv-head { margin-bottom: 18rpx; }
+.title { font-size: 38rpx; font-weight: 700; }
+
+.cache-banner {
+  background: #1a201a; border: 1rpx solid #2a3a2a; border-radius: 10rpx;
+  color: #9fb3a8; font-size: 22rpx; padding: 12rpx 16rpx; margin-bottom: 16rpx;
+}
+
+.adv-item { background: #161a18; border: 1rpx solid #242b28; border-radius: 16rpx; padding: 22rpx; margin-bottom: 16rpx; }
+.adv-item.focus { border-color: #e8ff47; box-shadow: 0 0 0 2rpx rgba(232, 255, 71, 0.18); }
+.adv-date { display: flex; align-items: center; gap: 12rpx; margin-bottom: 10rpx; }
+.date-text { font-size: 27rpx; font-weight: 600; color: #e8ff47; }
+.adv-body { font-size: 27rpx; line-height: 1.7; color: #dfe7e2; white-space: pre-wrap; }
+.revoked-note { color: #8a968f; margin: 6rpx 0; }
+.adv-chips { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 14rpx; }
+.chip.sm { padding: 6rpx 16rpx; font-size: 22rpx; }
+.adv-meta { margin-top: 12rpx; }
+.badge.update { background: #2a3a12; color: #e8ff47; }
+
+.more { text-align: center; color: #6b7772; padding: 18rpx 0 30rpx; }

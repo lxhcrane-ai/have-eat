@@ -23,7 +23,7 @@ function report(title, log, profile, recent) {
       if (a.kb && a.kb.length) {
         a.kb.forEach(function (id) {
           const it = rules.KB_MAP[id];
-          if (it) console.log('       依据：' + it.title + '  —  ' + it.source);
+          if (it) console.log('       依据：' + it.title + '  —  ' + it.sources.map(function (s) { return s.citation; }).join('；'));
         });
       }
     });

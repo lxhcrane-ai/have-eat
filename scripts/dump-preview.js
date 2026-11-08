@@ -51,7 +51,7 @@ function pack(title, note, log, recent) {
     alerts: f.alerts.map(function (a) {
       return { level: a.level, title: a.title, text: a.text, kbTitles: (a.kb || []).map(function (id) { return rules.KB_MAP[id] ? rules.KB_MAP[id].title : ''; }) };
     }),
-    tips: f.tips.map(function (t) { return { title: t.title, body: t.body, source: t.source }; }),
+    tips: f.tips.map(function (t) { return { title: t.title, body: t.body, sources: t.sources }; }),
     coachSummary: f.coachSummary,
     date: log.date
   };

@@ -2,9 +2,16 @@
   <view class="rep-head">
     <view class="rep-title">
       {{isCoachView ? athleteName + ' 的周报' : '我的周报'}}
-      <text class="tiny"> {{w.phaseLabel}}</text>
+      <text class="tiny"> {{weekLabel}}</text>
+      <text class="tiny" wx:if="{{w}}"> {{w.phaseLabel}}</text>
     </view>
     <view class="tiny">{{fromDate}} ~ {{endDate}}</view>
+    <view class="source-badge {{source === 'local' ? 'local' : 'cloud'}}" wx:if="{{w && sourceLabel}}">{{sourceLabel}}</view>
+  </view>
+
+  <view class="demo-banner" wx:if="{{isDemo}}">
+    <text class="demo-tag">演示数据</text>
+    <text>本周报基于演示记录生成，不是真实训练数据。保存任意一天的真实记录后，演示数据会自动移除。</text>
   </view>
 
   <view class="week-nav">
@@ -40,7 +47,7 @@
 
     <!-- 结论 -->
     <view class="card">
-      <view class="card-title">这周发生了什么<text class="tiny">{{w.loggedDays}}/7 天有记录</text></view>
+      <view class="card-title">这周发生了什么<text class="tiny">{{w.loggedDays}}/{{w.days}} 天有记录</text></view>
       <view class="concl" wx:for="{{w.conclusions}}" wx:key="*this">· {{item}}</view>
       <view class="tiny" wx:if="{{w.completeDays < w.loggedDays}}">其中 {{w.loggedDays - w.completeDays}} 天缺本阶段必填项，相关结论只能算"部分"</view>
     </view>
@@ -59,16 +66,50 @@
       <view class="tiny">点单项展开"依据"可看到规则 ID 与文献锚点（今日页 / 规则库）</view>
     </view>
 
+    <!-- 与上一周对比 -->
+    <view class="card">
+      <view class="card-title">
+        与上一周对比
+        <text class="tiny" wx:if="{{cmp.prevAvailable}}">{{cmp.prevFromDate}} ~ {{cmp.prevEndDate}}</text>
+      </view>
+      <block wx:if="{{cmp.prevAvailable}}">
+        <view class="cmp-row" wx:for="{{cmp.rows}}" wx:key="key">
+          <view class="cmp-top">
+            <text class="cmp-label">{{item.label}}</text>
+            <text class="cmp-delta {{item.tone}}">{{item.deltaText}}</text>
+          </view>
+          <view class="tiny">本周 {{item.curText}} · 上周 {{item.prevText}}</view>
+        </view>
+        <view class="tiny">上一周按当前的阶段口径重算，仅用于趋势对照。</view>
+      </block>
+      <view class="tiny cmp-empty" wx:else>上周无数据可对比（不按 0 计算）。</view>
+    </view>
+
     <!-- 下周 -->
     <view class="card">
       <view class="card-title">下周先做这几件</view>
       <view class="next" wx:for="{{w.nextWeek}}" wx:key="*this">{{index + 1}}. {{item}}</view>
     </view>
 
-    <button class="btn" bindtap="copyText">复制周报文本（发给教练）</button>
+    <button class="btn" bindtap="exportPoster" loading="{{exporting}}" disabled="{{exporting}}">{{exporting ? '正在生成长图…' : '生成长图（预览 / 保存）'}}</button>
+    <button class="btn ghost" bindtap="savePoster" wx:if="{{hasPoster}}">保存长图到相册{{posterCount > 1 ? '（共 ' + posterCount + ' 张）' : ''}}</button>
+    <view class="tiny center" wx:if="{{hasPoster}}">长图与复制文本使用同一份数据；预览页也可长按保存</view>
+    <button class="btn ghost" bindtap="copyText" style="margin-top:12rpx">复制周报文本（发给教练）</button>
     <button class="btn ghost" bindtap="goLog" style="margin-top:12rpx">补记今天的记录</button>
     <view class="tiny center" style="margin:20rpx 0 40rpx">周报只统计有记录的日期；缺记录的天不会当成"做得不好"</view>
   </block>
 
-  <view class="empty" wx:if="{{!w && !loading}}">这一周还没有记录</view>
+  <view class="empty" wx:if="{{!w && !loading}}">
+    <view class="empty-title">{{emptyTitle || '这一周还没有记录'}}</view>
+    <view class="tiny">{{emptyHint}}</view>
+    <view class="empty-ops">
+      <button class="btn ghost mini" wx:if="{{isCoachView}}" bindtap="goBackCoach">返回拳王详情</button>
+      <button class="btn ghost mini" bindtap="prevWeek">改查上一周</button>
+      <button class="btn ghost mini" wx:if="{{!isCoachView}}" bindtap="goLog">补记今天的记录</button>
+      <button class="btn mini" wx:if="{{error}}" bindtap="load">重试</button>
+    </view>
+  </view>
+
+  <!-- 离屏画布：长图在此绘制后导出，不参与页面布局 -->
+  <canvas type="2d" id="posterCanvas" class="poster-canvas" aria-hidden="true" />
 </view>

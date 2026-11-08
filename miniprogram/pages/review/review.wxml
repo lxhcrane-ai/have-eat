@@ -1,0 +1,175 @@
+<view class="page rev-page">
+  <view class="rev-head">
+    <view>
+      <view class="rev-title">{{name}}</view>
+      <view class="tiny">{{date}} · {{phaseLabel}} · {{statusText}}</view>
+    </view>
+    <text class="op" bindtap="goBack">返回看板</text>
+  </view>
+
+  <view class="card" wx:if="{{error}}">
+    <view class="card-title">{{offline ? '离线模式' : '加载失败'}}</view>
+    <view class="tiny">{{error}}</view>
+    <view class="tiny" wx:if="{{offline}}" style="margin-top:8rpx">离线时只能存本机草稿，不能发布；联网后再保存与发布。</view>
+  </view>
+
+  <view class="card done {{revoked ? 'revoked' : ''}}" wx:if="{{published}}">
+    <view class="card-title">{{revoked ? '已撤回' : '已发布'}} <text class="muted">v{{version}}</text></view>
+    <view class="tiny">发布 {{publishedText}}<text wx:if="{{updatedText}}"> · 上次更新 {{updatedText}}</text></view>
+    <view class="tiny" wx:if="{{!revoked}}">拳王首页读取发布时冻结的系统快照；点“修改”可发布新版本。</view>
+    <view class="tiny" wx:if="{{revoked}}">拳王端将显示“已撤回”，正文不再展示。</view>
+    <view class="tiny local-note" wx:if="{{localDraftNote}}">本机仍有未发布草稿；重新进入本页可选择“以本地草稿继续”。</view>
+  </view>
+
+  <!-- 当天日志摘要 -->
+  <view class="card" wx:if="{{hasLog}}">
+    <view class="card-title">当天记录 <text class="muted">{{date}}</text></view>
+    <view class="lsum">
+      <view class="lsum-cell"><view class="tiny">晨重</view><view class="lsum-val">{{logInfo.kg}} kg</view></view>
+      <view class="lsum-cell"><view class="tiny">餐次</view><view class="lsum-val">{{logInfo.meal}}</view></view>
+      <view class="lsum-cell"><view class="tiny">睡眠</view><view class="lsum-val">{{logInfo.sleep}} h</view></view>
+      <view class="lsum-cell"><view class="tiny">更新</view><view class="lsum-val">{{logInfo.updatedAt}}</view></view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{!hasLog && !loading && !error}}">
+    <view class="card-title">当天没有训练记录</view>
+    <view class="tiny">系统快照为空，评分不带参考。仍可以按你的判断写建议，发布时会冻结这个空快照。</view>
+  </view>
+
+  <!-- 系统快照（只读） -->
+  <view class="card" wx:if="{{!loading}}">
+    <view class="card-title">系统自动建议 <text class="muted">只读</text></view>
+    <view class="snap-top">
+      <view class="snap-score tone-{{tone}}">{{score}}</view>
+      <view class="snap-right">
+        <view class="snap-level tone-{{tone}}">{{level}}</view>
+        <view class="tiny">{{headline}}</view>
+      </view>
+    </view>
+
+    <view class="mgrid" wx:if="{{metrics.length}}">
+      <view class="mcell" wx:for="{{metrics}}" wx:key="label">
+        <view class="tiny">{{item.label}}</view>
+        <view class="mval {{item.tone ? 'v-' + item.tone : ''}}">{{item.value}}<text class="muted">{{item.unit}}</text></view>
+      </view>
+    </view>
+
+    <view class="warn-line" wx:for="{{missingRequired}}" wx:key="key">· 必填未填：{{item.label}}</view>
+    <view class="tiny" wx:if="{{suppressedCount}}">另有 {{suppressedCount}} 条低优先级提示未展示</view>
+
+    <view class="alert a-{{item.level}}" wx:for="{{alerts}}" wx:key="ruleId" wx:for-item="item">
+      <view class="alert-head">
+        <text class="badge {{item.level === 'red' ? 'red' : (item.level === 'amber' ? 'amber' : 'info')}}">{{item.level === 'red' ? '必须' : (item.level === 'amber' ? '注意' : '提示')}}</text>
+        <text class="alert-title">{{item.title}}</text>
+        <text class="badge amber" wx:if="{{item.requiresFollowUp}}">需跟进</text>
+      </view>
+      <view class="alert-body">{{item.text}}</view>
+      <view class="tiny" wx:if="{{item.evidence}}">触发数据：{{item.evidence}}</view>
+      <view class="tiny" wx:if="{{item.ruleId}}">规则 {{item.ruleId}} · {{item.ruleName}}</view>
+      <view class="badge amber" wx:if="{{item.reviewStatus === 'needs_review'}}">该规则待复核</view>
+      <block wx:if="{{item.sources.length}}">
+        <view class="tiny" style="margin-top:8rpx">文献依据</view>
+        <view class="src-line" wx:for="{{item.sources}}" wx:for-item="s" wx:key="anchor">· [{{s.typeName}} {{s.year}}] {{s.anchor}}<text class="tiny" wx:if="{{s.doi}}"> doi:{{s.doi}}</text></view>
+      </block>
+      <view class="src-line" wx:for="{{item.kbTitles}}" wx:for-item="t" wx:key="*this">· {{t}}</view>
+    </view>
+  </view>
+
+  <!-- 目标计划（矩阵卡）：数据来自快照的 goal 块，旧快照不渲染 -->
+  <view class="card goal-card" wx:if="{{goalCard}}">
+    <view class="card-title">目标计划 <text class="muted">矩阵 {{goalCard.matrixVersion || '-'}}</text></view>
+    <view class="tiny" wx:if="{{goalCard.effectiveDate}}">生效 {{goalCard.effectiveDate}} · {{goalCard.sourceText}}</view>
+    <view class="warn-line" wx:if="{{goalCard.conflict}}">目标与当前阶段存在冲突，以下为系统裁决结果，不等于已生效处方。</view>
+
+    <view class="goal-chips">
+      <view class="chip sm" wx:for="{{goalCard.goals}}" wx:key="id">{{item.name}}<text class="goal-role">{{item.roleLabel}}</text></view>
+      <view class="chip sm goal-ev {{goalCard.weak ? 'weak' : ''}}" wx:if="{{goalCard.evidenceLabel}}">{{goalCard.evidenceLabel}}</view>
+    </view>
+
+    <view class="gline" wx:if="{{goalCard.composites.length}}">复合配方：<text wx:for="{{goalCard.composites}}" wx:key="id">{{item.name}} </text></view>
+    <view class="gline" wx:if="{{goalCard.concessions.length}}">让步：<text wx:for="{{goalCard.concessions}}" wx:key="goalId">{{item.goalName}} {{item.modeLabel}}（{{item.reason}}）；</text></view>
+    <view class="gline" wx:if="{{goalCard.blocked.length}}">被拦截：<text wx:for="{{goalCard.blocked}}" wx:key="goalId">{{item.goalName}}（{{item.typeLabel}}）{{item.message}}；</text></view>
+
+    <view class="goal-adh" wx:if="{{goalCard.adherence && goalCard.adherence.show}}">
+      <view>依从性 <text class="tone-{{goalCard.adherence.tone}}">{{goalCard.adherence.levelLabel}}</text><text wx:if="{{!goalCard.adherence.unknown}}"> {{goalCard.adherence.scoreText}}</text></view>
+      <view class="tiny">{{goalCard.adherence.hint}}</view>
+      <view class="tiny" wx:for="{{goalCard.adherence.components}}" wx:key="id">{{item.label}} {{item.valueText}}（{{item.weightText}}）</view>
+    </view>
+
+    <view class="gline" wx:if="{{goalCard.strategyText}}">主导策略：{{goalCard.strategyText}}</view>
+    <view class="tiny" wx:if="{{!goalCard.strategyText}}">本次没有可带入的主导策略要点。</view>
+    <text class="op" wx:if="{{goalCard.strategyText}}" bindtap="bringGoal">带入建议开头 ›</text>
+  </view>
+
+  <view class="card" wx:if="{{snapshot && !goalCard}}">
+    <view class="tiny">目标：未设目标（本版快照不含目标计划）</view>
+  </view>
+
+  <!-- refeed 计划：营养师写入 profile.refeedDays，拳王端不可改；留空表示本周不安排 -->
+  <view class="card" wx:if="{{!offline && !loading}}">
+    <view class="card-title">refeed 计划 <text class="muted">每周天数 0–7</text></view>
+    <view class="tiny">用于目标依从性里的 refeed 节奏；留空表示本周不安排。保存成功后立即回填。</view>
+    <input class="input" type="number" value="{{refeedInput}}" placeholder="0–7，可留空" bindinput="onRefeedInput" />
+    <view class="tiny">当前：{{refeedText}}</view>
+    <button class="btn mini" loading="{{savingRefeed}}" bindtap="saveRefeed">保存 refeed 计划</button>
+  </view>
+
+  <!-- 依据勾选 -->
+  <view class="card">
+    <view class="card-title">选择依据 <text class="muted">规则 {{ruleCount}} · 知识库 {{kbCount}}</text></view>
+    <view class="tiny">命中的规则已默认勾选；拳王端只看到建议正文，依据用于内部留痕与复核。</view>
+    <view class="pick-title tiny">规则</view>
+    <scroll-view scroll-y class="picker">
+      <view class="pick-wrap">
+        <view class="pick {{item.on ? 'on' : ''}}" wx:for="{{rules}}" wx:key="ruleId" data-i="{{index}}" bindtap="toggleRule">
+          <text>{{item.name}}</text>
+          <text class="pick-tag" wx:if="{{item.hit}}">命中</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="pick-title tiny">知识库条目</view>
+    <scroll-view scroll-y class="picker">
+      <view class="pick-wrap">
+        <view class="pick {{item.on ? 'on' : ''}}" wx:for="{{kb}}" wx:key="id" data-i="{{index}}" bindtap="toggleKb">
+          <text>{{item.title}}</text>
+          <text class="pick-tag" wx:if="{{item.hit}}">命中</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 正文 -->
+  <view class="card">
+    <view class="card-title">建议正文 <text class="muted">{{bodyLen}} / 3000</text></view>
+    <textarea class="body" value="{{body}}" bindinput="onBody" maxlength="3000" auto-height
+      placeholder="写今天要拳王做到的事：具体到餐次、克数、时间。避免重复系统告警原文。"
+      disabled="{{readOnly}}" />
+    <view class="tiny" wx:if="{{restored}}">已从本机备份恢复未保存的内容。</view>
+  </view>
+
+  <view class="card" wx:if="{{editing}}">
+    <view class="card-title">修改原因</view>
+    <input class="reason" value="{{updateReason}}" bindinput="onReason" maxlength="200"
+      placeholder="例如：补充晚餐蛋白量" />
+    <view class="tiny">提交后版本号变为 v{{version + 1}}，旧正文与原因会写入留痕。</view>
+  </view>
+
+  <view class="savebar">
+    <view class="save-state tiny">{{revoked ? '已撤回 · 仅保留留痕' : (editing ? (dirty ? '编辑中 · 提交后发布新版本' : '编辑中 · 修改后提交') : (saving ? '保存中…' : (savedAt ? '草稿已保存 ' + savedAt : (dirty ? '有未保存改动' : '改动会自动备份到本机'))))}}</view>
+    <view class="save-ops">
+      <block wx:if="{{published && !editing && !revoked}}">
+        <button class="btn ghost mini" bindtap="startEdit" disabled="{{updating}}">修改</button>
+        <button class="btn danger mini" bindtap="revoke" disabled="{{updating}}">撤回</button>
+      </block>
+      <block wx:elif="{{editing}}">
+        <button class="btn ghost mini" bindtap="cancelEdit" disabled="{{updating}}">取消</button>
+        <button class="btn mini" bindtap="submitUpdate" disabled="{{updating}}">{{updating ? '提交中…' : '提交新版本'}}</button>
+      </block>
+      <block wx:elif="{{!published}}">
+        <button class="btn ghost mini" bindtap="saveDraft" disabled="{{saving}}">{{offline ? '存本地草稿' : '存草稿'}}</button>
+        <button class="btn mini" bindtap="publish" disabled="{{publishing || offline}}">{{offline ? '离线不能发布' : (publishing ? '发布中…' : '发布给拳王')}}</button>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,103 @@
+<view class="page goals-page">
+  <view class="card" wx:if="{{error}}">
+    <view class="card-title">无法进入目标设置</view>
+    <view class="tiny">{{error}}</view>
+    <button class="btn ghost" bindtap="load" style="margin-top:16rpx">重试</button>
+    <button class="btn ghost" bindtap="goBack" style="margin-top:12rpx">返回</button>
+  </view>
+
+  <view class="card" wx:if="{{loading && !error}}">
+    <view class="tiny">读取拳王阶段与已有目标…</view>
+  </view>
+
+  <block wx:if="{{!loading && !error}}">
+    <view class="g-head">
+      <view>
+        <view class="g-name">{{name}}</view>
+        <view class="tiny">阶段 · {{phaseLabel}}</view>
+      </view>
+      <text class="op" bindtap="goBack">返回</text>
+    </view>
+    <view class="tiny g-hint">{{phaseHint}}</view>
+
+    <view class="card quota-card">
+      <view class="quota-row">
+        <view class="quota-cell">
+          <text class="qnum">{{quota.main}}</text>
+          <text class="qmax">/{{quota.maxMain}}</text>
+          <text class="qlabel"> 主目标</text>
+        </view>
+        <view class="quota-cell">
+          <text class="qnum">{{quota.monitor}}</text>
+          <text class="qmax">/{{quota.maxMonitor}}</text>
+          <text class="qlabel"> 监测</text>
+        </view>
+        <view class="quota-text">{{quota.text}}</view>
+      </view>
+      <view class="warn-line" wx:if="{{quota.over}}">已超出名额，请先移除再提交</view>
+      <view class="tiny">G-IMM 免疫监测单独 1 个名额、不占主目标名额；G-MED 需人工处理，不可选。</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">
+        <text>已选目标</text>
+        <text class="tiny">顺序即优先级</text>
+      </view>
+      <view class="empty sm" wx:if="{{!selectedView.length}}">还没有目标，在下面选 1–3 个主目标（可另加 1 个免疫监测）</view>
+      <view class="sel-row" wx:for="{{selectedView}}" wx:key="id">
+        <text class="sel-order">{{item.order}}</text>
+        <view class="sel-main">
+          <text class="sel-name">{{item.name}}</text>
+          <text class="sel-role">{{item.roleText}}</text>
+        </view>
+        <text class="op {{item.canUp ? '' : 'off'}}" data-i="{{item.index}}" data-dir="up" bindtap="moveGoal">上移</text>
+        <text class="op {{item.canDown ? '' : 'off'}}" data-i="{{item.index}}" data-dir="down" bindtap="moveGoal">下移</text>
+        <text class="op danger" data-i="{{item.index}}" bindtap="removeGoal">移除</text>
+      </view>
+      <view class="tiny" wx:if="{{droppedNote}}">{{droppedNote}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">选择目标</view>
+      <view class="toggle-note" wx:if="{{toggleNote}}">{{toggleNote}}</view>
+      <view class="g-sec" wx:for="{{groups}}" wx:for-item="s" wx:key="id">
+        <view class="sec-label">{{s.label}}</view>
+        <view class="atom {{item.checked ? 'on' : ''}} {{item.disabled ? 'disabled' : ''}}"
+              wx:for="{{s.atoms}}" wx:key="id" data-id="{{item.id}}" bindtap="toggleAtom">
+          <view class="atom-top">
+            <text class="atom-name">{{item.name}}</text>
+            <text class="atom-flag" wx:if="{{!item.occupiesSlot}}">单独名额</text>
+            <text class="atom-check" wx:if="{{item.checked}}">已选</text>
+          </view>
+          <view class="atom-reason" wx:if="{{item.disabled && item.disableReason}}">{{item.disableReason}}</view>
+          <view class="atom-cond" wx:elif="{{item.conditionNote}}">{{item.conditionNote}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">生效信息</view>
+      <view class="form-row">
+        <text class="label">体脂率</text>
+        <input class="input bf-input" type="digit" placeholder="可留空，3–50%" value="{{bodyFat}}" bindinput="onBodyFat" />
+      </view>
+      <view class="form-row">
+        <text class="label">生效日期</text>
+        <picker mode="date" value="{{goalDate}}" bindchange="onDate">
+          <view class="date-pick">{{goalDate || '请选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="tiny">体脂用于能量可用性（G-EA）判断；日期表示目标从哪天开始生效。</view>
+    </view>
+
+    <view class="err-card" wx:if="{{formError}}">
+      <view class="err-code" wx:if="{{formErrorCode}}">错误码 {{formErrorCode}}</view>
+      <view class="err-text">{{formError}}</view>
+      <view class="tiny" wx:if="{{formDetail}}">云端详情：{{formDetail}}</view>
+    </view>
+
+    <view class="tiny foot" wx:if="{{offline}}">离线：提交已禁用，本机不会写入目标。</view>
+    <button class="btn" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">{{hasExisting ? '保存调整后的目标' : '创建目标计划'}}</button>
+    <button class="btn ghost" bindtap="clearAll" style="margin-top:12rpx" wx:if="{{selectedView.length}}">清空目标</button>
+  </block>
+</view>

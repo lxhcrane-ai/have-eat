@@ -142,13 +142,14 @@ fs.readdirSync(CF).forEach(function (fn) {
 
 // ---------- 8. 云端 lib 与小程序端是否同步 ----------
 console.log('\n8) 规则引擎同步状态');
-['saveLog', 'getFeed', 'coachApi'].forEach(function (fn) {
+['saveLog', 'getFeed', 'coachApi', 'advice'].forEach(function (fn) {
   const local = path.join(MP, 'utils', 'rules.js');
   const remote = path.join(CF, fn, 'lib', 'rules.js');
   if (!exists(remote)) { err(fn + '/lib/rules.js 不存在，先跑 bash scripts/sync-shared.sh'); return; }
   const a = read(local)
     .replace(/require\('\.\.\/data\/knowledge\.js'\)/, "require('./knowledge.js')")
-    .replace(/require\('\.\.\/data\/ruleRegistry\.js'\)/, "require('./ruleRegistry.js')");
+    .replace(/require\('\.\.\/data\/ruleRegistry\.js'\)/, "require('./ruleRegistry.js')")
+    .replace(/require\('\.\.\/data\/goalMatrix\.js'\)/, "require('./goalMatrix.js')");
   const b = read(remote);
   if (a !== b) err(fn + '/lib/rules.js 与 miniprogram/utils/rules.js 不一致，跑 bash scripts/sync-shared.sh');
   const kbA = read(path.join(MP, 'data', 'knowledge.js'));
@@ -157,6 +158,24 @@ console.log('\n8) 规则引擎同步状态');
   const regA = read(path.join(MP, 'data', 'ruleRegistry.js'));
   const regB = exists(path.join(CF, fn, 'lib', 'ruleRegistry.js')) ? read(path.join(CF, fn, 'lib', 'ruleRegistry.js')) : '';
   if (regA !== regB) err(fn + '/lib/ruleRegistry.js 未同步');
+  const gmB = exists(path.join(CF, fn, 'lib', 'goalMatrix.js')) ? read(path.join(CF, fn, 'lib', 'goalMatrix.js')) : '';
+  if (read(path.join(MP, 'data', 'goalMatrix.js')) !== gmB) err(fn + '/lib/goalMatrix.js 未同步');
+  const goalsA = read(path.join(MP, 'utils', 'goals.js')).replace(/require\('\.\.\/data\/goalMatrix\.js'\)/, "require('./goalMatrix.js')");
+  const goalsB = exists(path.join(CF, fn, 'lib', 'goals.js')) ? read(path.join(CF, fn, 'lib', 'goals.js')) : '';
+  if (goalsA !== goalsB) err(fn + '/lib/goals.js 未同步');
+  // weekly.js 只有 getFeed / advice 消费；saveLog / coachApi 不要求存在，避免误报 MISSING
+  if (fn === 'getFeed' || fn === 'advice') {
+    const wkA = read(path.join(MP, 'utils', 'weekly.js'))
+      .replace(/require\('\.\/rules\.js'\)/, "require('./rules.js')");
+    const wkRemote = path.join(CF, fn, 'lib', 'weekly.js');
+    if (!exists(wkRemote)) {
+      err(fn + '/lib/weekly.js 不存在，跑 bash scripts/sync-shared.sh');
+    } else {
+      const wkB = read(wkRemote).replace(/require\('\.\/rules\.js'\)/, "require('./rules.js')");
+      if (wkA !== wkB) err(fn + '/lib/weekly.js 与 miniprogram/utils/weekly.js 不一致，跑 bash scripts/sync-shared.sh');
+    }
+  }
+  if (fn === 'advice') return; // advice 不需要 followup
   const fuA = exists(path.join(MP, 'utils', 'followup.js'))
     ? read(path.join(MP, 'utils', 'followup.js')).replace(/require\('\.\.\/data\/ruleRegistry\.js'\)/, "require('./ruleRegistry.js')")
     : '';
@@ -245,6 +264,179 @@ const cfg = read(path.join(MP, 'config.js'));
 if (/YOUR-CLOUD-ENV-ID/.test(cfg)) warn('config.js 的 env 还是占位符，编译后只能进离线模式');
 const pc = JSON.parse(read(path.join(ROOT, 'project.config.json')));
 if (pc.appid === 'touristappid') warn('project.config.json 的 appid 还是 touristappid，云开发不可用（只能本地预览）');
+
+// ---------- 12. 复合目标矩阵 ----------
+console.log('\n12) 复合目标矩阵');
+(function () {
+  const GM_PATH = path.join(MP, 'data', 'goalMatrix.js');
+  let gm;
+  try {
+    gm = require(GM_PATH);
+  } catch (e) {
+    err('data/goalMatrix.js 不是合法模块：' + e.message);
+    return;
+  }
+
+  const PHASES = ['maintain', 'cut', 'peak', 'recover'];
+  const EVIDENCE = ['strong', 'moderate', 'weak', 'mixed'];
+  const LEGALITY = ['legal', 'conditional', 'monitor', 'guardrail', 'veto', 'illegal'];
+
+  // 版本号
+  if (!gm.GOAL_MATRIX_VERSION || typeof gm.GOAL_MATRIX_VERSION !== 'string') {
+    err('GOAL_MATRIX_VERSION 缺失或不是字符串');
+  }
+
+  // 原子
+  const atoms = gm.ATOMS || [];
+  const atomIds = atoms.map(function (a) { return a.id; });
+  if (atoms.length !== 15) err('目标原子应为 15 个，实际 ' + atoms.length);
+  if (new Set(atomIds).size !== atomIds.length) err('目标原子 ID 有重复');
+  if (atomIds.indexOf('EN') >= 0) err('atoms 不得出现 EN（EN 只允许在入口归一化映射里）');
+  atoms.forEach(function (a) {
+    if (!a.name || !a.dimension) err('目标原子 ' + a.id + ' 缺名称/维度');
+    if (!Array.isArray(a.confirmSignals) || !a.confirmSignals.length) err('目标原子 ' + a.id + ' 缺判定信号');
+    if (!Array.isArray(a.counterSignals)) err('目标原子 ' + a.id + ' 缺反证信号字段');
+    if (!Array.isArray(a.legalPhases) || !a.legalPhases.length) {
+      err('目标原子 ' + a.id + ' 没有合法阶段');
+    } else {
+      a.legalPhases.forEach(function (p) {
+        if (PHASES.indexOf(p) < 0) err('目标原子 ' + a.id + ' 的合法阶段 ' + p + ' 不存在');
+      });
+    }
+    if (a.id === 'G-IMM' && a.occupiesSlot !== false) err('G-IMM 不应占用目标名额');
+    if (a.id === 'G-MED' && a.selectable !== false) err('G-MED 不应是可选择目标');
+  });
+
+  // 60 格：每个原子在每个阶段都有格
+  const matrix = gm.MATRIX || {};
+  let cellCount = 0;
+  PHASES.forEach(function (phase) {
+    const row = matrix[phase];
+    if (!row) { err('矩阵缺少阶段 ' + phase); return; }
+    atoms.forEach(function (a) {
+      const c = row[a.id];
+      if (!c) { err('矩阵缺少格 ' + phase + '/' + a.id); return; }
+      cellCount++;
+      if (c.cellId !== 'MX-' + phase.toUpperCase() + '-' + a.id) {
+        err('格编号不匹配 ' + phase + '/' + a.id + ' -> ' + c.cellId);
+      }
+      if (typeof c.legal !== 'boolean') err('格 ' + phase + '/' + a.id + ' 的 legal 不是布尔值');
+      if (LEGALITY.indexOf(c.legality) < 0) err('格 ' + phase + '/' + a.id + ' 的 legality 非法：' + c.legality);
+      if (EVIDENCE.indexOf(c.evidenceStatus) < 0) err('格 ' + phase + '/' + a.id + ' 的 evidenceStatus 非法：' + c.evidenceStatus);
+      if (!c.strategy) err('格 ' + phase + '/' + a.id + ' 缺策略');
+      ['timing', 'extraFields', 'monitorRules', 'monitorKbIds', 'monitorFields', 'anchors'].forEach(function (k) {
+        if (!Array.isArray(c[k])) err('格 ' + phase + '/' + a.id + ' 的 ' + k + ' 不是数组');
+      });
+
+      // 弱证据格不得携带数值处方
+      if (c.evidenceStatus === 'weak') {
+        if (c.macros !== null) err('弱证据格 ' + phase + '/' + a.id + ' 携带宏量处方');
+        ['targets', 'prescription', 'numericRanges', 'grams'].forEach(function (k) {
+          if (c[k]) err('弱证据格 ' + phase + '/' + a.id + ' 携带数值处方字段 ' + k);
+        });
+      }
+
+      // 非法阶段组合标记
+      if (c.legal === false) {
+        if (c.legality !== 'illegal') err('非法格 ' + phase + '/' + a.id + ' 的 legality 应为 illegal');
+        if (!c.illegalReason) err('非法格 ' + phase + '/' + a.id + ' 缺 illegalReason');
+        if (!c.goalRule) err('非法格 ' + phase + '/' + a.id + ' 缺 goalRule');
+        if (c.macros !== null) err('非法格 ' + phase + '/' + a.id + ' 不应携带宏量');
+      } else if (c.legality === 'illegal') {
+        err('格 ' + phase + '/' + a.id + ' legal=true 但 legality=illegal');
+      }
+      if (c.legality === 'conditional' && !c.condition) {
+        err('条件合法格 ' + phase + '/' + a.id + ' 缺 condition');
+      }
+
+      // 原子合法阶段与矩阵一致
+      if (c.legal && a.legalPhases.indexOf(phase) < 0) {
+        err('矩阵 ' + phase + '/' + a.id + ' 合法但原子 legalPhases 未包含该阶段');
+      }
+    });
+  });
+  if (cellCount !== 60) err('矩阵应为 60 格，实际 ' + cellCount);
+
+  // B-REFUEL 的碳水必须是两个不连续区间：[[4,7],[8,12]]，不得写成 {min:4,max:12}
+  const bRefuel = MATRIX_RECOVER_BREFUEL();
+  if (!bRefuel || !bRefuel.targets) {
+    err('recover/B-REFUEL 缺 targets');
+  } else {
+    const carb = bRefuel.targets.carb;
+    if (!Array.isArray(carb) || carb.length !== 2) {
+      err('B-REFUEL targets.carb 必须是两个区间组成的数组');
+    } else {
+      carb.forEach(function (seg, i) {
+        if (!Array.isArray(seg) || seg.length !== 2 || typeof seg[0] !== 'number' || typeof seg[1] !== 'number' || seg[0] > seg[1]) {
+          err('B-REFUEL targets.carb 第 ' + i + ' 段不是合法区间');
+        }
+      });
+      if (carb[0][1] >= carb[1][0]) {
+        err('B-REFUEL targets.carb 不得连续化（7–8 之间非法）');
+      }
+    }
+  }
+  function MATRIX_RECOVER_BREFUEL() {
+    return matrix.recover && matrix.recover['B-REFUEL'];
+  }
+
+  // 配方
+  const comps = gm.COMPOSITES || [];
+  if (comps.length !== 27) err('复合配方应为 27 条，实际 ' + comps.length);
+  const compIds = comps.map(function (c) { return c.id; });
+  if (new Set(compIds).size !== compIds.length) err('配方编号有重复');
+  const concessionModes = gm.CONCESSION_MODES || [];
+  if (concessionModes.length !== 6) err('让步模式应为 6 种，实际 ' + concessionModes.length);
+  // 配方允许额外使用 veto（护栏动作，§4/§5.1 用，但不是 §5.3 的六种让步模式）
+  const modes = gm.RECIPE_MODE_IDS || gm.CONCESSION_MODE_IDS || [];
+  comps.forEach(function (c) {
+    if (!/^C\d{2}$/.test(c.id)) err('配方编号格式错误 ' + c.id);
+    if (!Array.isArray(c.atoms) || c.atoms.length < 2 || c.atoms.length > 3) {
+      err('配方 ' + c.id + ' 的原子数应为 2–3');
+    } else {
+      c.atoms.forEach(function (id) {
+        if (id === 'EN') err('配方 ' + c.id + ' 的 atoms 不得出现 EN');
+        if (atomIds.indexOf(id) < 0) err('配方 ' + c.id + ' 引用未知原子 ' + id);
+      });
+    }
+    if (c.docAtoms && c.docAtoms.indexOf('EN') >= 0) err('配方 ' + c.id + ' 的 docAtoms 不得出现 EN');
+    if (c.lead && atomIds.indexOf(c.lead) < 0) err('配方 ' + c.id + ' 的主导原子不存在 ' + c.lead);
+    if (c.leadByPhase) {
+      Object.keys(c.leadByPhase).forEach(function (p) {
+        if (PHASES.indexOf(p) < 0) err('配方 ' + c.id + ' 的 leadByPhase 阶段不存在 ' + p);
+        if (atomIds.indexOf(c.leadByPhase[p]) < 0) err('配方 ' + c.id + ' 的 leadByPhase 原子不存在 ' + c.leadByPhase[p]);
+      });
+    }
+    const usedModes = [c.mode].concat(c.modes || []);
+    usedModes.forEach(function (m) {
+      if (m === 'veto') err('配方 ' + c.id + ' 的 concessions[].mode 不得为 veto');
+      if (modes.indexOf(m) < 0) err('配方 ' + c.id + ' 使用未知让步模式 ' + m);
+    });
+    if (c.guardrailAction && c.guardrailAction !== 'veto') {
+      err('配方 ' + c.id + ' 的 guardrailAction 只允许 veto');
+    }
+    if (!Array.isArray(c.phases) || !c.phases.length) {
+      err('配方 ' + c.id + ' 没有触发阶段');
+    } else {
+      c.phases.forEach(function (p) {
+        if (PHASES.indexOf(p) < 0) err('配方 ' + c.id + ' 引用未知阶段 ' + p);
+      });
+    }
+    if (EVIDENCE.indexOf(c.evidence) < 0) err('配方 ' + c.id + ' 的 evidence 非法：' + c.evidence);
+  });
+
+  // 冲突边：mode 不得为 veto；护栏动作只允许在 legality/goalBlockers/配方 guardrailAction
+  (gm.CONFLICT_EDGES || []).forEach(function (e) {
+    if (e.mode === 'veto') err('冲突边 ' + e.a + '↔' + e.b + ' 的 mode 不得为 veto');
+  });
+
+  // 优先级栈
+  const stack = gm.PRIORITY_STACK || [];
+  if (stack.length !== 7) err('优先级栈应为 L0–L6 共 7 层，实际 ' + stack.length);
+  stack.forEach(function (s, i) {
+    if (s.level !== 'L' + i) err('优先级栈第 ' + i + ' 层应为 L' + i + '，实际 ' + s.level);
+  });
+})();
 
 console.log('\n---------------------------------------');
 console.log(errors === 0 ? '没有阻塞性问题' : errors + ' 个阻塞问题') ;

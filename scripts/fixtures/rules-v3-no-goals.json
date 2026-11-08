@@ -1,0 +1,256 @@
+{
+  "rulesVersion": "__RULES_VERSION__",
+  "output": {
+    "version": 3,
+    "date": "2026-06-01",
+    "score": 93,
+    "level": "优",
+    "levelTone": "ok",
+    "headline": "今天各项正常，按计划吃练。",
+    "bw": 57.2,
+    "phase": "cut",
+    "phaseLabel": "减脂期",
+    "phaseProfile": {
+      "id": "cut",
+      "label": "减脂期",
+      "window": "赛前 8–12 周",
+      "goal": "每周降 0.5–1% 体重，蛋白上调保肌，缺口 300–600 kcal",
+      "metricWeights": {
+        "hydration": 25,
+        "protein": 25,
+        "energy": 20,
+        "recovery": 20,
+        "logging": 10
+      },
+      "primaryAlertTypes": [
+        "PRO-01",
+        "ENE-01",
+        "PHASE-01",
+        "REC-02",
+        "SLE-01"
+      ],
+      "notes": "项目最常用的阶段。水合按训练前后体重差判，蛋白与减重速率是主告警。"
+    },
+    "activeRuleIds": [
+      "HYD-01",
+      "HYD-02",
+      "HYD-03",
+      "PRO-01",
+      "PRO-02",
+      "ENE-01",
+      "PHASE-01",
+      "SLE-01",
+      "REC-02",
+      "REC-03",
+      "SUP-01",
+      "LOG-01"
+    ],
+    "suppressedRuleIds": [
+      "HYD-04",
+      "HYD-05",
+      "REC-01",
+      "REC-04",
+      "GI-01",
+      "PHASE-02"
+    ],
+    "suppressed": [],
+    "missingRequired": [],
+    "weights": {
+      "morning": {
+        "kg": 57.2
+      },
+      "pre": {
+        "kg": 57.4
+      },
+      "post": {
+        "kg": 56.6
+      },
+      "official": null
+    },
+    "hydration": {
+      "lossKg": 0.8,
+      "pct": 1.4,
+      "needMl": 1000,
+      "remainingMl": 0,
+      "level": "ok",
+      "text": "脱水 1.4%，在可接受范围。",
+      "planMl": null,
+      "actualMl": 2200,
+      "planRate": null,
+      "mode": "pct",
+      "postFluidMl": null,
+      "rehydrationAdvice": "按 1.25–1.5L/kg 补 1000–1200ml 含钠液体"
+    },
+    "protein": {
+      "targetG": 126,
+      "minG": 114,
+      "maxG": 137,
+      "actualG": 142,
+      "pct": 113,
+      "level": "ok",
+      "text": "蛋白 142g（2.5 g/kg），在 114–137g 区间内。",
+      "gPerKg": 2.5
+    },
+    "energy": {
+      "tdee": 2404,
+      "intake": 1626,
+      "balance": -778,
+      "level": "ok",
+      "text": "缺口 778 kcal，节奏合适。",
+      "dataOk": true,
+      "balanceShown": -778
+    },
+    "totals": {
+      "kcal": 1626,
+      "protein": 142,
+      "carbs": 196,
+      "fat": 31,
+      "count": 3,
+      "structured": 3,
+      "withPhoto": 0
+    },
+    "rate": {
+      "kgPerWeek": null,
+      "pctPerWeek": null,
+      "level": "unknown",
+      "text": "至少 4 天晨重才能算趋势（现有 1 天）。"
+    },
+    "recovery": {
+      "sorenessMax": 3,
+      "sleepHours": 8,
+      "giMax": null,
+      "level": "ok",
+      "text": "酸痛 3/10、睡眠 8h，恢复到可上强度的状态。"
+    },
+    "sRPE": 480,
+    "planConflict": null,
+    "alerts": [],
+    "tips": [
+      {
+        "id": "pro-total",
+        "title": "总量：1.6–2.2 g/kg/天",
+        "body": "力量与格斗类项目建议每天 1.6–2.2 g/kg（58kg 约 93–128g）。减脂期热量不足时提到 2.3–3.1 g/kg 去脂体重，用来对抗肌肉流失。超过 2.2 g/kg 对增肌没有额外好处，但在减脂期有意义。",
+        "sources": [
+          {
+            "sourceType": "position_stand",
+            "sourceTier": "primary",
+            "citation": "Jäger R, Kerksick CM, Campbell BI, Cribb PJ, Wells SD, Skwiat TM, et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.",
+            "year": 2017,
+            "doi": "10.1186/s12970-017-0177-8",
+            "url": "https://doi.org/10.1186/s12970-017-0177-8",
+            "authors": "Jäger R, Kerksick CM, Campbell BI, Cribb PJ, Wells SD, Skwiat TM, et al.",
+            "editors": "",
+            "title": "International Society of Sports Nutrition Position Stand: protein and exercise",
+            "edition": "",
+            "publisher": "Journal of the International Society of Sports Nutrition",
+            "isbn": "",
+            "chapterNo": "不适用",
+            "chapterTitle": "不适用",
+            "pages": "20",
+            "language": "en",
+            "verificationStatus": "verified",
+            "note": ""
+          },
+          {
+            "sourceType": "systematic_review",
+            "sourceTier": "primary",
+            "citation": "Refalo MC, Trexler ET, Helms ER, et al. Effect of dietary protein on fat-free mass in energy restricted, resistance-trained individuals: an updated systematic review with meta-regression. Strength Cond J. 2025 (published online 22 Jan 2025).",
+            "year": 2025,
+            "doi": "10.1519/SSC.0000000000000888",
+            "url": "https://doi.org/10.1519/SSC.0000000000000888",
+            "authors": "Refalo MC, Trexler ET, Helms ER, et al.",
+            "editors": "",
+            "title": "Effect of dietary protein on fat-free mass in energy restricted, resistance-trained individuals: an updated systematic review with meta-regression",
+            "edition": "",
+            "publisher": "Strength and Conditioning Journal",
+            "isbn": "",
+            "chapterNo": "不适用",
+            "chapterTitle": "不适用",
+            "pages": "待核实",
+            "language": "en",
+            "verificationStatus": "pages_pending",
+            "note": ""
+          }
+        ],
+        "cat": "protein"
+      },
+      {
+        "id": "wc-refeed",
+        "title": "减脂期不要一路减到底：安排 refeed",
+        "body": "连续 8 周以上热量缺口会让瘦素、甲状腺激素和训练表现一起下滑。每 2–3 周安排 1–2 天回到维持热量（碳水为主），体重会短期回升 0.5–1kg，那是糖原和水，不是脂肪。日记里看到体重反弹先别慌，看 7 日移动平均。",
+        "sources": [
+          {
+            "sourceType": "position_stand",
+            "sourceTier": "primary",
+            "citation": "Aragon AA, Schoenfeld BJ, Wildman R, et al. International Society of Sports Nutrition position stand: diets and body composition. J Int Soc Sports Nutr. 2017;14:16.",
+            "year": 2017,
+            "doi": "10.1186/s12970-017-0174-y",
+            "url": "https://doi.org/10.1186/s12970-017-0174-y",
+            "authors": "Aragon AA, Schoenfeld BJ, Wildman R, et al.",
+            "editors": "",
+            "title": "International Society of Sports Nutrition position stand: diets and body composition",
+            "edition": "",
+            "publisher": "Journal of the International Society of Sports Nutrition",
+            "isbn": "",
+            "chapterNo": "不适用",
+            "chapterTitle": "不适用",
+            "pages": "16",
+            "language": "en",
+            "verificationStatus": "verified",
+            "note": ""
+          }
+        ],
+        "cat": "weightcut"
+      },
+      {
+        "id": "wc-phases",
+        "title": "备赛四个阶段，策略完全不同",
+        "body": "维持期（非赛季）：体重稳定在参赛级别 +3–5%，正常吃。减脂期（赛前 8–12 周）：每周 0.5–1%，蛋白提到 2.0–2.4 g/kg 保肌。微调期（赛前 1–2 周）：只动水、钠、纤维和胃肠内容物，不再动热量缺口。恢复期（称重后 12–24h）：补液补糖，把体重拉回 3–5%。把阶段写进 App，规则才知道该给你哪套建议。",
+        "sources": [
+          {
+            "sourceType": "consensus",
+            "sourceTier": "primary",
+            "citation": "American College of Sports Medicine. ACSM Expert Consensus Statement on Weight Loss in Weight-Category Sports. Curr Sports Med Rep. 2021.",
+            "year": 2021,
+            "doi": "10.1249/JSR.0000000000000831",
+            "url": "https://doi.org/10.1249/JSR.0000000000000831",
+            "authors": "American College of Sports Medicine",
+            "editors": "",
+            "title": "ACSM Expert Consensus Statement on Weight Loss in Weight-Category Sports",
+            "edition": "",
+            "publisher": "Current Sports Medicine Reports",
+            "isbn": "",
+            "chapterNo": "不适用",
+            "chapterTitle": "不适用",
+            "pages": "待核实",
+            "language": "en",
+            "verificationStatus": "pages_pending",
+            "note": "DOI 已核实；卷期与页码待核实。该共识取代 1996 年 ACSM 摔跤减重立场声明。"
+          },
+          {
+            "sourceType": "position_stand",
+            "sourceTier": "primary",
+            "citation": "Thomas DT, Erdman KA, Burke LM. Nutrition and athletic performance: position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine. Med Sci Sports Exerc. 2016;48(3):543-568.",
+            "year": 2016,
+            "doi": "10.1249/MSS.0000000000000852",
+            "url": "https://doi.org/10.1249/MSS.0000000000000852",
+            "authors": "Thomas DT, Erdman KA, Burke LM",
+            "editors": "",
+            "title": "Nutrition and athletic performance: position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine",
+            "edition": "",
+            "publisher": "Medicine & Science in Sports & Exercise",
+            "isbn": "",
+            "chapterNo": "不适用",
+            "chapterTitle": "不适用",
+            "pages": "543-568",
+            "language": "en",
+            "verificationStatus": "verified",
+            "note": ""
+          }
+        ],
+        "cat": "weightcut"
+      }
+    ],
+    "coachSummary": "评分 93(优) · 晨重 57.2kg · 脱水 1.4% · 蛋白 142g · 摄入 1626kcal · 酸痛 3 · sRPE 480"
+  }
+}

@@ -11,6 +11,20 @@
         <view class="title">营养师后台</view>
         <view class="tiny">{{athletes.length}} 名拳王 · 下拉刷新</view>
       </view>
+      <view class="inbox-entry" bindtap="goInbox">
+        <text>收件箱</text>
+        <text class="unread-badge" wx:if="{{unreadTotal > 0}}">{{unreadTotal > 99 ? '99+' : unreadTotal}}</text>
+        <text class="op">›</text>
+      </view>
+    </view>
+
+    <!-- 今日审阅入口：一眼看到还有几个人没写建议 -->
+    <view class="card review-hero" bindtap="goReviewFirst">
+      <view class="rh-left">
+        <view class="rh-num">{{reviewPending}}<text class="rh-label"> 人今日待审阅</text></view>
+        <view class="tiny">{{reviewPending ? '点击进入第一位拳王的审阅页' : '今天没有待审阅；已发布的建议可在每位拳王行内查看'}}</view>
+      </view>
+      <text class="op">去审阅 ›</text>
     </view>
 
     <!-- 第一眼：今天需要处理几件事 -->
@@ -27,18 +41,20 @@
     </view>
     <view class="link-row">
       <text class="op" bindtap="goRules">规则库与文献锚点 ›</text>
+      <text class="op" bindtap="newPairCode">生成配对码</text>
     </view>
 
     <view class="empty" wx:if="{{!athletes.length}}">
       <view>还没有拳王绑定你</view>
-      <view class="tiny" style="margin:16rpx 0">让拳王在「我的 → 绑定教练」输入同一个邀请码</view>
-      <button class="btn ghost" bindtap="goBind">查看邀请码设置</button>
+      <view class="tiny" style="margin:16rpx 0">点「生成配对码」，把 30 分钟有效的码发给拳王，由拳王在「我的 → 绑定教练」输入</view>
+      <button class="btn ghost" bindtap="newPairCode">生成配对码</button>
     </view>
 
     <view class="card ath" wx:for="{{athletes}}" wx:key="openid">
       <view class="ath-head" data-id="{{item.openid}}" bindtap="openDetail">
         <view class="ath-left">
           <text class="ath-name">{{item.name}}</text>
+          <text class="row-unread" wx:if="{{item.unread > 0}}" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="goInboxAthlete">{{item.unread}} 未读</text>
           <text class="tiny"> {{item.date}}</text>
           <view class="tiny">{{item.targets}}</view>
         </view>
@@ -52,6 +68,17 @@
         <text class="tiny">阶段</text>
         <view class="chip sm {{item.phase === p.id ? 'on' : ''}}" wx:for="{{phases}}" wx:for-item="p" wx:for-index="pi" wx:key="id" data-id="{{item.openid}}" data-phase="{{p.id}}" bindtap="setPhase">{{p.name}}</view>
       </view>
+      <!-- 目标计划：无目标时整块不渲染 -->
+      <view class="phase-row goal-row" wx:if="{{item.goal}}">
+        <text class="tiny">目标</text>
+        <view class="chip sm goal-chip role-{{g.role}}" wx:for="{{item.goal.chips}}" wx:for-item="g" wx:key="id">{{g.name}}<text class="goal-role">{{g.roleLabel}}</text></view>
+        <view class="chip sm goal-ev {{item.goal.evidence.weak ? 'weak' : ''}}">{{item.goal.evidence.label}}</view>
+        <view class="chip sm" wx:if="{{item.goal.adherenceText}}">依从 {{item.goal.adherenceText}}</view>
+        <view class="chip sm goal-conflict" wx:if="{{item.goal.conflict}}">阶段冲突</view>
+      </view>
+      <view class="goal-entry">
+        <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" bindtap="goGoals">{{item.goal ? '调整目标 ›' : '设置目标 ›'}}</text>
+      </view>
       <view class="suggest" wx:if="{{item.suggest}}">
         <view class="tiny">系统建议：切到 {{item.suggest.label}}（{{item.suggest.reason}}）</view>
         <text class="op" data-id="{{item.openid}}" data-phase="{{item.suggest.phase}}" bindtap="setPhase">采纳建议 ›</text>
@@ -62,9 +89,11 @@
       </view>
 
       <view class="ath-ops">
+        <text class="op review-op {{item.reviewState === 'done' ? 'done' : ''}}" data-id="{{item.openid}}" data-name="{{item.name}}" data-date="{{item.reviewDate}}" bindtap="goReview">{{item.reviewState === 'done' ? '已审阅' : '写建议'}}</text>
         <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="goChat">发消息</text>
         <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="goReport">周报</text>
         <text class="op" data-id="{{item.openid}}" bindtap="openDetail">{{detailOpen === item.openid ? '收起' : '看最近 14 天'}}</text>
+        <text class="op" data-id="{{item.openid}}" data-name="{{item.name}}" catchtap="unbindAthlete">解绑</text>
       </view>
 
       <block wx:if="{{detailOpen === item.openid}}">

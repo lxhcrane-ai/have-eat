@@ -1,31 +1,46 @@
 const rules = require('../../utils/rules.js');
+const goals = require('../../utils/goals.js');
 const store = require('../../utils/store.js');
 const fmt = require('../../utils/format.js');
+const privacy = require('../../utils/privacy.js');
 
 Page({
   data: {
     points: [], segs: [], rate: null, rateText: '', avg7: null, avg7Text: '',
     proteinRate: '', loadBars: [], streak: 0, logs: [], goalText: '', hasData: false,
-    weightRange: ''
+    hasDemo: false, weightRange: '', refLine: null, goalView: null
   },
 
+  onLoad() { privacy.lockShare(); },
   onShow() { this.build(); },
 
   build() {
     const logs = store.recent(30);
     const profile = wx.getStorageSync('profile') || {};
-    if (!logs.length) { this.setData({ hasData: false }); return; }
+    if (!logs.length) { this.setData({ hasData: false, hasDemo: false }); return; }
+    const hasDemo = logs.some(function (l) { return store.isDemo(l); });
+
+    // 目标视图：文案与区间全部来自 goals.js，页面不再重算
+    const mw = store.morningWeights(21);
+    const latestFb = rules.evaluate(logs[0], { profile: profile, recentMorningWeights: mw });
+    const goalView = goals.goalView(latestFb.goalPlan, latestFb.goalAdherence, latestFb.goalBlockers, { targetWeightKg: profile.targetWeightKg });
 
     // ---- 体重折线（最近 14 天晨重）----
     const series = logs.slice(0, 14).filter(function (l) {
       return l.weights && l.weights.morning && l.weights.morning.kg;
     }).map(function (l) { return { date: l.date, kg: Number(l.weights.morning.kg) }; }).reverse();
 
-    let points = [], segs = [], weightRange = '';
+    let points = [], segs = [], weightRange = '', refLine = null;
     if (series.length >= 2) {
       const vals = series.map(function (s) { return s.kg; });
-      const min = Math.min.apply(null, vals) - 0.4;
-      const max = Math.max.apply(null, vals) + 0.4;
+      let min = Math.min.apply(null, vals) - 0.4;
+      let max = Math.max.apply(null, vals) + 0.4;
+      // 有数值型目标体重时，把目标线纳入纵轴范围；弱证据目标 goalView.weight 为 null
+      const twkg = goalView.weight ? goalView.weight.kg : null;
+      if (twkg !== null) {
+        min = Math.min(min, twkg - 0.15);
+        max = Math.max(max, twkg + 0.15);
+      }
       const span = max - min || 1;
       const W = 600, H = 200, PAD = 28;
       const n = series.length;
@@ -41,11 +56,14 @@ Page({
         const ang = Math.atan2(dy, dx) * 180 / Math.PI;
         segs.push({ left: a.x, top: a.y, width: Math.round(len), angle: Math.round(ang * 10) / 10 });
       }
+      if (twkg !== null) {
+        const y = Math.round(PAD + (1 - (twkg - min) / span) * H);
+        refLine = { top: y, text: goalView.weight.text };
+      }
       weightRange = Math.min.apply(null, vals).toFixed(1) + ' – ' + Math.max.apply(null, vals).toFixed(1) + ' kg';
     }
 
     // ---- 周速率 ----
-    const mw = store.morningWeights(21);
     const rate = rules.weeklyRate(mw);
     let rateText = '需要至少 4 天晨重';
     if (rate !== null) {
@@ -62,8 +80,8 @@ Page({
 
     // ---- 蛋白达标率（近 7 天有记录的）----
     let hit = 0, total = 0;
-    logs.slice(0, 7).forEach(function (l) {
-      const fb = rules.evaluate(l, { profile: profile, recentMorningWeights: mw });
+    logs.slice(0, 7).forEach(function (l, i) {
+      const fb = i === 0 ? latestFb : rules.evaluate(l, { profile: profile, recentMorningWeights: mw });
       if (fb.protein.level === 'unknown') return;
       total++;
       if (fb.protein.pct >= 100) hit++;
@@ -101,6 +119,7 @@ Page({
 
     this.setData({
       hasData: true,
+      hasDemo: hasDemo,
       points: points, segs: segs,
       rateText: rateText,
       avg7: avg7,
@@ -112,6 +131,8 @@ Page({
       streak: streak,
       goalText: goalText,
       weightRange: weightRange,
+      refLine: refLine,
+      goalView: goalView,
       logs: logs.map(function (l) {
         return {
           date: l.date, wd: fmt.weekday(l.date),

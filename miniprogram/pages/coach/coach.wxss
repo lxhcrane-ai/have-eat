@@ -1,5 +1,14 @@
-.coach-head { margin-bottom: 18rpx; }
+.coach-head { margin-bottom: 18rpx; display: flex; justify-content: space-between; align-items: flex-start; }
 .title { font-size: 38rpx; font-weight: 700; }
+.inbox-entry { display: flex; align-items: center; gap: 8rpx; font-size: 26rpx; color: #b9c4be; padding-top: 8rpx; }
+.unread-badge {
+  min-width: 34rpx; height: 34rpx; line-height: 34rpx; padding: 0 8rpx; border-radius: 999rpx;
+  background: #ff5a4a; color: #ffffff; font-size: 20rpx; text-align: center; font-weight: 600;
+}
+.row-unread {
+  display: inline-block; margin-left: 12rpx; padding: 2rpx 12rpx; border-radius: 999rpx;
+  background: #3a1512; color: #ff8a7a; font-size: 20rpx; vertical-align: middle;
+}
 .ath-head { display: flex; justify-content: space-between; align-items: center; }
 .ath-name { font-size: 32rpx; font-weight: 700; }
 .ath-score { font-size: 54rpx; font-weight: 800; }
@@ -7,8 +16,15 @@
 .tone-ok { color: #5ce39a; } .tone-amber { color: #ffc46b; } .tone-red { color: #ff7a6b; } .tone-info { color: #6bc4ff; }
 .ath-sum { color: #b9c4be; font-size: 24rpx; margin: 12rpx 0; line-height: 1.6; }
 .alert-mini { font-size: 24rpx; color: #ffb3aa; padding: 6rpx 0; }
-.ath-ops { display: flex; gap: 24rpx; margin-top: 14rpx; padding-top: 14rpx; border-top: 1rpx solid #1f2523; }
+.ath-ops { display: flex; flex-wrap: wrap; gap: 16rpx 24rpx; margin-top: 14rpx; padding-top: 14rpx; border-top: 1rpx solid #1f2523; }
 .op { color: #6bc4ff; font-size: 24rpx; }
+.op.review-op { color: #e8ff47; font-weight: 600; }
+.op.review-op.done { color: #6b7772; font-weight: 400; }
+
+.review-hero { display: flex; justify-content: space-between; align-items: center; border: 1rpx solid #3a453f; background: #131a16; margin-top: 16rpx; }
+.rh-num { font-size: 46rpx; font-weight: 800; color: #e8ff47; line-height: 1.2; }
+.rh-label { font-size: 24rpx; color: #b9c4be; font-weight: 400; }
+.rh-left { flex: 1; }
 .d-row { display: flex; justify-content: space-between; gap: 16rpx; padding: 14rpx 0; border-top: 1rpx solid #1a201e; }
 .d-date { font-weight: 600; font-size: 25rpx; }
 .d-left { flex: 1; }
@@ -21,6 +37,15 @@
 .link-row { text-align: right; margin: -8rpx 0 16rpx; }
 .phase-row { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; margin: 10rpx 0; }
 .chip.sm { font-size: 22rpx; padding: 6rpx 16rpx; }
+.goal-row { margin-top: -2rpx; }
+.goal-chip { background: #1a2420; border-color: #2f4238; }
+.goal-chip.role-lead { border-color: #e8ff47; color: #e8ff47; }
+.goal-role { margin-left: 8rpx; font-size: 20rpx; color: #8a968f; }
+.goal-chip.role-lead .goal-role { color: #c8db3a; }
+.goal-ev { background: #1d2320; color: #b9c4be; }
+.goal-ev.weak { border-color: #4a3a12; color: #ffc46b; }
+.goal-conflict { background: #3a1512; border-color: #5a2a22; color: #ff8a7a; }
+.goal-entry { margin: 2rpx 0 8rpx; }
 
 .suggest { background: #1a160c; border: 1rpx solid #4a3a12; border-radius: 12rpx; padding: 12rpx 14rpx; margin: 10rpx 0; }
 .suggest .op { color: #ffc46b; }

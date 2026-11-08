@@ -383,6 +383,38 @@ const RULES = [
     lastReviewedAt: '2026-10-25',
     kbIds: ['basic-logging', 'basic-photo'],
     notes: '阶段化之后这条变重要了：peak 期必填字段（补液计划、胃肠症状）缺失时，引擎只能说“不知道”，不能说“正常”。'
+  },
+  {
+    ruleId: 'GOAL-01',
+    name: '目标与阶段合法性',
+    logicSummary: '营养师设定的目标在当前阶段是否可执行；矩阵 N/A 或附加条件不满足时给出分级提示，不自动改阶段、不自动删目标。',
+    thresholds: 'B-GAIN 在 cut、B-CUT 在 maintain/peak/recover、B-HOLD 在 cut 且 gapPct>1.5 → red；其余 N/A 与附加条件未满足 → amber；只提示“改目标或改阶段”',
+    sources: [
+      withAnchor(SRC.issn2025, 'Position Statement 第 3–5 条：减重、维持与赛前微调是不同能量方向的时间窗，不应在同一窗口同时执行'),
+      withAnchor(SRC.acsm2016, 'Section “Energy balance”: 能量盈余与缺口方向相反，不能在同一时间窗并行')
+    ],
+    applicablePhases: ['maintain', 'cut', 'peak', 'recover'],
+    requiresHumanFollowUp: true,
+    reviewStatus: 'active',
+    lastReviewedAt: '2026-11-08',
+    kbIds: ['wc-phases', 'wc-rate'],
+    notes: '只提示，不自动改阶段；给出两个选项：改目标或改阶段。setGoals 已按当前阶段拒绝不合法目标，因此实际触发场景主要是“目标设定后阶段被 setPhase 改掉”。'
+  },
+  {
+    ruleId: 'GOAL-02',
+    name: '目标执行冲突',
+    logicSummary: '两个目标原子在同一日/相邻日产生不可同时执行的负荷或时机冲突，且现有规则未覆盖时提示重排或降量。',
+    thresholds: '同日两个计入名额的高强度目标 → amber；三个计入名额目标且距称重<14 天 → red；仅相邻日 → info；G-IMM 不计入目标数',
+    sources: [
+      withAnchor(SRC.acsm2016, 'Section “Training day nutrition”: 训练前后营养安排需与当日负荷量和训练类型匹配'),
+      withAnchor(SRC.meeusen2013, 'Consensus 正文：负荷与恢复不足的累积会放大过度训练风险，需在同一时间窗内控制总负荷')
+    ],
+    applicablePhases: ['maintain', 'cut', 'peak', 'recover'],
+    requiresHumanFollowUp: true,
+    reviewStatus: 'active',
+    lastReviewedAt: '2026-11-08',
+    kbIds: ['rec-load', 'rec-soreness', 'carb-training'],
+    notes: '只依据 log.training + log.nextPlan + profile.goals；不判体重速率、蛋白、睡眠、脱水，这些有 owner 规则。'
   }
 ];
 

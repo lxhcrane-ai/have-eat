@@ -4,15 +4,35 @@
       <view class="date">{{date}} <text class="muted">{{wd}}</text></view>
       <view class="tiny">{{phaseLabel}}<text wx:if="{{daysToWeigh !== null}}"> · 距称重 {{daysToWeigh}} 天</text></view>
     </view>
-    <view class="inbox" bindtap="goChat" wx:if="{{unread > 0}}">
-      <text class="dot"></text>{{unread}} 条教练消息
+    <view class="inbox" bindtap="goInbox" wx:if="{{unread > 0}}">
+      <text class="dot"></text>{{unread}} 条未读
     </view>
+  </view>
+
+  <!-- 演示数据：明确标注，避免被当成真实记录 -->
+  <view class="demo-banner" wx:if="{{isDemo}}">
+    <text class="demo-tag">演示数据</text>
+    <text>今天是演示记录，不是你的真实数据。填今天的记录并保存后，演示数据会自动移除。</text>
   </view>
 
   <!-- 本阶段必填缺失：引擎只会说"不知道"，不会判达标 -->
   <view class="card warn" wx:if="{{missingRequired.length}}">
     <view class="tiny">本阶段必填未填，评分不含这部分：</view>
     <view class="warn-line" wx:for="{{missingRequired}}" wx:key="key">· {{item.label}}</view>
+  </view>
+
+  <!-- 今日目标：无目标时整块不渲染，布局与旧版一致 -->
+  <view class="card goal-card" wx:if="{{goalView.hasGoals}}">
+    <view class="card-title">今日目标
+      <text class="badge {{goalView.weak ? 'amber' : 'info'}}" wx:if="{{goalView.evidenceNote}}">{{goalView.evidenceLabel}}</text>
+    </view>
+    <view class="goal-lead">主导 · {{goalView.leadName}}</view>
+    <view class="goal-tags">
+      <text class="chip sm" wx:for="{{goalView.goalNames}}" wx:key="id">{{item.name}} · {{item.roleLabel}}</text>
+    </view>
+    <view class="tiny goal-sub" wx:if="{{goalView.concessions.length}}">让步说明</view>
+    <view class="kb-line" wx:for="{{goalView.concessions}}" wx:key="goalId">· {{item.goalName}} {{item.modeLabel}}：{{item.reason}}</view>
+    <view class="tiny goal-weak" wx:if="{{goalView.evidenceNote}}">{{goalView.evidenceNote}}</view>
   </view>
 
   <!-- 营养师确认过的次日提醒：只显示这一条，不显示系统原始告警 -->
@@ -24,7 +44,26 @@
     </view>
   </view>
 
+  <!-- 营养师建议：只来自 advice get 的已发布结构，草稿对拳王不可见 -->
+  <view class="card advice" wx:if="{{advice}}">
+    <view class="card-title advice-title">营养师建议
+      <text class="badge update" wx:if="{{advice.updated}}">已更新</text>
+      <text class="op adv-link" bindtap="goAdviceHistory">历史建议 ›</text>
+    </view>
+    <view class="advice-meta tiny">{{advice.coachName}} · {{advice.publishedText}} 发布</view>
+    <view class="advice-body">{{advice.body}}</view>
+    <view class="advice-chips" wx:if="{{advice.ruleChips.length || advice.kbChips.length}}">
+      <text class="chip sm" wx:for="{{advice.ruleChips}}" wx:key="id" data-id="{{item.id}}" bindtap="goRuleChip">规则 · {{item.name}}</text>
+      <text class="chip sm kb" wx:for="{{advice.kbChips}}" wx:key="id" data-id="{{item.id}}" bindtap="goKbChip">{{item.title}}</text>
+    </view>
+    <view class="tiny advice-offline" wx:if="{{advice.offline}}">离线，展示上次同步内容</view>
+  </view>
+
+  <!-- 有日志但还没发布建议：弱提示，下方是系统自动建议 -->
+  <view class="tiny advice-hint" wx:if="{{adviceHint}}">{{adviceHint}}</view>
+
   <!-- 评分 -->
+  <view class="section-label" wx:if="{{hasLog}}">系统评估 · 自动生成，仅供参考</view>
   <view class="card score-card">
     <view class="score-left">
       <view class="score-num tone-{{tone}}">{{score}}</view>
@@ -44,9 +83,24 @@
     </view>
   </view>
 
+  <!-- 目标依从：独立区块，不进当日总分；unknown 不显示 0 分 -->
+  <view class="card adh-card" wx:if="{{goalView.hasGoals && goalView.adherence.show}}">
+    <view class="card-title">目标依从<text class="tiny">独立评分，不进当日总分</text></view>
+    <view class="adh-head" wx:if="{{!goalView.adherence.unknown}}">
+      <view class="adh-score tone-{{goalView.adherence.tone}}">{{goalView.adherence.scoreText}}</view>
+      <view class="adh-level tone-{{goalView.adherence.tone}}">{{goalView.adherence.levelLabel}}</view>
+    </view>
+    <view class="tiny adh-hint" wx:if="{{goalView.adherence.unknown}}">{{goalView.adherence.hint}}</view>
+    <view class="adh-row" wx:for="{{goalView.adherence.components}}" wx:key="id">
+      <text class="adh-label">{{item.label}}</text>
+      <text class="tiny">{{item.valueText}} · 权重 {{item.weightText}}</text>
+    </view>
+    <view class="tiny adh-hint" wx:if="{{!goalView.adherence.unknown}}">{{goalView.adherence.hint}}</view>
+  </view>
+
   <!-- 告警 -->
   <view class="card" wx:if="{{alerts.length}}">
-    <view class="card-title">今日要点<text class="muted">{{alerts.length}} 条</text></view>
+    <view class="card-title">系统自动建议<text class="muted">自动生成，仅供参考</text></view>
     <view class="alert a-{{item.level}}" wx:for="{{alerts}}" wx:key="title" data-i="{{index}}" bindtap="toggleKb">
       <view class="alert-head">
         <text class="badge {{item.level === 'red' ? 'red' : (item.level === 'amber' ? 'amber' : 'info')}}">{{item.level === 'red' ? '必须' : (item.level === 'amber' ? '注意' : '提示')}}</text>
@@ -76,7 +130,7 @@
     <view class="tip" wx:for="{{tips}}" wx:key="id">
       <view class="tip-title">{{item.title}}</view>
       <view class="tip-body">{{item.body}}</view>
-      <view class="tiny">{{item.source}}</view>
+      <view class="tiny" wx:for="{{item.sources}}" wx:for-item="s" wx:key="citation">{{s.citation}}</view>
     </view>
   </view>
 

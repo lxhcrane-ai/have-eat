@@ -1,8 +1,8 @@
 <view class="page">
   <view class="card">
-    <view class="card-title">用邀请码连接</view>
+    <view class="card-title">用配对码连接</view>
     <view class="tiny" style="margin-bottom:18rpx">
-      拳王和教练输入同一个邀请码即完成配对。邀请码存在云端 settings 集合（key=coachCode），默认 {{defaultCode}}，部署后请改成你自己的。
+      拳王输入教练生成的配对码（30 分钟内有效、仅可使用一次），绑定后关系写入云端 users 集合。教练首次开启教练端需输入管理员在云开发 settings.coachActivationCode 配置的激活码；身份由服务端根据码的类型判定，页面不能自行选择。
     </view>
 
     <view class="role-row">
@@ -10,7 +10,7 @@
       <view class="role {{asCoach ? 'on' : ''}}" data-v="coach" bindtap="toggleRole">我是教练</view>
     </view>
 
-    <input class="input code" value="{{code}}" bindinput="onInput" placeholder="邀请码，例如 COACH-8888" />
+    <input class="input code" value="{{code}}" bindinput="onInput" placeholder="{{asCoach ? '教练激活码' : '配对码（6 位字母数字）'}}" />
     <button class="btn" bindtap="submit" loading="{{loading}}" style="margin-top:20rpx">连接</button>
     <view class="result" wx:if="{{result}}">{{result}}</view>
   </view>
@@ -19,6 +19,6 @@
     <view class="card-title">连上之后</view>
     <view class="tiny line">· 拳王每次保存记录，教练端立刻看到评分、脱水、蛋白和红灯项</view>
     <view class="tiny line">· 教练可以直接在沟通页留言，拳王在小程序里收到红点</view>
-    <view class="tiny line">· 数据默认仅两人可见；不要把这个邀请码发给第三个人</view>
+    <view class="tiny line">· 配对码一次性有效，请勿转发给第三人；解除绑定后立即失效</view>
   </view>
 </view>

@@ -1,0 +1,47 @@
+<view class="page">
+  <view class="inbox-head">
+    <view>
+      <view class="title">收件箱</view>
+      <view class="tiny">
+        {{unread ? unread + ' 条未读' : '没有未读'}}<text wx:if="{{athleteId}}"> · 仅看 {{athleteName || '该拳王'}}</text>
+      </view>
+    </view>
+    <view class="head-ops">
+      <text class="op" wx:if="{{athleteId}}" bindtap="clearAthlete">查看全部</text>
+      <text class="op read-all" wx:if="{{unread > 0}}" bindtap="openReadAll">{{readAllBusy ? '处理中…' : '全部已读'}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="filters" scroll-x>
+    <view class="chip sm {{type === it.id ? 'on' : ''}}" wx:for="{{filters}}" wx:for-item="it" wx:key="id" data-type="{{it.id}}" bindtap="chooseType">{{it.name}}</view>
+  </scroll-view>
+
+  <view class="card" wx:if="{{error}}">
+    <view class="card-title">加载失败</view>
+    <view class="tiny">{{error}}</view>
+    <button class="btn ghost" bindtap="load" style="margin-top:16rpx">重试</button>
+  </view>
+
+  <view class="empty" wx:if="{{firstLoaded && !items.length && !error}}">
+    <view>{{(athleteId || type) ? '当前筛选下没有通知' : '收件箱是空的'}}</view>
+    <view class="tiny" style="margin-top:12rpx">拳王记录、教练消息、营养师建议与后续跟进都会出现在这里。</view>
+  </view>
+
+  <view class="item {{item.read ? 'read' : 'unread'}}" wx:for="{{items}}" wx:key="id" data-i="{{index}}" bindtap="openItem">
+    <view class="item-top">
+      <view class="item-title">
+        <text class="dot" wx:if="{{!item.read}}"></text>{{item.title}}
+      </view>
+      <text class="badge item-type {{item.level === 'red' ? 'red' : 'info'}}">{{item.typeLabel}}</text>
+    </view>
+    <view class="item-body" wx:if="{{item.summary}}">{{item.summary}}</view>
+    <view class="item-meta">
+      <text class="tiny">{{item.timeText}}</text>
+      <text class="state {{item.read ? 'done' : 'todo'}}">{{item.read ? '已读' : '未读'}}</text>
+    </view>
+  </view>
+
+  <view class="more tiny" wx:if="{{loadingMore}}">加载中…</view>
+  <view class="more tiny" wx:if="{{hasMore && !loadingMore}}">继续上滑加载更多</view>
+  <view class="more tiny" wx:if="{{!hasMore && items.length}}">没有更多了</view>
+</view>

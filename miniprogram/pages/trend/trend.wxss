@@ -3,7 +3,10 @@
 .stat-label { color: #8a968f; font-size: 22rpx; }
 .stat-val { font-size: 28rpx; font-weight: 600; margin-top: 6rpx; }
 .goal { font-size: 26rpx; color: #e8ff47; line-height: 1.6; }
+.goal-weak { color: #ffc46b; margin-top: 8rpx; line-height: 1.5; }
 .chart { position: relative; height: 260rpx; margin: 10rpx 0 0 8rpx; }
+.refline { position: absolute; left: 0; right: 0; border-top: 1rpx dashed #6bc4ff; }
+.refline-label { position: absolute; right: 0; top: -28rpx; font-size: 18rpx; color: #6bc4ff; }
 .seg { position: absolute; height: 2rpx; background: #e8ff47; transform-origin: 0 0; opacity: .8; }
 .pt { position: absolute; width: 12rpx; height: 12rpx; border-radius: 50%; background: #e8ff47; margin: -6rpx 0 0 -6rpx; }
 .pt-label { position: absolute; top: -34rpx; left: -30rpx; width: 70rpx; text-align: center; font-size: 18rpx; color: #8a968f; }

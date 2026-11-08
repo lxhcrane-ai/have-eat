@@ -11,6 +11,15 @@
 
 .group-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
 .group-name { font-size: 32rpx; font-weight: 600; }
+.group-right { display: flex; align-items: center; gap: 14rpx; }
+.op { color: #6bc4ff; font-size: 24rpx; }
+.review-link { color: #e8ff47; font-weight: 600; }
+
+.goal-row { display: flex; flex-wrap: wrap; gap: 10rpx; margin: -2rpx 0 12rpx; }
+.goal-row .chip.sm { font-size: 22rpx; padding: 6rpx 16rpx; }
+.goal-ev { background: #1d2320; color: #b9c4be; }
+.goal-ev.weak { border-color: #4a3a12; color: #ffc46b; }
+.goal-conflict { background: #3a1512; border-color: #5a2a22; color: #ff8a7a; }
 
 .item { border-top: 1rpx solid #1f2523; padding-top: 16rpx; margin-top: 16rpx; }
 .item-head { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; }
@@ -21,3 +30,6 @@
 .ta { width: 100%; background: #161b19; color: #e9eeec; border-radius: 10rpx; padding: 14rpx; font-size: 24rpx; margin-top: 12rpx; min-height: 90rpx; box-sizing: border-box; }
 .item-ops { display: flex; gap: 12rpx; margin-top: 12rpx; }
 .item-ops .btn.mini { font-size: 24rpx; }
+.warn { color: #ff9f43; }
+.due { color: #ff9f43; margin-top: 4rpx; }
+.snoozed-head { display: flex; align-items: baseline; gap: 8rpx; margin: 32rpx 0 12rpx; }

@@ -1,0 +1,54 @@
+.goals-page { padding-bottom: 80rpx; }
+.g-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8rpx; }
+.g-name { font-size: 38rpx; font-weight: 700; }
+.g-hint { margin-bottom: 18rpx; line-height: 1.5; }
+.op { color: #6bc4ff; font-size: 24rpx; }
+.op.off { color: #4b5551; }
+.op.danger { color: #ff9c8f; }
+
+.quota-card { border-color: #2a3330; }
+.quota-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 28rpx; }
+.quota-cell { display: flex; align-items: baseline; }
+.qnum { font-size: 44rpx; font-weight: 800; color: #e8ff47; line-height: 1; }
+.qmax { font-size: 26rpx; color: #8a968f; }
+.qlabel { color: #b9c4be; font-size: 24rpx; }
+.quota-text { flex: 1; text-align: right; font-size: 22rpx; color: #8a968f; }
+.warn-line { font-size: 22rpx; color: #ff7a6b; padding-top: 8rpx; }
+
+.sel-row { display: flex; align-items: center; gap: 14rpx; padding: 14rpx 0; border-top: 1rpx solid #1f2523; }
+.sel-order {
+  width: 40rpx; height: 40rpx; line-height: 40rpx; text-align: center;
+  border-radius: 999rpx; background: #1d2320; color: #e8ff47; font-size: 22rpx; font-weight: 600;
+}
+.sel-main { flex: 1; display: flex; align-items: baseline; gap: 10rpx; }
+.sel-name { font-size: 28rpx; font-weight: 600; }
+.sel-role { font-size: 20rpx; color: #8a968f; }
+.empty.sm { padding: 30rpx 0; font-size: 24rpx; }
+
+.toggle-note { color: #ffc46b; font-size: 22rpx; margin-bottom: 12rpx; line-height: 1.5; }
+.g-sec { margin-top: 10rpx; }
+.sec-label { color: #8a968f; font-size: 22rpx; margin: 12rpx 0 8rpx; letter-spacing: 1rpx; }
+.atom {
+  border: 1rpx solid #2a3330; border-radius: 14rpx; background: #1d2320;
+  padding: 14rpx 18rpx; margin-bottom: 10rpx;
+}
+.atom.on { border-color: #e8ff47; background: #1c2210; }
+.atom.disabled { opacity: .5; background: #141816; }
+.atom-top { display: flex; align-items: center; gap: 12rpx; }
+.atom-name { font-size: 26rpx; font-weight: 600; color: #e9eeec; }
+.atom.on .atom-name { color: #e8ff47; }
+.atom-flag { font-size: 19rpx; padding: 2rpx 10rpx; border-radius: 6rpx; background: #162630; color: #6bc4ff; }
+.atom-check { margin-left: auto; font-size: 20rpx; color: #e8ff47; }
+.atom-reason { font-size: 21rpx; color: #ff9c8f; margin-top: 6rpx; line-height: 1.5; }
+.atom-cond { font-size: 21rpx; color: #ffc46b; margin-top: 6rpx; line-height: 1.5; }
+
+.form-row { display: flex; align-items: center; justify-content: space-between; padding: 12rpx 0; }
+.bf-input { width: 260rpx; text-align: right; }
+.date-pick {
+  padding: 16rpx 22rpx; border: 1rpx solid #262e2b; border-radius: 12rpx;
+  background: #0f1211; color: #e9eeec; font-size: 26rpx;
+}
+.err-card { border: 1rpx solid #5a2a22; background: #1a100e; border-radius: 16rpx; padding: 18rpx 20rpx; margin-bottom: 18rpx; }
+.err-code { font-size: 22rpx; color: #ff9c8f; font-weight: 600; }
+.err-text { font-size: 25rpx; color: #ffd7d1; line-height: 1.55; margin-top: 6rpx; }
+.foot { text-align: center; margin: 8rpx 0 14rpx; }

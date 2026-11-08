@@ -5,6 +5,11 @@
   </view>
 
   <block wx:if="{{hasData}}">
+    <view class="demo-banner" wx:if="{{hasDemo}}">
+      <text class="demo-tag">演示数据</text>
+      <text>下面包含演示记录，不是你的真实数据。保存任意一天的真实记录后，演示数据会自动移除。</text>
+    </view>
+
     <view class="stats">
       <view class="stat"><view class="stat-label">周变化</view><view class="stat-val">{{rateText}}</view></view>
       <view class="stat"><view class="stat-label">7 日均重</view><view class="stat-val">{{avg7Text}}</view></view>
@@ -17,6 +22,17 @@
       <view class="goal">{{goalText}}</view>
     </view>
 
+    <!-- 目标区间：数值全部来自 goals.js；弱证据目标不出现数值 -->
+    <view class="card goal-card" wx:if="{{goalView.hasGoals}}">
+      <view class="card-title">目标区间
+        <text class="badge {{goalView.weak ? 'amber' : 'info'}}" wx:if="{{goalView.evidenceNote}}">{{goalView.evidenceLabel}}</text>
+      </view>
+      <view class="goal" wx:if="{{goalView.weight}}">体重：{{goalView.weight.text}}</view>
+      <view class="goal" wx:for="{{goalView.targetLines}}" wx:key="key">{{item.label}}：{{item.text}}</view>
+      <view class="tiny goal-weak" wx:if="{{goalView.evidenceNote}}">{{goalView.evidenceNote}}</view>
+      <view class="tiny" wx:if="{{goalView.weight}}">晨重图中的虚线为体重目标参考线</view>
+    </view>
+
     <view class="card">
       <view class="card-title">周报<text class="tiny">7 天汇总，可复制发给教练</text></view>
       <view class="tiny">体重斜率、蛋白达标率、sRPE、睡眠、规则触发统计，一段话讲完这周。</view>
@@ -26,6 +42,9 @@
     <view class="card">
       <view class="card-title">晨重趋势<text class="tiny">{{weightRange}}</text></view>
       <view class="chart">
+        <view class="refline" wx:if="{{refLine}}" style="top:{{refLine.top}}rpx;">
+          <text class="refline-label">{{refLine.text}}</text>
+        </view>
         <view class="seg" wx:for="{{segs}}" wx:key="index" style="left:{{item.left}}rpx; top:{{item.top}}rpx; width:{{item.width}}rpx; transform: rotate({{item.angle}}deg);"></view>
         <view class="pt" wx:for="{{points}}" wx:key="date" style="left:{{item.x}}rpx; top:{{item.y}}rpx;">
           <view class="pt-label">{{item.kg}}</view>

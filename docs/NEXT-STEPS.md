@@ -1,16 +1,16 @@
 # 下次开工清单（按顺序做）
 
 > 每次新开会话，先读这份文件，把「一」原样念给用户，再问要不要直接进「二」。
-> 最后更新：2026-10-25，对应提交 0d74c86。
+> 最后更新：2026-11-08（复合目标矩阵 G1–G7 代码完成）。
 > 项目根：`E:\AI\冠军运动营养\boxer-coach`（注意目录名已从「运动营养」改为「冠军运动营养」）
 
 ---
 
 ## 零、现在到哪一步了（30 秒）
 
-代码侧已完成：阶段状态机（18 条规则 / 4 阶段开关）、跟进队列、规则登记表（34 个文献锚点）、周报、阶段建议、照片识别、14 天演示数据。
-验证：preflight 0 阻塞；规则 36、阶段 47、队列 35、周报 59、识别 44，共 221 项断言全过；lint-pages 0 冲突。
-**没做过的只有一件事：真机。** 11 个页面从没在微信开发者工具里跑过，云函数也从没真正写库。
+代码侧已完成：阶段状态机（18 条规则 / 4 阶段开关）、跟进队列、规则登记表（34 个文献锚点）、周报、阶段建议、照片识别、14 天演示数据、**复合目标矩阵（15 原子 / 60 格 / 27 配方 / GOAL-01、GOAL-02 / 拳王端与营养师端展示 / `setGoals` 写入）**。
+验证：preflight 0 阻塞；8 套测试共 530 项断言全过；lint-pages 0 冲突。
+**剩余只有两件事：云端部署 + 真机。** 页面尚未在微信开发者工具真机走查，`coachApi.setGoals`/`advice` 快照也尚未在真实云环境写库验证。
 
 ---
 
@@ -31,12 +31,12 @@
 3. **开云开发、填环境 ID**
    工具栏「云开发」→ 开通 → 复制环境 ID → 填进 `miniprogram/config.js` 的 `env`。
 
-4. **建 9 个集合**（权限全选「仅创建者可读写」）
+4. **建 9 个集合**（权限全选「所有用户不可读写」，小程序端只通过云函数访问）
    ```
    users  logs  messages  inbox  settings
    followups  reminders  phase_history  rule_reviews
    ```
-   再在 `settings` 手动加一条：`{ "key": "coachCode", "value": "COACH-8888" }`（不改也能跑，有默认码）。
+   再在 `settings` 手动加两条：`{ "key": "coachCode", "value": "COACH-8888" }`（旧版拳王邀请码，不改也能跑，有默认码）和 `{ "key": "coachActivationCode", "value": "改成你自己的教练激活码" }`（教练角色唯一入口，必须与 coachCode 不同）。
 
 5. **上传 9 个云函数**（逐个右键 → 上传并部署：**云端安装依赖**）
    ```
@@ -81,9 +81,10 @@
    做什么：`suggestPhase` 已有；在 index 页加一条"距称重 3 天，营养师已进入微调期"的信息条（只在 ≤7 天且阶段未切换时出现）。
    验收：改 `weighInDate` 为 3 天后，首页出现提示；改回 40 天后消失。
 
-4. **订阅消息**（需要你先在公众平台申请模板）
-   做什么：`config.js` 填 `tplCoachLog` + `saveLog` 环境变量 `TPL_COACH_LOG`，红/黄灯时推给教练。
-   注意：订阅消息是**一次性**的，教练每授权一次只能收一条，要设计成"点一次授权收一次"。
+4. **订阅消息**（代码已接入，仍需你在公众平台申请模板）
+   已做：四个模板 ID 分别放 `saveLog` / `chat` / `advice` 云函数环境变量（`TPL_COACH_LOG` / `TPL_ATHLETE_MSG` / `TPL_ADVICE_PUBLISH` / `TPL_ADVICE_CHANGE`），覆盖保存记录、教练消息、建议发布、建议更新/撤回；前端在保存成功、绑定成功、首次聊天时请求授权，结果写 `users.subscribe`。
+   待你操作：在公众平台申请四个模板，字段按 `thing1` / `thing2` / `time3` 创建；未配置或未授权时静默跳过，只保留站内收件箱。
+   注意：订阅消息是**一次性**的，每授权一次只能收一条；发送成功后状态置为 `sent`，下次保存/聊天会再次请求。
 
 5. **体脂与 FFM 口径（等「三」的决策）**
    做什么：给 profile 加 `bodyFatPct`，蛋白目标改成 `g/kg FFM` 双口径显示，规则 PRO-01 的 evidence 同时给出两种算法。
@@ -120,12 +121,16 @@
 ```bash
 cd "E:\AI\冠军运动营养\boxer-coach"   # WSL 下是 /mnt/e/AI/冠军运动营养/boxer-coach
 bash scripts/sync-shared.sh
-node scripts/preflight.js      # 期望：没有阻塞性问题（3 条提示是正常的）
-node scripts/test-rules.js     # 36
+node scripts/preflight.js      # 期望：0 阻塞（3 条提示是正常的）
+node scripts/test-rules.js     # 107
+node scripts/test-goals.js     # 147
 node scripts/test-phases.js    # 47
-node scripts/test-followup.js  # 35
-node scripts/test-weekly.js    # 59
+node scripts/test-followup.js  # 44
+node scripts/test-weekly.js    # 85
 node scripts/test-vision.js    # 44
+node scripts/test-advice-core.js # 15
+node scripts/test-demo-seed.js # 41
+node scripts/check-goal-matrix-doc.js # 60 格 legal/goal01Level/evidence 与文档一致
 node scripts/lint-pages.js     # 一致：未发现未定义字段
 node scripts/dump-docs.js      # 改了规则后必跑，否则文档和代码漂移
 ```
@@ -140,3 +145,26 @@ node scripts/dump-docs.js      # 改了规则后必跑，否则文档和代码�
 - [ ] 阶段从 cut 切到 peak 后，脱水百分比告警确实消失、补液执行率告警出现
 - [ ] 规则库能标"待复核"，且告警展开里能看到徽标
 - [ ] 照片识别在真机上给出与照片对得上的条目（误差可接受）
+
+---
+
+## 七、复合目标矩阵收尾（G7 结论）
+
+状态：**代码完成**。`test-rules`/`test-goals`/`test-phases`/`test-followup`/`test-weekly`/`test-vision`/`test-advice-core`/`test-demo-seed` 全过，`preflight` 0 阻塞，60 格与文档逐格一致。
+
+剩余（都需要云端或真机）：
+1. 部署 `coachApi`（含 `setGoals`、`setRefeedPlan`、队列目标 chips）、`advice`（快照 `goal` 块）、`saveProfile`（LOCKED 五字段）。
+2. 按 `docs/cloud-setup.md` 建 `advice / advice_revisions / pair_codes` 与索引（目标本身落在 `users.profile`，不需要新集合/索引）。
+3. 控制台测试 `setGoals`：合法写入、超 3 个、重复、未知 ID、`G-MED`、阶段不允许、缺日期，确认均为整次拒绝且 `profile.goals` 不变。
+4. 发布一条建议后核对 `advice` 快照含 `goalMatrixVersion/goalPlan/goalAdherence/goalBlockers/goalEffectiveDate/goalSource`。
+5. 真机走查：无目标时看板/队列/复核页不出现目标块；有目标时 chips、弱证据徽标、独立 `goalAdherence`、复核页“带入建议开头”不覆盖正文。
+6. ~~营养师端“调整目标”交互 UI 尚未实现~~ 已补齐：`pages/goals/*`（入口在营养师看板每位拳王卡片内），15 原子可选、阶段 N/A 与 `G-MED` 置灰并写明原因、条件类显示“需满足”、名额实时占用、增删/调序、错误码中文映射；离线禁止提交且不本地假写。
+
+新增 / 改动文件：
+- 新增：`miniprogram/data/goalMatrix.js`、`miniprogram/utils/goals.js`、`miniprogram/utils/goalDraft.js`、`miniprogram/pages/goals/*`、`scripts/check-goal-matrix-doc.js`
+- 规则：`miniprogram/utils/rules.js`（v4.0 + `GOAL-01/02` + 四个派生字段）
+- 拳王端：`miniprogram/pages/index/*`、`miniprogram/pages/trend/*`
+- 营养师端：`miniprogram/pages/coach/*`、`miniprogram/pages/queue/*`、`miniprogram/pages/review/*`、`miniprogram/pages/goals/*`、`miniprogram/utils/coachApi.js`
+- 云函数：`cloudfunctions/coachApi/index.js`、`cloudfunctions/advice/lib/core.js`、`cloudfunctions/saveProfile/index.js`，以及 `saveLog/getFeed/coachApi/advice/lib/` 同步副本
+- 脚本：`scripts/preflight.js`、`scripts/test-goals.js`、`scripts/sync-shared.sh`
+- 文档：`docs/goal-matrix.md`、`docs/schema.md`、`docs/cloud-setup.md`、`docs/NEXT-STEPS.md`

@@ -149,6 +149,86 @@ ok(wp.ruleHits.every(function (h) { return rules.getRuleById(h.ruleId); }), '周
 const allowed = rules.PHASE_PROFILES.peak.activeRuleIds;
 ok(wp.ruleHits.every(function (h) { return allowed.indexOf(h.ruleId) >= 0; }), '微调期周报只出现本阶段启用的规则', wp.ruleHits.map(function (h) { return h.ruleId; }));
 
+console.log('\n8) 周报：单日、空数据、零斜率与跨月边界');
+ok(wSparse.weight.deltaKg === null, '单日不把 0kg 当成周内变化', wSparse.weight.deltaKg);
+ok(wSparse.text.indexOf('仅 1 个晨重点') >= 0, '单日分享文本不写成“x → x”', wSparse.text.split('\n')[1]);
+ok(wEmpty.weight.deltaKg === null && wEmpty.weight.avgKg === null, '空数据体重字段为 null');
+ok(wEmpty.protein.rate === null && wEmpty.load.sessions === 0, '空数据没有除零或假计数');
+
+const endMar = '2026-03-03';
+const crossMonth = [];
+for (let i = 0; i < 7; i++) crossMonth.push(mkLog(shiftDate(endMar, i - 6), i, {}));
+const wCross = weekly.buildWeekly({ logs: crossMonth, profile: profileCut, endDate: endMar, days: 7 });
+ok(wCross.fromDate === '2026-02-25' && wCross.toDate === '2026-03-03', '跨月窗口边界正确', [wCross.fromDate, wCross.toDate]);
+ok(wCross.loggedDays === 7 && wCross.weight.weeklyRate !== null, '跨月仍能统计 7 天并算出斜率', { loggedDays: wCross.loggedDays, rate: wCross.weight.weeklyRate });
+ok(weekly.shift('2026-02-28', 1) === '2026-03-01', '月末 +1 天跨到下月');
+ok(weekly.shift('2028-02-28', 1) === '2028-02-29', '闰年 2 月 28 日 +1 天');
+ok(weekly.shift('2028-03-01', -1) === '2028-02-29', '闰年 3 月 1 日 -1 天');
+
+const flat = [];
+for (let i = 0; i < 7; i++) {
+  const l = mkLog(shiftDate(end, i - 6), i, {});
+  l.weights.morning.kg = 59;
+  flat.push(l);
+}
+const wFlat = weekly.buildWeekly({ logs: flat, profile: profileCut, endDate: end, days: 7 });
+ok(wFlat.weight.weeklyRate === 0, '体重持平时速率为 0', wFlat.weight.weeklyRate);
+ok(wFlat.conclusions.some(function (c) { return c.indexOf('体重持平') >= 0; }), '0 斜率写成“持平”，不写成“增 0”', wFlat.conclusions[0]);
+
+const badWeight = mkLog(end, 0, {});
+badWeight.weights.morning.kg = 'abc';
+const wBad = weekly.buildWeekly({ logs: [badWeight], profile: profileCut, endDate: end, days: 7 });
+ok(wBad.weight.points === 0 && wBad.weight.lastKg === null, '非数字晨重被过滤，不显示 NaN', { points: wBad.weight.points, lastKg: wBad.weight.lastKg });
+
+console.log('\n9) 周报：能量达标率与跨周对比');
+ok(w.energy.rate !== null && w.energy.rate >= 0 && w.energy.rate <= 100, '能量达标率是 0–100 的百分比', w.energy.rate);
+ok(w.energy.okDays <= w.energy.knownDays && w.energy.knownDays <= 7, '能量达标天数不超过可判断天数', w.energy);
+ok(w.weight.series.length === 7 && w.weight.series[0].date === shiftDate(end, -6), '晨重序列按日期输出，可画曲线', w.weight.series[0]);
+ok(wEmpty.energy.rate === null && wEmpty.energy.okDays === 0, '空数据能量达标率为 null，不除零');
+
+const prevEnd = shiftDate(end, -7);
+const logsPrev = [];
+for (let i = 0; i < 7; i++) logsPrev.push(mkLog(shiftDate(prevEnd, i - 6), i, { protein: 85, sleep: 6.2 }));
+const wPrev = weekly.buildWeekly({ logs: logsPrev, profile: profileCut, endDate: prevEnd, days: 7 });
+const cmp = weekly.compareWeekly(w, wPrev);
+ok(cmp.prevAvailable === true && cmp.rows.length === 5, '上一周有数据 → 输出 5 项对比', { ok: cmp.prevAvailable, rows: cmp.rows.length });
+ok(cmp.prevFromDate === shiftDate(prevEnd, -6) && cmp.prevEndDate === prevEnd, '对比区间是上一周窗口', [cmp.prevFromDate, cmp.prevEndDate]);
+ok(cmp.rows.every(function (r) { return r.curText !== undefined && r.prevText !== undefined && r.deltaText; }), '每项都有本期/上周/差值文案');
+const pRow = cmp.rows.filter(function (r) { return r.key === 'proteinRate'; })[0];
+ok(/个百分点/.test(pRow.deltaText) || pRow.deltaText === '无变化', '百分比差值用“个百分点”', pRow.deltaText);
+
+const cmpNone = weekly.compareWeekly(w, null);
+ok(cmpNone.prevAvailable === false, '没有上一周 → prevAvailable=false');
+ok(cmpNone.rows.every(function (r) { return r.deltaText === '上周无数据可对比' && r.prevText === '--' && r.prev === null; }),
+  '缺上周时明确写“上周无数据可对比”，不拿 0 冒充', cmpNone.rows[0]);
+const cmpZeroWeek = weekly.compareWeekly(w, wEmpty);
+ok(cmpZeroWeek.prevAvailable === false, '上一周为空数据（0 天）同样视为不可对比');
+
+const cmpSame = weekly.compareWeekly(wFlat, wFlat);
+ok(cmpSame.prevAvailable === true, '两期都有数据才允许对比');
+ok(cmpSame.rows.filter(function (r) { return r.key === 'weight'; })[0].deltaText === '持平', '差值为 0 时写“持平”');
+ok(cmpSame.rows.filter(function (r) { return r.key === 'ruleHits'; })[0].deltaText === '无变化', '规则命中差值为 0 时写“无变化”');
+
+console.log('\n10) 周报：结构化 refeed（计划天数 / 实际完成 / 成功率）');
+// 体重约 58.6kg × 6 g/kg ≈ 352g 碳水；第 3、5 天给 420g 碳水 → 命中 refeed 日。
+const logsRefeed = [];
+for (let i = 0; i < 7; i++) {
+  const l = mkLog(shiftDate(end, i - 6), i, {});
+  if (i === 2 || i === 4) l.meals = [{ slot: 'refeed', items: [{ kcal: 2800, protein: 140, carbs: 420, fat: 60 }] }];
+  logsRefeed.push(l);
+}
+const wr2 = weekly.buildWeekly({ logs: logsRefeed, profile: profileCut, endDate: end, days: 7, refeedDays: 2 });
+ok(wr2.refeed && wr2.refeed.plannedDays === 2, '输出计划天数 2', wr2.refeed);
+ok(wr2.refeed && wr2.refeed.actualDays === 2, '实际完成天数 2', wr2.refeed && wr2.refeed.actualDays);
+ok(wr2.refeed && wr2.refeed.successRate === 100 && wr2.refeed.rate === 1, '成功率 100%', wr2.refeed);
+ok(wr2.refeed && wr2.refeed.targetCarbsGPerKg === 6, 'refeed 日目标 6 g/kg', wr2.refeed && wr2.refeed.targetCarbsG);
+const wr3 = weekly.buildWeekly({ logs: logsRefeed, profile: profileCut, endDate: end, days: 7, refeedDays: 3 });
+ok(wr3.refeed && wr3.refeed.actualDays === 2 && wr3.refeed.successRate === 67, '计划 3 完成 2 → 67%', wr3.refeed);
+const wrNone = weekly.buildWeekly({ logs: logsRefeed, profile: profileCut, endDate: end, days: 7 });
+ok(wrNone.refeed === null, '无计划天数 → refeed=null（goalAdherence 跳过该组件并重归一）');
+ok(weekly.deriveRefeed({ logs: logsRefeed, endDate: end, days: 7, plannedDays: 1, weightKg: null, profile: {} }) !== null,
+  '体重可从晨重记录回退，不因未传 weightKg 丢数据');
+
 console.log('\n--- 分享文本示例（cut 周报） ---');
 console.log(w.text);
 

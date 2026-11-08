@@ -6,6 +6,12 @@
 
 const KB = require('./knowledge.js');
 const REG = require('./ruleRegistry.js');
+const GM = require('./goalMatrix.js');
+const GOALS = require('./goals.js');
+
+// 规则引擎版本号：仅用于审计留痕（营养师建议快照冻结时写入 rulesVersion），不参与任何评分与规则判定。
+// 修改规则、阈值或阶段配置时必须同步升版，便于追溯历史建议由哪一版引擎产出。
+const RULES_VERSION = 'v4.0';
 
 const KB_MAP = {};
 KB.items.forEach(function (it) { KB_MAP[it.id] = it; });
@@ -37,6 +43,9 @@ const FIELD_LABELS = {
   hydration_plan: '补液/控水计划与实际量',
   training_type: '训练类型',
   training_rpe: '训练 RPE',
+  training_start_time: '训练开始时间',
+  training_quality: '训练主观质量（1–5）',
+  health_illness: '感染症状（0 无 / 1 轻微 / 2 发热）',
   soreness: '分部位酸痛',
   meals: '三餐结构化记录',
   next_plan: '明日训练计划',
@@ -57,7 +66,7 @@ const PHASE_PROFILES = {
     short: '维持',
     window: '非赛季 / 一般准备期',
     goal: '体重稳定在参赛级别附近，正常吃练，不主动制造缺口',
-    activeRuleIds: ['HYD-01', 'HYD-02', 'HYD-03', 'PRO-01', 'PRO-02', 'ENE-01', 'PHASE-02', 'SLE-01', 'REC-02', 'REC-03', 'LOG-01'],
+    activeRuleIds: ['HYD-01', 'HYD-02', 'HYD-03', 'PRO-01', 'PRO-02', 'ENE-01', 'PHASE-02', 'SLE-01', 'REC-02', 'REC-03', 'LOG-01', 'GOAL-01', 'GOAL-02'],
     suppressedRuleIds: ['HYD-04', 'HYD-05', 'PHASE-01', 'REC-01', 'REC-04', 'GI-01', 'SUP-01'],
     fieldSchema: {
       required: ['weights_morning', 'sleep_hours', 'meals'],
@@ -75,7 +84,7 @@ const PHASE_PROFILES = {
     short: '减脂',
     window: '赛前 8–12 周',
     goal: '每周降 0.5–1% 体重，蛋白上调保肌，缺口 300–600 kcal',
-    activeRuleIds: ['HYD-01', 'HYD-02', 'HYD-03', 'PRO-01', 'PRO-02', 'ENE-01', 'PHASE-01', 'SLE-01', 'REC-02', 'REC-03', 'SUP-01', 'LOG-01'],
+    activeRuleIds: ['HYD-01', 'HYD-02', 'HYD-03', 'PRO-01', 'PRO-02', 'ENE-01', 'PHASE-01', 'SLE-01', 'REC-02', 'REC-03', 'SUP-01', 'LOG-01', 'GOAL-01', 'GOAL-02'],
     suppressedRuleIds: ['HYD-04', 'HYD-05', 'REC-01', 'REC-04', 'GI-01', 'PHASE-02'],
     fieldSchema: {
       required: ['weights_morning', 'meals', 'soreness', 'resting_hr', 'urine_color'],
@@ -93,7 +102,7 @@ const PHASE_PROFILES = {
     short: '微调',
     window: '赛前 1–2 周',
     goal: '只动水、钠、纤维与胃肠内容物；不再动热量缺口',
-    activeRuleIds: ['HYD-03', 'HYD-05', 'PRO-01', 'SLE-01', 'REC-02', 'REC-03', 'GI-01', 'SUP-01', 'LOG-01'],
+    activeRuleIds: ['HYD-03', 'HYD-05', 'PRO-01', 'SLE-01', 'REC-02', 'REC-03', 'GI-01', 'SUP-01', 'LOG-01', 'GOAL-01', 'GOAL-02'],
     suppressedRuleIds: ['HYD-01', 'HYD-02', 'ENE-01', 'PHASE-01', 'PHASE-02', 'PRO-02', 'REC-01', 'REC-04'],
     fieldSchema: {
       required: ['weights_morning', 'hydration_plan', 'gi_symptoms', 'supplement', 'sleep_hours'],
@@ -111,7 +120,7 @@ const PHASE_PROFILES = {
     short: '恢复',
     window: '称重后 12–24h',
     goal: '补液补糖，把体重与状态拉回比赛水平',
-    activeRuleIds: ['HYD-04', 'PRO-01', 'REC-01', 'REC-04', 'GI-01', 'SLE-01', 'LOG-01'],
+    activeRuleIds: ['HYD-04', 'PRO-01', 'REC-01', 'REC-04', 'GI-01', 'SLE-01', 'LOG-01', 'GOAL-01', 'GOAL-02'],
     suppressedRuleIds: ['HYD-01', 'HYD-02', 'HYD-03', 'HYD-05', 'ENE-01', 'PHASE-01', 'PHASE-02', 'PRO-02', 'REC-02', 'REC-03', 'SUP-01'],
     fieldSchema: {
       required: ['weights_morning', 'post_weighin_fluid', 'post_weighin_carb', 'post_weighin_subjective'],
@@ -141,15 +150,37 @@ function getPhaseProfile(phase) {
 
 function phaseLabel(phase) { return getPhaseProfile(phase).label; }
 
-// 阶段字段：返回必填/选填/隐藏 + 中文名，前端据此收缩或展开表单
-function fieldsFor(phase) {
+// 阶段字段：返回必填/选填/隐藏 + 中文名，前端据此收缩或展开表单。
+// goals 可选：只把“当前阶段合法”的目标额外字段追加到 optional，不改 required / hidden。
+const GOAL_FIELD_MAP = {
+  'P-POW': { phases: ['maintain', 'cut', 'peak'], keys: ['training_start_time', 'training_quality'] },
+  'P-SPD': { phases: ['maintain', 'cut', 'peak'], keys: ['training_start_time', 'training_quality'] },
+  'P-HYP': { phases: ['maintain', 'cut'], keys: ['training_start_time'] },
+  'P-END': { phases: ['maintain', 'cut', 'peak'], keys: ['training_start_time'] },
+  'P-SKL': { phases: ['maintain', 'cut', 'peak'], keys: ['training_quality'] },
+  'G-IMM': { phases: ['maintain', 'cut', 'peak', 'recover'], keys: ['health_illness'] }
+};
+
+function fieldsFor(phase, goals) {
   var prof = getPhaseProfile(phase);
   var fs = prof.fieldSchema;
   function pack(k) { return { key: k, label: FIELD_LABELS[k] || k }; }
+  var optional = fs.optional.map(pack);
+  var seen = {};
+  optional.forEach(function (f) { seen[f.key] = true; });
+  (Array.isArray(goals) ? goals : []).forEach(function (goalId) {
+    var def = GOAL_FIELD_MAP[String(goalId || '').trim()];
+    if (!def || def.phases.indexOf(prof.id) < 0) return;
+    def.keys.forEach(function (k) {
+      if (seen[k]) return;
+      seen[k] = true;
+      optional.push(pack(k));
+    });
+  });
   return {
     phase: prof.id,
     required: fs.required.map(pack),
-    optional: fs.optional.map(pack),
+    optional: optional,
     hidden: fs.hidden.map(pack),
     critical: (fs.critical || []).map(pack)
   };
@@ -162,6 +193,19 @@ function num(v) {
   if (v === null || v === undefined || v === '') return null;
   var n = parseFloat(String(v).replace(/[^\d.\-]/g, ''));
   return isFinite(n) ? n : null;
+}
+
+// HH:mm（24 小时制）；非法或缺失统一返回 null，不写默认值
+function clock(v) {
+  var s = String(v === null || v === undefined ? '' : v).trim();
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(s) ? s : null;
+}
+
+// 可选整数区间字段：缺失或越界统一返回 null
+function intInRange(v, min, max) {
+  var n = num(v);
+  if (n === null || Math.round(n) !== n) return null;
+  return n >= min && n <= max ? n : null;
 }
 
 function round1(v) { return Math.round(v * 10) / 10; }
@@ -230,7 +274,13 @@ function normalizeLog(raw) {
       durationMin: num(raw.training && raw.training.durationMin !== undefined ? raw.training.durationMin : raw.durationMin),
       rpe: num(raw.training && raw.training.rpe !== undefined ? raw.training.rpe : raw.rpe),
       rounds: num(raw.training && raw.training.rounds !== undefined ? raw.training.rounds : raw.rounds),
-      content: (raw.training && raw.training.content) || raw.trainingContent || ''
+      content: (raw.training && raw.training.content) || raw.trainingContent || '',
+      // 目标补充字段：可选，缺失为 null，不写默认值
+      startTime: clock(raw.training && raw.training.startTime),
+      quality: intInRange(raw.training && raw.training.quality, 1, 5)
+    },
+    health: {
+      illness: intInRange(raw.health && raw.health.illness, 0, 2)
     },
     sorenessByArea: raw.sorenessByArea || {},
     sorenessLegacy: num(raw.soreness),
@@ -310,6 +360,41 @@ function estimateTdee(log, profile, bw) {
     return Math.round(bmr * act);
   }
   return Math.round(bw * (active ? 40 : 33));
+}
+
+// 训练课净消耗估算：只算这节课本身（扣掉静息），不用全天 TDEE 冒充“运动消耗”。
+// 表里存的是总 MET（见 goal-matrix §7.6.1），净消耗必须扣 1 MET：
+//   kcal = (MET − 1) × 3.5 × 体重(kg) / 200 × 时长(min)。
+// 缺时长/课型未知（rest）/体重未知 → null，不估。
+const TRAINING_MET = { cardio: 7.0, strength: 4.0, technique: 3.0, sparring: 8.5, recovery: 2.0 };
+function estimateTrainingKcal(log, bw) {
+  var t = (log && log.training) || {};
+  var dur = num(t.durationMin);
+  var met = TRAINING_MET[t.sessionType];
+  var netMet = met ? met - 1 : null;
+  if (dur === null || dur <= 0 || !netMet || netMet <= 0 || !bw) return null;
+  return Math.round(netMet * 3.5 * bw / 200 * dur);
+}
+
+// 近 7 日（含当天）晨重均值；没有历史点时退回当天体重，仍无 → null。
+function last7MorningAvgKg(points, endDate, currentKg) {
+  var end = endDate ? new Date(endDate + 'T00:00:00').getTime() : null;
+  if (end !== null && !isFinite(end)) end = null;
+  var vals = [];
+  (Array.isArray(points) ? points : []).forEach(function (p) {
+    var kg = num(p && p.kg);
+    if (kg === null || !p.date) return;
+    if (end !== null) {
+      var t = new Date(p.date + 'T00:00:00').getTime();
+      if (!isFinite(t) || t > end || (end - t) / 86400000 > 6) return;
+    }
+    vals.push(kg);
+  });
+  var todayKg = num(currentKg);
+  var hasToday = endDate && (points || []).some(function (p) { return p.date === endDate; });
+  if (todayKg !== null && !hasToday) vals.push(todayKg);
+  if (!vals.length) return null;
+  return vals.reduce(function (s, v) { return s + v; }, 0) / vals.length;
 }
 
 // 阶段化的蛋白区间（g/kg 体重）
@@ -428,6 +513,101 @@ function reviewStateOf(ruleId, overrides) {
 //   ctx.recentMorningWeights  [{date,kg}]
 //   ctx.ruleReviews     { 'HYD-01': 'needs_review' } 复核状态覆盖（来自 rule_reviews 集合）
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 复合目标叠加：GOAL-01/02 的判定辅助
+// ---------------------------------------------------------------------------
+var ATOM_MAP = {};
+GM.ATOMS.forEach(function (a) { ATOM_MAP[a.id] = a; });
+
+function goal01LevelFor(phase, error, blocked) {
+  var id = (blocked && blocked[0] && blocked[0].goalId) || (error && error.goalId) || null;
+  // 唯一来源：矩阵格上的 goal01Level（N/A 与条件不满足都以格为准）。
+  // 条件满足的目标在 goals.js validateGoals 阶段已放行，不会走到这里。
+  var cell = id ? (GM.MATRIX[phase] && GM.MATRIX[phase][id]) : null;
+  if (cell && cell.goal01Level) return cell.goal01Level;
+  return (error && error.level) || 'red';
+}
+
+// GOAL-02：只在现有规则覆盖不到的执行冲突上提示，不判体重/蛋白/睡眠/脱水。
+function detectGoal02(plan, log, phase, daysToWeigh) {
+  var atoms = plan.atoms || [];
+  function has(id) { return atoms.indexOf(id) >= 0; }
+  var counted = (plan.goals || []).filter(function (g) { return g.countsTowardQuota; }).length;
+  var sess = (log.training && log.training.sessionType) || '';
+  var trainActive = !!sess && sess !== 'rest';
+  var rpe = num(log.training && log.training.rpe);
+  var dur = num(log.training && log.training.durationMin);
+  var nextType = (log.nextPlan && log.nextPlan.type) || '';
+
+  if (counted >= 3 && daysToWeigh !== null && daysToWeigh < 14) {
+    return {
+      level: 'red',
+      reason: '三个目标叠加且距称重不足 14 天，执行面过载',
+      concessions: [['B-HOLD', 'cap'], ['P-HYP', 'cap'], ['P-END', 'cap']]
+    };
+  }
+  if (trainActive && has('P-POW') && has('P-END')) {
+    return {
+      level: 'amber',
+      reason: '同一天同时安排爆发/最大力量与耐力/体能，恢复窗口不够',
+      concessions: [['P-END', 'sequence'], ['P-POW', 'sequence']]
+    };
+  }
+  if (trainActive && has('P-HYP') && has('P-END')) {
+    return {
+      level: 'amber',
+      reason: '同一天同时安排肌肥大与耐力/体能，能量与恢复方向冲突',
+      concessions: [['P-HYP', 'sequence'], ['P-END', 'cap']]
+    };
+  }
+  if (trainActive && has('P-END') && has('P-SPD')) {
+    return {
+      level: 'amber',
+      reason: '同一天同时安排速度/神经与耐力/体能，速度质量会被疲劳吃掉',
+      concessions: [['P-END', 'sequence'], ['P-SPD', 'cap']]
+    };
+  }
+  if (has('P-HYP') && has('P-END') && has('B-HOLD')) {
+    return {
+      level: 'amber',
+      reason: '增肌、耐力与控重同时目标：能量方向与恢复要求冲突',
+      concessions: [['B-HOLD', 'cap']]
+    };
+  }
+  if (phase === 'peak' && has('B-PEAK') && has('P-POW')) {
+    return {
+      level: 'amber',
+      reason: '微调期保强度目标与爆发加量冲突，优先保水盐计划',
+      concessions: [['P-POW', 'cap']]
+    };
+  }
+  if (has('P-SPD') && (rpe !== null && rpe >= 8 || dur !== null && dur >= 90) && nextType === 'speed') {
+    return {
+      level: 'info',
+      reason: '当日大负荷与次日速度课相邻，速度目标只保留神经唤醒',
+      concessions: [['P-SPD', 'sequence']]
+    };
+  }
+  return null;
+}
+
+function applyGoal02Concessions(plan, conflict) {
+  var lead = plan.lead;
+  (conflict.concessions || []).forEach(function (pair) {
+    var id = pair[0];
+    if (!ATOM_MAP[id] || !ATOM_MAP[id].occupiesSlot || id === lead) return;
+    if ((plan.concessions || []).some(function (c) { return c.goalId === id; })) return;
+    plan.concessions.push({
+      goalId: id,
+      mode: pair[1],
+      reason: 'GOAL-02：' + conflict.reason,
+      ruleRefs: ['GOAL-02'],
+      phaseWindow: plan.phase,
+      guardrailAction: null
+    });
+  });
+}
+
 function evaluate(rawLog, ctx) {
   ctx = ctx || {};
   var log = normalizeLog(rawLog);
@@ -437,6 +617,11 @@ function evaluate(rawLog, ctx) {
 
   var active = {};
   prof.activeRuleIds.forEach(function (id) { active[id] = true; });
+  // 无目标时 GOAL-01/02 不参与本阶段规则集，保证与 v3.0 逐字段一致。
+  // ctx.goals 存在时优先于 profile.goals：用于营养师端未保存目标的预览与复核。
+  var goalInput = ctx.goals !== undefined ? ctx.goals : profile.goals;
+  var hasGoals = Array.isArray(goalInput) && goalInput.length > 0;
+  if (!hasGoals) { delete active['GOAL-01']; delete active['GOAL-02']; }
 
   var bw = num(log.weights.morning && log.weights.morning.kg)
     || num(log.weights.pre && log.weights.pre.kg)
@@ -954,6 +1139,86 @@ function evaluate(rawLog, ctx) {
       '缺失：' + names);
   }
 
+  // ---------- 6.5 复合目标叠加（仅 profile.goals 非空时执行） ----------
+  var goalPlan = null;
+  var goalAdherence = null;
+  var goalBlockers = [];
+  var goalMatrixVersion = GM.GOAL_MATRIX_VERSION;
+  var goalLead = null;
+  if (hasGoals) {
+    var todayDate = log.date || ctx.today || '';
+    var weighInDate = log.goal.weighInDate || profile.weighInDate || '';
+    var daysToWeigh = num(ctx.daysToWeigh);
+    if (daysToWeigh === null && weighInDate && todayDate) daysToWeigh = daysBetween(todayDate, weighInDate);
+    var gapPct = num(ctx.gapPct);
+    var targetKg = num(profile.targetWeightKg);
+    if (gapPct === null && bw && targetKg) gapPct = round1(((bw - targetKg) / targetKg) * 100);
+
+    var bodyFatPct = num(ctx.bodyFatPct !== undefined ? ctx.bodyFatPct : profile.bodyFatPct);
+    var ea = num(ctx.eaKcalKgFfm);
+    // 文档 §7.6：FFM = 近 7 日晨重均值 × (1 − bodyFatPct/100)；
+    // EA = (摄入 − 训练课净消耗) / FFM。缺 bodyFatPct、缺训练时长/课型或摄入 → ea=null，
+    // 只走 data_missing/monitor，不判红、不 veto，也不再用全天 TDEE 兜底。
+    if (ea === null && bodyFatPct !== null && bodyFatPct >= 3 && bodyFatPct <= 50) {
+      var eaBaseKg = last7MorningAvgKg(ctx.recentMorningWeights, log.date, bw);
+      var trainingKcal = estimateTrainingKcal(log, eaBaseKg);
+      var intakeKcal = num(totals.kcal);
+      if (eaBaseKg !== null && trainingKcal !== null && intakeKcal !== null) {
+        var ffm = eaBaseKg * (1 - bodyFatPct / 100);
+        if (ffm > 0) ea = round1((intakeKcal - trainingKcal) / ffm);
+      }
+    }
+
+    // 护栏红灯：基础规则 emit 之后汇总，只在内存里参与目标裁决，不落库。
+    // 固定顺序 G-EA → G-GI → G-SLE；G-IMM / G-MED 永不进入。
+    var guardrailRed = [];
+    if (ea !== null && ea < 30) guardrailRed.push('G-EA');
+    if (alerts.some(function (a) { return a.ruleId === 'GI-01' && a.level === 'red'; })) guardrailRed.push('G-GI');
+    if (alerts.some(function (a) { return a.ruleId === 'SLE-01' && a.level === 'red'; })) guardrailRed.push('G-SLE');
+
+    var goalCtx = {
+      daysToWeigh: daysToWeigh,
+      gapPct: gapPct,
+      bodyFatPct: bodyFatPct,
+      eaKcalKgFfm: ea,
+      guardrailRed: guardrailRed,
+      refeed: ctx.refeed,
+      today: todayDate
+    };
+    var resolved = GOALS.resolveGoalPlan(phase, goalInput, goalCtx);
+    if (resolved.ok) {
+      goalPlan = resolved.goalPlan;
+      goalLead = goalPlan.lead;
+      goalBlockers = GOALS.goalBlockers(goalPlan, log, goalCtx);
+      var g02 = detectGoal02(goalPlan, log, phase, daysToWeigh);
+      if (g02) {
+        applyGoal02Concessions(goalPlan, g02);
+        emit('GOAL-02', 'goal-exec-conflict', g02.level,
+          g02.level === 'red' ? '目标过多：执行面冲突' : '目标执行冲突',
+          g02.reason + '。建议重排当周训练日或降低非主导目标的量。',
+          ['rec-load'], g02.reason);
+      }
+    } else {
+      var g01Level = goal01LevelFor(phase, resolved.error, resolved.blocked);
+      var blockedNames = (resolved.blocked || []).map(function (b) { return b.goalId; }).filter(Boolean).join('、');
+      emit('GOAL-01', 'goal-phase-illegal', g01Level,
+        '目标与当前阶段不匹配',
+        (resolved.error.message || '当前阶段不能执行该目标') + '。请改目标或改阶段；目标不会自动删除。',
+        ['wc-phases'], blockedNames || resolved.error.message);
+      goalBlockers = (resolved.blocked || []).map(function (b) {
+        return {
+          goalId: b.goalId || null,
+          blockerType: 'goal_illegal',
+          ruleId: 'GOAL-01',
+          level: g01Level,
+          action: g01Level === 'red' ? 'veto' : 'monitor',
+          message: b.reason || resolved.error.message,
+          suppressedByPhase: false
+        };
+      });
+    }
+  }
+
   // ---------- 7. 评分（按阶段权重加权） ----------
   function frac(v) { return clamp(v, 0, 1); }
   var hydFrac;
@@ -1025,7 +1290,7 @@ function evaluate(rawLog, ctx) {
   function pushTip(id) {
     var it = KB_MAP[id];
     if (it && tips.length < 3 && !tips.some(function (t) { return t.id === id; })) {
-      tips.push({ id: it.id, title: it.title, body: it.body, source: it.source, cat: it.cat });
+      tips.push({ id: it.id, title: it.title, body: it.body, sources: it.sources, cat: it.cat });
     }
   }
   var sess = log.training.sessionType;
@@ -1040,13 +1305,29 @@ function evaluate(rawLog, ctx) {
   if (log.sleep.hours === null) pushTip('rec-sleep');
   if (protein.level === 'ok' && energy.dataOk) pushTip('carb-timing');
 
+  // 目标派生数据：依从性独立计算，不进 score；零目标/拒绝计划时只给 unknown。
+  if (hasGoals) {
+    goalAdherence = GOALS.goalAdherence(log, goalPlan, { refeed: ctx.refeed });
+    if (goalLead) pushTip('wc-phases');
+  }
+
   var headline = '';
   var reds = alerts.filter(function (a) { return a.level === 'red'; });
   if (reds.length) headline = reds[0].title;
   else if (alerts.length) headline = alerts[0].title;
   else headline = '今天各项正常，按计划吃练。';
 
-  return {
+  var summary = buildCoachSummary(log, { score: score, level: level, hydration: hydration, protein: protein, energy: energy, rate: rate, recovery: recovery, sRPE: sRPE, totals: totals });
+  if (hasGoals) {
+    if (goalPlan && goalPlan.lead) {
+      var leadName = (ATOM_MAP[goalPlan.lead] && ATOM_MAP[goalPlan.lead].name) || goalPlan.lead;
+      summary = summary ? summary + ' · 目标 ' + leadName + ' 主导' : '目标 ' + leadName + ' 主导';
+    } else if (goalLead === null && goalPlan === null) {
+      summary = summary ? summary + ' · 目标与阶段不匹配' : '目标与阶段不匹配';
+    }
+  }
+
+  var out = {
     version: 3,
     date: log.date,
     score: score,
@@ -1065,7 +1346,9 @@ function evaluate(rawLog, ctx) {
       primaryAlertTypes: prof.primaryAlertTypes,
       notes: prof.notes
     },
-    activeRuleIds: prof.activeRuleIds.slice(),
+    activeRuleIds: prof.activeRuleIds.filter(function (id) {
+      return hasGoals || id !== 'GOAL-01' && id !== 'GOAL-02';
+    }),
     suppressedRuleIds: prof.suppressedRuleIds.slice(),
     suppressed: suppressedLog,
     missingRequired: missing,
@@ -1081,8 +1364,16 @@ function evaluate(rawLog, ctx) {
     alerts: alerts,
     tips: tips,
     // 给教练端的一句话摘要（保留兼容，营养师端已改为跟进队列）
-    coachSummary: buildCoachSummary(log, { score: score, level: level, hydration: hydration, protein: protein, energy: energy, rate: rate, recovery: recovery, sRPE: sRPE, totals: totals })
+    coachSummary: summary
   };
+  // 四个派生字段只在目标非空时出现；零目标时对象结构与 v3.0 逐字段一致。
+  if (hasGoals) {
+    out.goalPlan = goalPlan;
+    out.goalAdherence = goalAdherence;
+    out.goalBlockers = goalBlockers;
+    out.goalMatrixVersion = goalMatrixVersion;
+  }
+  return out;
 }
 
 function buildCoachSummary(log, f) {
@@ -1098,6 +1389,8 @@ function buildCoachSummary(log, f) {
 }
 
 module.exports = {
+  RULES_VERSION: RULES_VERSION,
+  GOAL_MATRIX_VERSION: GM.GOAL_MATRIX_VERSION,
   evaluate: evaluate,
   normalizeLog: normalizeLog,
   weeklyRate: weeklyRate,

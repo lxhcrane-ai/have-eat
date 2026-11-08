@@ -7,7 +7,15 @@ const db = cloud.database();
 const ALLOW = ['name', 'sex', 'heightCm', 'age', 'weightKg', 'targetWeightKg', 'weighInDate', 'restingHrBaseline', 'note'];
 const NUM = ['heightCm', 'age', 'weightKg', 'targetWeightKg', 'restingHrBaseline'];
 // 这些字段只能由后台写，保存档案时必须原样保留
-const LOCKED = ['phase', 'phaseEffectiveDate', 'phaseSetBy', 'phaseSetAt', 'maintainBandPct', 'coachOpenid'];
+const LOCKED = ['phase', 'phaseEffectiveDate', 'phaseSetBy', 'phaseSetAt', 'maintainBandPct', 'coachOpenid', 'goals', 'goalEffectiveDate', 'goalSource', 'bodyFatPct', 'refeedDays'];
+
+function admissionOf(user) {
+  if (!user) return 'pending';
+  if (user.admission === 'active' || user.admission === 'pending' || user.admission === 'blocked') return user.admission;
+  if (user.role === 'coach') return 'active';
+  if (user.coachOpenid || user.coachCode) return 'active';
+  return 'pending';
+}
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
@@ -22,14 +30,14 @@ exports.main = async (event) => {
 
   const users = db.collection('users');
   const u = await users.where({ _openid: OPENID }).limit(1).get();
-  if (u.data.length) {
-    const old = u.data[0].profile || {};
-    const merged = Object.assign({}, old, clean);       // 合并而不是覆盖，避免丢字段
-    LOCKED.forEach(function (k) { if (old[k] !== undefined) merged[k] = old[k]; });
-    await users.doc(u.data[0]._id).update({ data: { profile: merged } });
-    return { ok: true, profile: merged };
+  const me = u.data[0] || null;
+  // 不再在这里新建用户：身份和准入只由 whoami/bind 产生，避免绕过邀请直接拿到可用账号
+  if (admissionOf(me) !== 'active') {
+    return { ok: false, code: 'PENDING_ADMISSION', error: '账号待准入：请输入教练提供的配对码' };
   }
-  const created = Object.assign({ phase: 'maintain' }, clean);
-  await users.add({ data: { _openid: OPENID, role: 'athlete', profile: created } });
-  return { ok: true, profile: created };
+  const old = me.profile || {};
+  const merged = Object.assign({}, old, clean);       // 合并而不是覆盖，避免丢字段
+  LOCKED.forEach(function (k) { if (old[k] !== undefined) merged[k] = old[k]; });
+  await users.doc(me._id).update({ data: { profile: merged } });
+  return { ok: true, profile: merged };
 };

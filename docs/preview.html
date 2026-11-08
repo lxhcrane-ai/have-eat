@@ -401,9 +401,11 @@ function render(){
     <div class="cell"><div class="cell-label">${esc(m.label)}</div>
     <div class="cell-val">${esc(m.value)}<span class="cell-unit">${esc(m.unit)}</span></div></div>`).join('');
 
+  // 兼容两种数据：新数据用 sources 数组，旧内嵌快照仍是 source 字符串
+  const tipSource = t => Array.isArray(t.sources) ? t.sources.map(s=>s.citation).join('；') : (t.source || '');
   const tips = d.tips.map(t=>`
     <div class="tip"><div class="tip-title">${esc(t.title)}</div>
-    <div class="tip-body">${esc(t.body)}</div><div class="tiny">${esc(t.source)}</div></div>`).join('');
+    <div class="tip-body">${esc(t.body)}</div><div class="tiny">${esc(tipSource(t))}</div></div>`).join('');
 
   document.getElementById('screen').innerHTML = `
     <div class="nav">今日</div>

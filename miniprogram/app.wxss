@@ -46,3 +46,15 @@ page {
 .hint { color: #6b7772; font-size: 22rpx; margin-top: 6rpx; }
 .empty { text-align: center; color: #5c6862; padding: 80rpx 0; font-size: 26rpx; }
 .hr { height: 1rpx; background: #1f2523; margin: 18rpx 0; }
+
+/* 演示数据横幅：所有涉及演示记录的页面共用，保证一眼可辨 */
+.demo-banner {
+  display: flex; align-items: flex-start; gap: 14rpx;
+  background: #2b220c; border: 1rpx solid #574413; border-left: 6rpx solid #ffc46b;
+  border-radius: 14rpx; padding: 18rpx 20rpx; margin-bottom: 20rpx;
+  color: #e8d9a8; font-size: 24rpx; line-height: 1.5;
+}
+.demo-tag {
+  flex: none; background: #ffc46b; color: #221a06; font-size: 22rpx; font-weight: 600;
+  border-radius: 8rpx; padding: 4rpx 12rpx; margin-top: 2rpx;
+}

@@ -1,0 +1,56 @@
+<view class="page">
+  <view class="adv-head">
+    <view>
+      <view class="title">{{name ? name + ' 的建议' : '我的建议'}}</view>
+      <view class="tiny" wx:if="{{name}}">营养师视角 · 只读 · 按日期倒序</view>
+      <view class="tiny" wx:else>营养师发布后会出现在这里 · 按日期倒序</view>
+    </view>
+  </view>
+
+  <view class="cache-banner" wx:if="{{offline && cachedRestore}}">离线，展示上次同步内容</view>
+  <view class="cache-banner" wx:if="{{offline && cacheMissing}}">离线，暂未缓存历史建议</view>
+
+  <view class="card" wx:if="{{error}}">
+    <view class="card-title">加载失败</view>
+    <view class="tiny">{{error}}</view>
+    <button class="btn ghost" bindtap="load" style="margin-top:16rpx">重试</button>
+  </view>
+
+  <view class="empty" wx:if="{{firstLoaded && !items.length && !error && cacheMissing}}">
+    <view>离线，暂未缓存历史建议</view>
+    <view class="tiny" style="margin-top:12rpx">联网后可查看完整历史，请稍后重试。</view>
+    <button class="btn ghost" bindtap="load" style="margin-top:16rpx">重试</button>
+  </view>
+
+  <view class="empty" wx:if="{{firstLoaded && !items.length && !error && cachedRestore}}">
+    <view>上次同步时没有历史建议</view>
+    <view class="tiny" style="margin-top:12rpx">联网后会重新同步。</view>
+  </view>
+
+  <view class="empty" wx:if="{{firstLoaded && !items.length && !error && !offline}}">
+    <view>还没有历史建议</view>
+    <view class="tiny" style="margin-top:12rpx">营养师审阅并发布后，这里会按日期保留每一条建议。</view>
+  </view>
+
+  <view class="adv-item {{item.id === focusId ? 'focus' : ''}}" id="adv-{{item.id}}" wx:for="{{items}}" wx:key="id">
+    <view class="adv-date">
+      <text class="date-text">{{item.dateText}}</text>
+      <text class="badge amber" wx:if="{{item.revoked}}">已撤回</text>
+      <text class="badge update" wx:elif="{{item.updated}}">已更新</text>
+    </view>
+
+    <view class="adv-body" wx:if="{{!item.revoked}}">{{item.body}}</view>
+    <view class="tiny revoked-note" wx:else>该建议已撤回，正文不再展示。</view>
+
+    <view class="adv-chips" wx:if="{{item.ruleChips.length || item.kbChips.length}}">
+      <text class="chip sm" wx:for="{{item.ruleChips}}" wx:key="id" data-id="{{item.id}}" bindtap="goRuleChip">规则 · {{item.name}}</text>
+      <text class="chip sm kb" wx:for="{{item.kbChips}}" wx:key="id" data-id="{{item.id}}" bindtap="goKbChip">{{item.title}}</text>
+    </view>
+
+    <view class="adv-meta tiny">{{item.coachName}}<text wx:if="{{item.publishedText}}"> · {{item.publishedText}} 发布</text></view>
+  </view>
+
+  <view class="more tiny" wx:if="{{loadingMore}}">加载中…</view>
+  <view class="more tiny" wx:if="{{hasMore && !loadingMore}}">继续上滑加载更多</view>
+  <view class="more tiny" wx:if="{{!hasMore && items.length}}">没有更多了</view>
+</view>

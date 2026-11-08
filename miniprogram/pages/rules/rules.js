@@ -1,5 +1,6 @@
 const coachApi = require('../../utils/coachApi.js');
 const rules = require('../../utils/rules.js');
+const privacy = require('../../utils/privacy.js');
 
 Page({
   data: {
@@ -14,6 +15,11 @@ Page({
     ],
     all: [], shown: [], expanded: '',
     needsReview: 0
+  },
+
+  onLoad(query) {
+    privacy.lockShare();
+    this.focusRule = (query && query.ruleId) || '';
   },
 
   onShow() { this.load(); },
@@ -36,6 +42,15 @@ Page({
       shown: this.filterList(all, this.data.filter),
       needsReview: all.filter(function (r) { return r.reviewStatus === 'needs_review'; }).length
     });
+    // 从首页建议卡进入时定位到指定规则
+    if (this.focusRule) {
+      this.setData({
+        filter: 'all',
+        shown: this.filterList(all, 'all'),
+        expanded: this.focusRule
+      });
+      this.focusRule = '';
+    }
   },
 
   filterList(list, filter) {

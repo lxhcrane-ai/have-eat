@@ -6,6 +6,18 @@
     <view class="preview">{{preview}}</view>
   </view>
 
+  <!-- 演示记录：保存后转为真实记录，避免把演示数字当成真实数据 -->
+  <view class="demo-banner" wx:if="{{isDemo}}">
+    <text class="demo-tag">演示记录</text>
+    <text>这一天的数字是演示数据，不是你的真实记录。保存后即转为真实记录，其余演示数据会被移除。</text>
+  </view>
+
+  <!-- 轻量横幅：营养师已审阅，不重复正文 -->
+  <view class="review-banner" wx:if="{{reviewed}}" bindtap="goHome">
+    <text>营养师已审阅今日建议</text>
+    <text class="op">查看 ›</text>
+  </view>
+
   <!-- 阶段条：阶段由营养师设置，决定下面哪些字段必填 -->
   <view class="phase-bar">
     <view class="phase-name">{{phaseLabel}}</view>
@@ -179,6 +191,33 @@
       <input class="input flex" value="{{draft.training.content}}" data-k="training.content" bindinput="onText" placeholder="有氧，手臂肩背力量" />
     </view>
     <view class="tiny" wx:if="{{draft.training.durationMin && draft.training.rpe}}">sRPE = {{draft.training.durationMin * draft.training.rpe}}</view>
+  </view>
+
+  <!-- 目标补充字段：默认收起，不改变原有填写与保存路径 -->
+  <view class="card">
+    <view class="card-title status-head" bindtap="toggleStatus">
+      <text>训练与状态<text class="tiny">（选填）</text></text>
+      <text class="op">{{statusOpen ? '收起' : '展开'}}</text>
+    </view>
+    <view wx:if="{{statusOpen}}">
+      <view class="row">
+        <text class="label">训练开始时间</text>
+        <picker mode="time" value="{{draft.training.startTime}}" bindchange="onTime">
+          <view class="input-wrap">
+            <text class="{{draft.training.startTime ? '' : 'tiny'}}">{{draft.training.startTime || '未填'}}</text>
+            <text class="unit">点选</text>
+          </view>
+        </picker>
+      </view>
+      <view class="sub-label">训练主观质量（1 差 – 5 好）</view>
+      <view class="chips">
+        <view class="chip {{draft.training.quality == item ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" data-k="training.quality" data-v="{{item}}" bindtap="onPick">{{item}}</view>
+      </view>
+      <view class="sub-label">感染症状（0 无 / 1 轻微 / 2 发热）</view>
+      <view class="chips">
+        <view class="chip {{draft.health.illness == item.v ? 'on' : ''}}" wx:for="{{illnessOptions}}" wx:key="v" data-k="health.illness" data-v="{{item.v}}" bindtap="onPick">{{item.name}}</view>
+      </view>
+    </view>
   </view>
 
   <!-- 酸痛 -->

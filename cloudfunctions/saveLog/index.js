@@ -3,6 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 const rules = require('./lib/rules.js');
+const submsg = require('./lib/submsg.js');
 
 // 规则复核状态覆盖（rule_reviews 集合）。集合不存在时用登记表默认值。
 async function reviewOverrides() {
@@ -12,6 +13,14 @@ async function reviewOverrides() {
     r.data.forEach(function (x) { map[x.ruleId] = x.status; });
     return map;
   } catch (e) { return {}; }
+}
+
+function admissionOf(user) {
+  if (!user) return 'pending';
+  if (user.admission === 'active' || user.admission === 'pending' || user.admission === 'blocked') return user.admission;
+  if (user.role === 'coach') return 'active';
+  if (user.coachOpenid || user.coachCode) return 'active';
+  return 'pending';
 }
 
 // 拳王保存当日记录：upsert logs（按 date 幂等）-> 计算评估 -> 通知教练
@@ -32,6 +41,9 @@ exports.main = async (event) => {
     user = u.data[0] || null;
   } catch (e) {
     return { ok: false, error: 'users 集合不存在' };
+  }
+  if (admissionOf(user) !== 'active') {
+    return { ok: false, code: 'PENDING_ADMISSION', error: '账号待准入：请输入教练提供的配对码' };
   }
   if (user && user.role === 'coach' && event.force !== true) {
     return { ok: false, error: '当前账号是教练账号，不能提交训练记录' };
@@ -120,23 +132,15 @@ exports.main = async (event) => {
         }
       });
       notified = true;
-      // 订阅消息（可选，模板为空则跳过）
-      const tpl = process.env.TPL_COACH_LOG || '';
-      if (tpl && reds.length) {
-        try {
-          await cloud.openapi.subscribeMessage.send({
-            touser: coachOpenid,
-            templateId: tpl,
-            page: 'pages/coach/coach',
-            data: {
-              thing1: { value: (profile.name || '拳王') + ' ' + log.date },
-              thing2: { value: feedback.headline.slice(0, 20) },
-              time3: { value: new Date().toISOString().slice(0, 16).replace('T', ' ') }
-            }
-          });
-        } catch (e) {
-          console.warn('订阅消息发送失败（配额/模板问题）', e.errCode || e.message);
-        }
+      // 订阅消息：只有红灯才推送，避免每天首条也消耗一次授权导致刷屏。
+      // 未配置模板 / 教练未授权 / 发送失败都在 submsg 内静默吞掉，不影响保存主流程。
+      if (reds.length) {
+        await submsg.notify(coachOpenid, 'coachLog', {
+          page: 'pages/coach/coach',
+          name: (profile.name || '拳王') + ' ' + log.date,
+          summary: feedback.headline,
+          time: new Date()
+        });
       }
     }
   }

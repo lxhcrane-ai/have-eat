@@ -14,7 +14,9 @@
       <text class="tiny">{{item.catName}}</text>
     </view>
     <view class="item-body {{openId === item.id ? '' : 'clamp'}}">{{item.body}}</view>
-    <view class="src" wx:if="{{openId === item.id}}">{{item.source}}</view>
+    <view class="src" wx:if="{{openId === item.id}}">
+      <view wx:for="{{item.sources}}" wx:for-item="s" wx:key="citation">{{s.citation}}</view>
+    </view>
   </view>
 
   <view class="empty" wx:if="{{!list.length}}">没有匹配的条目</view>
